@@ -8,11 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+// JDBC implementation for ExamScore; examiner module DAO layer only.
 public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
 
     private static final String BASE_SELECT =
             "SELECT ExamScoreId, ExamResultId, ExamSectionId, Score FROM ExamScore";
 
+    // Loads the score row for one exam result and section pair.
     @Override
     public ExamScore getByExamResultAndSection(int examResultId, int examSectionId) {
         String sql = BASE_SELECT + " WHERE ExamResultId = ? AND ExamSectionId = ?";
@@ -30,6 +32,7 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return null;
     }
 
+    // Inserts a new exam score row and returns generated id.
     @Override
     public int add(ExamScore score) {
         String sql = "INSERT INTO ExamScore (ExamResultId, ExamSectionId, Score) VALUES (?, ?, ?)";
@@ -50,6 +53,7 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return 0;
     }
 
+    // Updates only the Score column on one exam score row.
     @Override
     public boolean updateScore(int examScoreId, double score) {
         String sql = "UPDATE ExamScore SET Score = ? WHERE ExamScoreId = ?";
@@ -63,6 +67,7 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return false;
     }
 
+    // Recalculates score from DeductionRecord rows (critical rules force zero).
     @Override
     public boolean recalculateFromDeductions(int examScoreId) {
         String sql = "SELECT SUM(sd.Points * dr.OccurrenceCount) AS totalDeduction, "
@@ -88,6 +93,24 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return updateScore(examScoreId, score);
     }
 
+    // Loads one exam score row by primary key.
+    @Override
+    public ExamScore get(int examScoreId) {
+        String sql = BASE_SELECT + " WHERE ExamScoreId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examScoreId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Private helper: map.
     private static ExamScore map(ResultSet rs) throws SQLException {
         ExamScore score = new ExamScore();
         score.setExamScoreId(rs.getInt("ExamScoreId"));

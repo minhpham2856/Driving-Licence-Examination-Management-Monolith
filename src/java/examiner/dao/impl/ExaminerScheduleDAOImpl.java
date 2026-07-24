@@ -14,14 +14,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+// JDBC implementation for ExaminerSchedule; examiner module DAO layer only.
 public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerScheduleDAO {
 
     private static final String SCHEDULE_COLUMNS = """
             ExaminerScheduleId, ExamId, ExaminerId, ExamSectionId, ExamAreaId, AssignedBy, AssignedAt
             """;
 
+    // Inserts a new examiner schedule assignment row.
     @Override
-    public boolean insert(ExaminerSchedule schedule) {
+    public boolean add(ExaminerSchedule schedule) {
         String sql = """
                 INSERT INTO ExaminerSchedule (ExamId, ExaminerId, ExamSectionId, ExamAreaId, AssignedBy, AssignedAt)
                 VALUES (?, ?, ?, ?, ?, GETDATE())
@@ -51,6 +53,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return false;
     }
 
+    // Removes one examiner assignment for an exam/area slot.
     @Override
     public boolean deleteBySlot(int examId, int areaId, int examinerId) {
         String sql = """
@@ -68,14 +71,16 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return false;
     }
 
+    // Lists all schedule rows for one exam.
     @Override
     public List<ExaminerSchedule> getByExamId(int examId) {
         String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE ExamId = ?";
         return queryList(sql, examId);
     }
 
+    // Lists schedule rows for exams starting on one calendar date.
     @Override
-    public List<ExaminerSchedule> findByExamDate(Date examDate) {
+    public List<ExaminerSchedule> getAllByExamDate(Date examDate) {
         String sql = """
                 SELECT es.ExaminerScheduleId, es.ExamId, es.ExaminerId, es.ExamSectionId,
                        es.ExamAreaId, es.AssignedBy, es.AssignedAt
@@ -99,8 +104,9 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return Collections.emptyList();
     }
 
+    // Returns examiner user ids already scheduled on one exam date.
     @Override
-    public Set<Integer> findBusyExaminerIdsByExamDate(Date examDate) {
+    public Set<Integer> getAllBusyExaminerIdsByExamDate(Date examDate) {
         Set<Integer> busyIds = new HashSet<>();
         String sql = """
                 SELECT DISTINCT es.ExaminerId
@@ -121,8 +127,9 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return busyIds;
     }
 
+    // Lists all schedule rows for one examiner ordered by exam start time.
     @Override
-    public List<ExaminerSchedule> findByExaminerId(int examinerUserId) {
+    public List<ExaminerSchedule> getAllByExaminer(int examinerUserId) {
         String sql = """
                 SELECT es.ExaminerScheduleId, es.ExamId, es.ExaminerId, es.ExamSectionId,
                        es.ExamAreaId, es.AssignedBy, es.AssignedAt
@@ -146,8 +153,9 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return Collections.emptyList();
     }
 
+    // Loads one schedule row by primary key.
     @Override
-    public ExaminerSchedule getById(int examinerScheduleId) {
+    public ExaminerSchedule get(int examinerScheduleId) {
         String sql = "SELECT " + SCHEDULE_COLUMNS + " FROM ExaminerSchedule WHERE ExaminerScheduleId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examinerScheduleId);
@@ -162,8 +170,9 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return null;
     }
 
+    // Loads the schedule row linking one examiner to one exam.
     @Override
-    public ExaminerSchedule getScheduleByExaminerAndExam(int examinerId, int examId) {
+    public ExaminerSchedule getIfByExaminerAndExam(int examinerId, int examId) {
         String sql = "SELECT " + SCHEDULE_COLUMNS
                 + " FROM ExaminerSchedule WHERE ExaminerId = ? AND ExamId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -180,8 +189,9 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return null;
     }
 
+    // Lists in-progress exam schedule rows for one examiner.
     @Override
-    public List<ExaminerSchedule> findInProgressByExaminerId(int examinerUserId) {
+    public List<ExaminerSchedule> getAllInProgressByExaminer(int examinerUserId) {
         String sql = """
                 SELECT es.ExaminerScheduleId, es.ExamId, es.ExaminerId, es.ExamSectionId,
                        es.ExamAreaId, es.AssignedBy, es.AssignedAt
@@ -206,6 +216,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return Collections.emptyList();
     }
 
+    // Private helper: query list.
     private List<ExaminerSchedule> queryList(String sql, int param) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, param);
@@ -222,6 +233,7 @@ public class ExaminerScheduleDAOImpl extends DBContext implements ExaminerSchedu
         return Collections.emptyList();
     }
 
+    // Private helper: map schedule.
     private static ExaminerSchedule mapSchedule(ResultSet rs) throws SQLException {
         ExaminerSchedule schedule = new ExaminerSchedule();
         schedule.setExaminerScheduleId(rs.getInt("ExaminerScheduleId"));
