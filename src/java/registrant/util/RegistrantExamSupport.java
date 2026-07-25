@@ -14,9 +14,7 @@ import java.util.Locale;
 
 /**
  * Tiện ích nghiệp vụ thi cho cổng thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch.
- * <p>
- * Dùng trên dashboard, my-exams, register-exam; tích hợp {@link registrant.enums.ExamSessionStatus},
- * {@link registrant.enums.ProfileRegistrationStatus} và nhãn nguyện vọng/SBD/chờ kết quả.
+ * Dùng trên dashboard, my-exams, register-exam; tích hợp ExamSessionStatus, ProfileRegistrationStatus và nhãn nguyện vọng/SBD/chờ kết quả.
  */
 public final class RegistrantExamSupport {
 

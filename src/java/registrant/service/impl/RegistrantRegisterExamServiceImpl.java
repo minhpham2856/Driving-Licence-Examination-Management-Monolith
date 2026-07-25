@@ -28,13 +28,8 @@ import java.util.List;
 
 /**
  * Đăng ký ngày thi dự kiến sau khi hồ sơ + hạng được duyệt.
- * <p>
- * Luồng:
- * <ol>
- *   <li>{@link #loadRegisterExamPage} — đọc ExamDates / Licence / Document Approved → request attrs</li>
- *   <li>{@link #submitRegistration} — validate → {@code RegistrantDAO.registerPreferredExamDate}
- *       → MERGE {@code RegistrationDates} (không ghi Payment)</li>
- * </ol>
+ * Luồng: loadRegisterExamPage — đọc ExamDates / Licence / Document Approved → request attrs;
+ * submitRegistration — validate → RegistrantDAO.registerPreferredExamDate → MERGE RegistrationDates (không ghi Payment).
  */
 public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExamService {
 

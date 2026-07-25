@@ -3,10 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * DTO một kỳ thi của thí sinh trên trang {@code my-exams.jsp}.
- * <p>
- * Gộp nguyện vọng {@code RegistrationDates} và ca chính thức ({@code Candidate}, SBD, phòng, điểm lý/thực hành,
- * trạng thái thanh toán). Map sang EL JSP qua {@code RegistrantMyExamsServiceImpl}.
+ * DTO một kỳ thi của thí sinh trên trang my-exams.jsp.
+ * Gộp nguyện vọng RegistrationDates và ca chính thức (Candidate, SBD, phòng, điểm lý/thực hành, trạng thái thanh toán). Map sang EL JSP qua RegistrantMyExamsServiceImpl.
  */
 public class RegistrantMyExamRow {
 

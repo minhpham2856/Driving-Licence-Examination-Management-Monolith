@@ -1,12 +1,10 @@
 package payment.dto.sepay;
 
 /**
- * DTO sự kiện webhook IPN đã được {@link payment.util.sepay.SePayIpnParser} trích từ JSON SePay.
- * <p>
- * Thuộc bước <b>IPN</b>: chứa {@code notification_type}, trạng thái đơn/giao dịch, số tiền,
- * {@code order_invoice_number} và {@code payment_method}. Cờ {@code paid=true} khi
- * {@code ORDER_PAID} + {@code CAPTURED} — kích hoạt ghi {@link payment.dto.PaymentRecord}
- * (PaymentStatus Hoàn tất) vào bảng {@code Payment} trong service.
+ * DTO sự kiện webhook IPN đã được SePayIpnParser trích từ JSON SePay.
+ * Thuộc bước IPN: chứa notification_type, trạng thái đơn/giao dịch, số tiền,
+ * order_invoice_number và payment_method. Cờ paid=true khi
+ * ORDER_PAID + CAPTURED — kích hoạt ghi PaymentRecord (PaymentStatus Hoàn tất) vào bảng Payment trong service.
  */
 public class SePayIpnEvent {
 

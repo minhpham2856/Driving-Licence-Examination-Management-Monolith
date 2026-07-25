@@ -11,11 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Trang lịch thi và kết quả — {@code GET /registrant/my-exams} → {@code my-exams.jsp}.
- * <p>
- * Luồng: auth → {@link RegistrantMyExamsService#copyMyExamsToRequest} (tham số {@code examId} chọn ca chi tiết)
- * → forward. Gắn {@code myExamList}, thống kê ca, bộ lọc và {@code selectedExam}/{@code showExamDetails}.
- * Query {@code success=registered} hiển thị flash sau đăng ký nguyện vọng ngày thi (chưa có SBD chính thức).
+ * Trang lịch thi và kết quả — GET /registrant/my-exams, forward my-exams.jsp.
+ * Luồng: auth → RegistrantMyExamsService.copyMyExamsToRequest (tham số examId chọn ca chi tiết) → forward.
+ * Gắn myExamList, thống kê ca, bộ lọc và selectedExam/showExamDetails.
+ * Query success=registered hiển thị flash sau đăng ký nguyện vọng ngày thi (chưa có SBD chính thức).
  */
 @WebServlet("/registrant/my-exams")
 public class MyExamsServlet extends HttpServlet {

@@ -1,5 +1,7 @@
 package admin.util;
 
+import auth.dto.UserDTO;
+import shared.Attributes;
 import shared.dbconnection.DBContext;
 import shared.model.User;
 import jakarta.servlet.http.HttpSession;
@@ -26,9 +28,11 @@ public final class AdminAuditLog {
         String sql = "INSERT INTO Audit (UserId, Action, EntityName, EntityId, NewValue, CreatedAt) VALUES (?,?,?,?,?,?)";
         Connection c = null;
         try {
+            // Session lưu UserDTO (auth.dto.UserDTO); vẫn nhận User để tương thích ngược.
             Integer userId = null;
-            Object u = (session != null) ? session.getAttribute("user") : null;
-            if (u instanceof User) userId = ((User) u).getUserId();
+            Object u = (session != null) ? session.getAttribute(Attributes.Session.USER) : null;
+            if (u instanceof UserDTO) userId = ((UserDTO) u).getUserId();
+            else if (u instanceof User) userId = ((User) u).getUserId();
 
             c = new Db().getConnection();
             try (PreparedStatement ps = c.prepareStatement(sql)) {

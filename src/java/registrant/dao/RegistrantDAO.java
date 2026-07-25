@@ -11,23 +11,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tập trung các truy vấn phức tạp phục vụ cổng thí sinh (Registrant portal).
- * Tách riêng để không làm phình các dao dùng chung với staff/examiner.
- * <p>
- * <b>Cách tìm nhanh:</b> Ctrl+F {@code REGION:} hoặc nhảy theo <b>LOC index</b> bên dưới
- * (số dòng ~ gần đúng — cập nhật khi sửa lớn). Impl cùng thứ tự:
- * {@link registrant.dao.impl.RegistrantDAOImpl}.
- * <p>
- * <b>LOC index (interface):</b>
- * <ul>
- *   <li><b>~L35</b> — Hạng GPLX / resolve LicenceId</li>
- *   <li><b>~L48</b> — Ngày thi dự kiến (ExamDates) &amp; nguyện vọng</li>
- *   <li><b>~L71</b> — Danh sách đăng ký thi</li>
- *   <li><b>~L84</b> — Dashboard (stats / upcoming / activity / daysUntil)</li>
- *   <li><b>~L103</b> — Lịch thi &amp; kết quả (my-exams)</li>
- *   <li><b>~L113</b> — Hồ sơ tài liệu (#PROFILE_DOC# …)</li>
- *   <li><b>~L147</b> — Theo dõi hồ sơ (track-profile)</li>
- * </ul>
+ * DAO cổng thí sinh: hạng GPLX, đợt thi mở, đăng ký ExamRegistration, dashboard/tracking.
+ * Cách tìm nhanh: Ctrl+F REGION: hoặc nhảy theo LOC index bên dưới (số dòng gần đúng — cập nhật khi sửa lớn). Impl cùng thứ tự: RegistrantDAOImpl.
+ * LOC index (interface):
+ * ~L35 — Hạng GPLX / resolve LicenceId
+ * ~L48 — Ngày thi dự kiến (ExamDates) và nguyện vọng
+ * ~L71 — Danh sách đăng ký thi
+ * ~L84 — Dashboard (stats / upcoming / activity / daysUntil)
+ * ~L103 — Lịch thi và kết quả (my-exams)
+ * ~L113 — Hồ sơ tài liệu (#PROFILE_DOC#)
+ * ~L147 — Theo dõi hồ sơ (track-profile)
  */
 public interface RegistrantDAO {
 
@@ -50,7 +43,7 @@ public interface RegistrantDAO {
 
     /**
      * Ngày thi dự kiến (ExamDates) theo hạng — managing staff tạo; thí sinh chọn trên wizard đăng ký.
-     * Trả về dạng {@link RegistrantExamSessionOption} để tái dùng UI (id = ExamDateId).
+     * Trả về dạng RegistrantExamSessionOption để tái dùng UI (id = ExamDateId).
      */
     List<RegistrantExamSessionOption> listOpenExamSessionsByLicenceCode(String uiLicenceCode);
 
@@ -60,7 +53,7 @@ public interface RegistrantDAO {
     /**
      * Ghi lựa chọn ngày dự kiến vào RegistrationDates (IsActive=1).
      * Mỗi hồ sơ + hạng chỉ được một nguyện vọng active — không cho đổi/ghi đè ngày đã chọn.
-     * @return null nếu OK, ngược lại thông báo lỗi thân thiện.
+     * Trả về null nếu OK, ngược lại thông báo lỗi thân thiện.
      */
     String registerPreferredExamDate(int profileId, int examDateId, int licenceId);
 
@@ -113,7 +106,7 @@ public interface RegistrantDAO {
     // REGION: Hồ sơ tài liệu — ExamRegistration workflow (#PROFILE_DOC# …)  (~L113)
     // =========================================================================
 
-    /** Trạng thái hồ sơ gốc (4 giấy bắt buộc) - bỏ qua dòng {@code #SUPPLEMENT_DOC#} / {@code #LICENCE_DOC#}. */
+    /** Trạng thái hồ sơ gốc (4 giấy bắt buộc) - bỏ qua dòng #SUPPLEMENT_DOC# / #LICENCE_DOC#. */
     String findProfileDocumentRegistrationStatus(int profileId);
 
     /**
@@ -122,7 +115,7 @@ public interface RegistrantDAO {
      */
     List<String> listApprovedDocumentLicenceCodes(int profileId);
 
-    /** Có request hồ sơ bổ sung / xin duyệt hạng đang {@code Pending} trên ExamRegistration. */
+    /** Có request hồ sơ bổ sung / xin duyệt hạng đang Pending trên ExamRegistration. */
     boolean hasOpenSupplementPending(int profileId);
 
     /** Tạo dòng ExamRegistration mới cho workflow hồ sơ bổ sung. */
@@ -138,7 +131,7 @@ public interface RegistrantDAO {
     boolean syncProfileDocumentRegistration(int profileId, String status, String notes);
 
     /**
-     * Như {@link #syncProfileDocumentRegistration(int, String, String)} và gán {@code LicenceId}
+     * Như syncProfileDocumentRegistration(profileId, status, notes) và gán LicenceId
      * hạng thí sinh gửi duyệt (để managing staff biết hạng đang xét).
      */
     boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId);

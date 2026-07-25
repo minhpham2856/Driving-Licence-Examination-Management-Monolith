@@ -15,9 +15,7 @@ import java.util.Locale;
 
 /**
  * Builder timeline 5 bước trên trang track-profile: Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD.
- * <p>
- * {@code resolveProgressIndex} suy ra bước hiện tại từ {@code RegistrationStatus}, tài liệu và SBD;
- * dùng bởi {@link registrant.service.impl.RegistrantTrackProfileServiceImpl}.
+ * resolveProgressIndex suy ra bước hiện tại từ RegistrationStatus, tài liệu và SBD; dùng bởi RegistrantTrackProfileServiceImpl.
  */
 public final class RegistrantProfileProgressBuilder {
 

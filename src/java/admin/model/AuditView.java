@@ -23,7 +23,15 @@ public class AuditView {
     public void setUsername(String v) { this.username = v; }
     public String getRoleDb() { return roleDb; }
     public void setRoleDb(String v) { this.roleDb = v; }
-    public String getRoleCode() { return admin.util.RoleUi.toUiCode(roleDb); }
+    /** Mã vai trò cho UI; "unknown" khi bản ghi không xác định được người thực hiện. */
+    public String getRoleCode() {
+        return (roleDb == null || roleDb.isBlank()) ? "unknown" : admin.util.RoleUi.toUiCode(roleDb);
+    }
+
+    /** Nhãn vai trò hiển thị; gạch ngang khi không rõ người thực hiện. */
+    public String getRoleLabel() {
+        return (roleDb == null || roleDb.isBlank()) ? "—" : roleDb;
+    }
     public String getAction() { return action; }
     public void setAction(String v) { this.action = v; }
 
@@ -44,7 +52,6 @@ public class AuditView {
     public void setEntityName(String v) { this.entityName = v; }
     public String getDetail() { return (detail == null || detail.isBlank()) ? "-" : detail; }
     public void setDetail(String v) { this.detail = v; }
-    public String getIp() { return "-"; }
     public String getInitial() {
         String s = (fullName != null && !fullName.isBlank()) ? fullName
                  : (username != null && !username.isBlank() ? username : "?");

@@ -10,10 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Builder panel "Việc cần làm" trên dashboard thí sinh — tầng util, gọi từ {@code RegistrantDashboardServiceImpl}.
- * <p>
- * Sinh tối đa 4 {@link registrant.dto.RegistrantDashboardActionItem} theo trạng thái hồ sơ
- * ({@link registrant.enums.ProfileRegistrationStatus}), tài liệu, số ca đăng ký và ca sắp tới.
+ * Builder panel "Việc cần làm" trên dashboard thí sinh — tầng util, gọi từ RegistrantDashboardServiceImpl.
+ * Sinh tối đa 4 RegistrantDashboardActionItem theo trạng thái hồ sơ (ProfileRegistrationStatus), tài liệu, số ca đăng ký và ca sắp tới.
  */
 public final class RegistrantDashboardActionItemsBuilder {
 

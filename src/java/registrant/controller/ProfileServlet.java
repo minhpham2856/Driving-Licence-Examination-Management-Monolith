@@ -15,17 +15,10 @@ import java.sql.Date;
 import java.sql.Timestamp;
 
 /**
- * Hồ sơ cá nhân Registrant — {@code GET/POST /registrant/profile}.
- * <p>
- * <b>GET — lấy data:</b> session USER → {@link RegistrantProfileService#copyProfileToRequest}
- * đọc bảng {@code Profile} (+ tiến độ / status từ ExamRegistration document-workflow)
- * → set request attributes → forward {@code profile.jsp}.
- * <p>
- * <b>POST — nhận form → ghi DB:</b> bind FullName, DOB, Sex, Phone, Address, CCCD
- * → validate (CCCD khóa khi status Approved) → INSERT/UPDATE {@code Profile}
- * → redirect {@code ?success=1} hoặc forward kèm {@code error}.
- * <p>
- * CCCD ({@code GovernmentIdNumber}) là cầu nối sau này với {@code Candidate} để đọc Payment.
+ * Hồ sơ cá nhân Registrant — GET/POST /registrant/profile.
+ * GET — lấy data: session USER → RegistrantProfileService.copyProfileToRequest đọc bảng Profile (+ tiến độ / status từ ExamRegistration document-workflow) → set request attributes → forward profile.jsp.
+ * POST — nhận form → ghi DB: bind FullName, DOB, Sex, Phone, Address, CCCD → validate (CCCD khóa khi status Approved) → INSERT/UPDATE Profile → redirect ?success=1 hoặc forward kèm error.
+ * CCCD (GovernmentIdNumber) là cầu nối sau này với Candidate để đọc Payment.
  */
 @WebServlet("/registrant/profile")
 public class ProfileServlet extends HttpServlet {
