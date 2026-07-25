@@ -102,7 +102,6 @@
                             <th scope="col" style="width: 120px; text-align: center;">Thao tác</th>
                             <th scope="col" style="width: 120px; text-align: center;">Phân hệ</th>
                             <th scope="col">Chi tiết nội dung kiểm toán</th>
-                            <th scope="col" style="width: 150px;">IP & Thiết bị</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,7 +128,7 @@
                                                 <c:when test="${log.roleCode eq 'coi_thi'}"><span class="role-badge role-badge--coi">Cán bộ coi thi</span></c:when>
                                                 <c:when test="${log.roleCode eq 'cham_thi'}"><span class="role-badge role-badge--cham">Giám khảo</span></c:when>
                                                 <c:when test="${log.roleCode eq 'managing'}"><span class="role-badge role-badge--admin">Cán bộ quản lý</span></c:when>
-                                                <c:otherwise><span class="role-badge role-badge--other">Thí sinh</span></c:otherwise>
+                                                <c:otherwise><span class="role-badge role-badge--other">${log.roleLabel}</span></c:otherwise>
                                             </c:choose>
                                         </td>
                                         <td style="text-align: center;">
@@ -147,12 +146,11 @@
                                                 <c:otherwise>${log.detail}</c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td style="font-size: 0.8rem; color: #94a3b8;">${log.ip}</td>
                                     </tr>
                                 </c:forEach>
                             </c:when>
                             <c:otherwise>
-                                <tr><td colspan="8" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
+                                <tr><td colspan="7" style="text-align: center; padding: 5rem 1.5rem; color: #64748b; font-weight: 500;">
                                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin: 0 auto 1.5rem; display: block; opacity: 0.25; color: #64748b;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                                     Không có bản ghi nhật ký nào khớp với bộ lọc.
                                 </td></tr>
