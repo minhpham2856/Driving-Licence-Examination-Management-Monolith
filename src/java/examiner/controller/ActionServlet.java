@@ -191,13 +191,8 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
                     return true;
                 }
-                if (!actionService.markSuspended(activeExamId, sbd, userId, null, null, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=suspendFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
-                    return true;
-                }
-                response.sendRedirect(request.getContextPath() + "/examiner/action?suspended="
-                        + RequestUtil.urlEncode(sbd));
+                response.sendRedirect(request.getContextPath() + "/examiner/violations?sbd="
+                        + RequestUtil.urlEncode(sbd) + "&mode=create&from=action");
                 return true;
             }
             case "undoSuspend" -> {

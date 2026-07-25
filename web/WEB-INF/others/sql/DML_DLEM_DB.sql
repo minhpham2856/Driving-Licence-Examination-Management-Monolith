@@ -1,6 +1,8 @@
 -- ============================================
--- DML – DLEM_DB_2 (khớp DDL_DLEM_DB.sql)
+-- DML – DLEM_DB_2 (khớp DDL_DLEM_DB.sql hợp nhất)
 -- Mật khẩu mặc định mọi tài khoản: login123
+-- ExamDates / RegistrationDates / OfficialExamCandidate: không seed —
+-- managing staff và police tạo qua UI.
 -- ============================================
 
 USE DLEM_DB_2;
@@ -19,8 +21,9 @@ DELETE FROM Licence_Fee;
 DELETE FROM ExamEnrollmentSection;
 DELETE FROM ExamEnrollment;
 DELETE FROM Candidate;
-DELETE FROM RegistrationDates;   
-DELETE FROM ExamDates;           
+DELETE FROM OfficialExamCandidate;
+DELETE FROM RegistrationDates;
+DELETE FROM ExamDates;
 DELETE FROM ExamRegistration;
 DELETE FROM Document;
 DELETE FROM DocumentType;
@@ -50,7 +53,8 @@ INSERT INTO [Role] (RoleName) VALUES
 (N'Cán bộ quản lý'),
 (N'Cán bộ kỳ thi'),
 (N'Thí sinh'),
-(N'Người đăng ký thi');
+(N'Người đăng ký thi'),
+(N'Cán bộ CSGT');
 GO
 
 -- ============================================
@@ -77,7 +81,8 @@ INSERT INTO [User] (Username, Email, PasswordHash, RoleId, IsActive) VALUES
 (N'user_kim',    N'kim.ngo@gmail.com',              @Pw, 6, 1),
 (N'user_long',   N'long.bui@gmail.com',             @Pw, 6, 0),
 (N'user_hoa',    N'hoa.thi@gmail.com',              @Pw, 6, 1),
-(N'user_khoa',   N'khoa.tran@gmail.com',            @Pw, 6, 1);
+(N'user_khoa',   N'khoa.tran@gmail.com',            @Pw, 6, 1),
+(N'police123',   N'police@csgt.gov.vn',             @Pw, 7, 1);
 GO
 
 -- ============================================
@@ -101,7 +106,8 @@ INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber
 (N'Ngô Thị Kim',       '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Hải Châu, Đà Nẵng', 15),
 (N'Bùi Văn Long',      '1985-03-30', N'0888123456', 1, N'001085033001', N'67 Điện Biên Phủ, Ba Đình, Hà Nội', 16),
 (N'Nguyễn Thị Hoa',    '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Ba Đình, Hà Nội', 17),
-(N'Trần Văn Khoa',     '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Cầu Giấy, Hà Nội', 18);
+(N'Trần Văn Khoa',     '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Cầu Giấy, Hà Nội', 18),
+(N'Lê Văn Cảnh',       '1987-02-18', N'0911005001', 1, N'001087021801', N'Cục CSGT, Hà Nội', 19);
 GO
 
 -- ============================================

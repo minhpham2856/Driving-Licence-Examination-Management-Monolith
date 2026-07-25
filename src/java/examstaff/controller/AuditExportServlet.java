@@ -121,8 +121,11 @@ public class AuditExportServlet extends HttpServlet {
      */
     private static String resolveStaffName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
-        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
-            return profile.getFullName();
+        if (profileObj instanceof Profile) {
+            Profile profile = (Profile) profileObj;
+            if (profile.getFullName() != null) {
+                return profile.getFullName();
+            }
         }
         return SessionUserHelper.resolveUsername(session);
     }

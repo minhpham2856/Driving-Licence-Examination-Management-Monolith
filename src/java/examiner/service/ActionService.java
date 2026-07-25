@@ -56,6 +56,11 @@ public interface ActionService {
     ServiceResult<Void> updatePracticalScoreWithReason(int examId, int sbd, int newScore, User user,
             String password, String reasonCode, String reasonDetail, Integer actionUserId, SectionType sectionType);
 
+    // Updates practical score from deduction occurrence map after password-confirmed reason validation.
+    ServiceResult<Void> updatePracticalScoreWithDeductions(int examId, int sbd, Map<Integer, Integer> occurrences,
+            User user, String password, String reasonCode, String reasonDetail, Integer actionUserId,
+            SectionType sectionType);
+
     // Records a violation by suspending the candidate with optional reason metadata.
     ServiceResult<Void> recordViolation(int examId, int sbd, Integer actionUserId, String reasonCode,
             String reasonDetail, String evidencePath, SectionType sectionType);

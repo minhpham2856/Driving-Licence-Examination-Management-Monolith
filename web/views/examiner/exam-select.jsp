@@ -75,22 +75,22 @@
                             <div class="examiner-exam-card__top">
                                 <span class="examiner-exam-card__dot${enterable ? ' examiner-exam-card__dot--live' : ''}" aria-hidden="true"></span>
                                 <span class="examiner-exam-card__code">
-                                    <c:out value="${exam.examCode}" default="-" />
+                                    <c:out value="${exam.examCode}" default="" />
                                 </span>
                                 <c:choose>
                                     <c:when test="${sectionType eq 'Lý thuyết'}">
                                         <span class="examiner-exam-card__badge examiner-exam-card__badge--theory">
-                                            <c:out value="${sectionType}" default="-" />
+                                            <c:out value="${sectionType}" default="" />
                                         </span>
                                     </c:when>
                                     <c:otherwise>
                                         <span class="examiner-exam-card__badge examiner-exam-card__badge--layout">
-                                            <c:out value="${sectionType}" default="-" />
+                                            <c:out value="${sectionType}" default="" />
                                         </span>
                                     </c:otherwise>
                                 </c:choose>
                                 <span class="examiner-exam-card__badge examiner-exam-card__badge--${enterable ? 'live' : 'idle'}">
-                                    <c:out value="${exam.status}" default="-" />
+                                    <c:out value="${exam.status}" default="" />
                                 </span>
                             </div>
                             <div class="examiner-exam-card__fields">
@@ -102,7 +102,7 @@
                                             <c:when test="${not empty exam.examDate}">
                                                 <fmt:formatDate value="${exam.examDate}" pattern="dd/MM/yyyy" />
                                             </c:when>
-                                            <c:otherwise>-</c:otherwise>
+                                            <c:otherwise></c:otherwise>
                                         </c:choose>
                                     </span>
                                 </div>
@@ -114,7 +114,7 @@
                                             <c:when test="${not empty exam.startTime}">
                                                 <fmt:formatDate value="${exam.startTime}" pattern="HH:mm" />
                                             </c:when>
-                                            <c:otherwise>-</c:otherwise>
+                                            <c:otherwise></c:otherwise>
                                         </c:choose>
                                     </span>
                                 </div>
@@ -122,7 +122,7 @@
                                     <span class="examiner-exam-card__label">Nội dung sát hạch</span>
                                     <span class="examiner-exam-card__value">
                                         <span class="material-symbols-outlined">description</span>
-                                        <c:out value="${sectionType}" default="-" />
+                                        <c:out value="${sectionType}" default="" />
                                         <c:if test="${not empty licence.licenceClass}">
                                             (<c:out value="${licence.licenceClass}" />)
                                         </c:if>
@@ -132,7 +132,7 @@
                                     <span class="examiner-exam-card__label">Địa điểm</span>
                                     <span class="examiner-exam-card__value">
                                         <span class="material-symbols-outlined">location_on</span>
-                                        <c:out value="${locationName}" default="-" />
+                                        <c:out value="${locationName}" default="" />
                                     </span>
                                 </div>
                             </div>

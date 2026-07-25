@@ -214,7 +214,7 @@ public class ExamViewServiceImpl implements ExamViewService {
                 // Count pass/fail
                 if (row.isPassed()) {
                     passed++;
-                } else if (row.getResultLabel() != null && !"-".equals(row.getResultLabel())) {
+                } else if (row.getResultLabel() != null && !row.getResultLabel().isBlank()) {
                     failed++;
                 }
             }
@@ -783,11 +783,11 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setPassed("Đạt".equals(resultLabel));
         if (!sectionRequired) {
             row.setExamScore(null);
-            row.setResultLabel("-");
+            row.setResultLabel("");
             row.setPassed(false);
         }
         Integer deviceId = enrollment.getExamDeviceId();
-        row.setVehicleName(deviceId != null ? deviceNames.getOrDefault(deviceId, "-") : "-");
+        row.setVehicleName(deviceId != null ? deviceNames.getOrDefault(deviceId, "") : "");
         row.setExamAreaId(enrollment.getAllocatedAreaId());
         row.setExamAreaName(enrollment.getAllocatedAreaName());
         return row;
@@ -894,7 +894,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (!revealOutcome) {
             row.setExamScore(null);
             row.setPassed(false);
-            row.setResultLabel("-");
+            row.setResultLabel("");
         } else if (practicalSection) {
             if (examScore != null) {
                 boolean passed = examScore >= 80;
@@ -904,7 +904,7 @@ public class ExamViewServiceImpl implements ExamViewService {
                 Boolean passed = passFlags.get(enrollmentId);
                 if (passed == null) {
                     row.setPassed(false);
-                    row.setResultLabel("-");
+                    row.setResultLabel("");
                 } else {
                     row.setPassed(passed);
                     row.setResultLabel(passed ? "Đạt" : "Trượt");
@@ -921,7 +921,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             Boolean passed = passFlags.get(enrollmentId);
             if (passed == null) {
                 row.setPassed(false);
-                row.setResultLabel("-");
+                row.setResultLabel("");
             } else {
                 row.setPassed(passed);
                 row.setResultLabel(passed ? "Đạt" : "Trượt");
@@ -929,7 +929,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         }
         // Device (vehicle) name
         Integer deviceId = enrollment.getExamDeviceId();
-        row.setVehicleName(deviceId != null ? deviceNames.getOrDefault(deviceId, "-") : "-");
+        row.setVehicleName(deviceId != null ? deviceNames.getOrDefault(deviceId, "") : "");
         row.setExamAreaId(enrollment.getAllocatedAreaId());
         row.setExamAreaName(enrollment.getAllocatedAreaName());
         return row;
@@ -981,7 +981,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (score == null) {
             row.setExamScore(null);
             row.setPassed(false);
-            row.setResultLabel("-");
+            row.setResultLabel("");
             return;
         }
         int roundedScore = score.intValue();
@@ -1001,14 +1001,14 @@ public class ExamViewServiceImpl implements ExamViewService {
     private String resolveActionResultLabel(EnrollmentDTO enrollment, Double score,
             boolean practicalSection, CandidateStatus sectionStatus) {
         if (sectionStatus != CandidateStatus.COMPLETED && sectionStatus != CandidateStatus.AWAITING_SIGNATURE) {
-            return "-";
+            return "";
         }
         if (practicalSection && score != null) {
             return score >= 80 ? "Đạt" : "Trượt";
         }
         String persisted = practicalSection ? enrollment.getPracticalPassed() : enrollment.getTheoryPassed();
         if (persisted == null || persisted.isBlank()) {
-            return "-";
+            return "";
         }
         return persisted;
     }
@@ -1044,7 +1044,7 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     private static String resolveSexLabel(Sex sex) {
         if (sex == null) {
-            return "-";
+            return "";
         }
         return sex.getValue();
     }
@@ -1059,7 +1059,7 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     private String formatDate(Timestamp timestamp) {
         if (timestamp == null) {
-            return "-";
+            return "";
         }
         return formatDate(new Date(timestamp.getTime()));
     }
@@ -1074,7 +1074,7 @@ public class ExamViewServiceImpl implements ExamViewService {
     // Formats a Date to dd/MM/yyyy
     private String formatDate(Date date) {
         if (date == null) {
-            return "-";
+            return "";
         }
         synchronized (DATE_FMT) {
             return DATE_FMT.format(date);
@@ -1095,14 +1095,14 @@ public class ExamViewServiceImpl implements ExamViewService {
     private String formatExamDate(int examId) {
         Exam exam = examDAO.get(examId);
         if (exam == null) {
-            return "-";
+            return "";
         }
         java.util.Date date = exam.getExamDate();
         if (date == null) {
             date = exam.getStartTime();
         }
         if (date == null) {
-            return "-";
+            return "";
         }
         synchronized (DATE_FMT) {
             return DATE_FMT.format(date);

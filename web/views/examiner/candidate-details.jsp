@@ -118,22 +118,22 @@
 
                                     <div class="examiner-field">
                                         <p class="examiner-field__label">Số điện thoại</p>
-                                        <p class="examiner-field__value examiner-field__value--mono">${empty candidate.phoneNo ? '-' : candidate.phoneNo}</p>
+                                        <p class="examiner-field__value examiner-field__value--mono">${empty candidate.phoneNo ? '' : candidate.phoneNo}</p>
                                     </div>
 
                                     <div class="examiner-field">
                                         <p class="examiner-field__label">Email</p>
-                                        <p class="examiner-field__value">${empty candidate.email ? '-' : candidate.email}</p>
+                                        <p class="examiner-field__value">${empty candidate.email ? '' : candidate.email}</p>
                                     </div>
 
                                     <div class="examiner-field">
                                         <p class="examiner-field__label">Hạng thi</p>
-                                        <p class="examiner-field__value">${empty candidate.licenceClass ? '-' : candidate.licenceClass}</p>
+                                        <p class="examiner-field__value">${empty candidate.licenceClass ? '' : candidate.licenceClass}</p>
                                     </div>
 
                                     <div class="examiner-field examiner-field--full">
                                         <p class="examiner-field__label">Địa chỉ</p>
-                                        <p class="examiner-field__value">${empty candidate.address ? '-' : candidate.address}</p>
+                                        <p class="examiner-field__value">${empty candidate.address ? '' : candidate.address}</p>
                                     </div>
 
                                     <c:if test="${not empty candidate.reasonForTaking}">

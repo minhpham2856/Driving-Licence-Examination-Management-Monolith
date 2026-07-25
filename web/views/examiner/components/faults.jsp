@@ -73,7 +73,7 @@
                                         <c:when test="${not empty deduction.recordedAt}">
                                             <fmt:formatDate value="${deduction.recordedAt}" pattern="HH:mm:ss"/>
                                         </c:when>
-                                        <c:otherwise>-</c:otherwise>
+                                        <c:otherwise></c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td class="score-entry-penalty-actions">
