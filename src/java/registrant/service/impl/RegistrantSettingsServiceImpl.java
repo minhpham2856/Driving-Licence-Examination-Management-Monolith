@@ -21,9 +21,8 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 /**
- * Triển khai {@link registrant.service.RegistrantSettingsService} — trang {@code settings.jsp}.
- * <p>
- * Đổi mật khẩu qua {@code UserDAO} + {@code PasswordUtil}; gửi email xác nhận qua {@code EmailServiceImpl}.
+ * Triển khai RegistrantSettingsService — trang settings.jsp.
+ * Đổi mật khẩu qua UserDAO + PasswordUtil; gửi email xác nhận qua EmailServiceImpl.
  * Không có luồng vô hiệu hóa tài khoản (thí sinh không có quyền). Thông báo Gmail luôn bật (không lưu tùy chọn UI).
  */
 public class RegistrantSettingsServiceImpl implements RegistrantSettingsService {

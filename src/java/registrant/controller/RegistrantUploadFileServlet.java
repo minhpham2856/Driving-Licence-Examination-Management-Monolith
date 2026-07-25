@@ -12,11 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Phục vụ file upload legacy — {@code GET /uploads/registrant/*} (không qua JSP).
- * <p>
- * Đọc tệp từ {@code catalina.base/dlem-uploads/registrant} qua {@link RegistrantUploadStorage},
- * set Content-Type/Cache-Control rồi stream bytes về trình duyệt. Hồ sơ mới lưu Cloudinary;
- * servlet này chỉ phục vụ {@code DocumentUrl} cũ chưa migrate. Bảo vệ bởi {@link registrant.filter.RegistrantFilter}.
+ * Phục vụ file upload legacy — GET /uploads/registrant/* (không qua JSP).
+ * Đọc tệp từ catalina.base/dlem-uploads/registrant qua RegistrantUploadStorage, set Content-Type/Cache-Control rồi stream bytes về trình duyệt.
+ * Hồ sơ mới lưu Cloudinary; servlet này chỉ phục vụ DocumentUrl cũ chưa migrate. Bảo vệ bởi RegistrantFilter.
  */
 @WebServlet(urlPatterns = {"/uploads/registrant/*"})
 public class RegistrantUploadFileServlet extends HttpServlet {

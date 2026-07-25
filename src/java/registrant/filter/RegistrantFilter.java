@@ -15,12 +15,10 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Bảo vệ vùng Registrant: {@code /registrant/*}, {@code /views/registrant/*}, {@code /uploads/registrant/*}.
- * <ol>
- *   <li>JSP thô → redirect sang servlet tương ứng (bắt buộc đi qua DB/service)</li>
- *   <li>Session {@code USER} null → {@code /login}</li>
- *   <li>Role ≠ REGISTRANT → HTTP 403</li>
- * </ol>
+ * Bảo vệ vùng Registrant: /registrant/*, /views/registrant/*, /uploads/registrant/*.
+ * 1) JSP thô → redirect sang servlet tương ứng (bắt buộc đi qua DB/service).
+ * 2) Session USER null → /login.
+ * 3) Role khác REGISTRANT → HTTP 403.
  */
 @WebFilter(
         urlPatterns = { "/views/registrant/*", "/registrant/*", "/uploads/registrant/*" },
