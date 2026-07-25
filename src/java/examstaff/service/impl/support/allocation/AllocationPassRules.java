@@ -10,17 +10,17 @@ import examstaff.dto.ExamRegistrationDTO;
  * - AllocationStageHelper — phân bucket pass/fail khi stage = results
  * - ExamRegistrationDAOImpl — cập nhật / đánh giá kết quả LT-TH
  *
- * Ngưỡng hiện hành (A / A1 / B1):
+ * Ngưỡng hiện hành (A1 / A / B1):
  * Lý thuyết: ≥ THEORY_PASS_CORRECT/THEORY_MAX_QUESTIONS câu đúng
  * và <strong>không sai câu điểm liệt</strong> (Question.IsCritical).
- * Thực hành: điểm ≥ PRACTICAL_PASS_SCORE.
+ * Thực hành: điểm ≥ PRACTICAL_PASS_SCORE (lỗi IsCritical → điểm 0).
  */
 public final class AllocationPassRules {
 
-    /** Tổng số câu LT theo quy định hiện hành (A/A1/B1). */
+    /** Tổng số câu LT theo quy định hiện hành (A1/A/B1). */
     public static final int THEORY_MAX_QUESTIONS = 25;
 
-    /** Số câu đúng tối thiểu để đạt LT (A/A1/B1). */
+    /** Số câu đúng tối thiểu để đạt LT (A1/A/B1). */
     public static final int THEORY_PASS_CORRECT = 21;
 
     public static final int PRACTICAL_PASS_SCORE = 80;

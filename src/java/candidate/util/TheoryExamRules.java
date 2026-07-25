@@ -1,9 +1,10 @@
 package candidate.util;
 
 /**
- * Cấu hình số câu / ngưỡng đạt / thời gian thi lý thuyết theo hạng GPLX (chuẩn bộ 600 câu VN).
- * Mỗi đề luôn có 1 câu điểm liệt (IsCritical); sai câu này là trượt bất kể tổng điểm.
- * Chỉnh số ở đây nếu quy định thay đổi.
+ * Cấu hình số câu / ngưỡng đạt / thời gian thi lý thuyết theo hạng GPLX.
+ * Hệ thống hiện chỉ hỗ trợ A1, A và B1 — cả ba đều 25 câu, đạt ≥ 21,
+ * và mỗi đề luôn có 1 câu điểm liệt ({@code IsCritical}); sai câu này là trượt
+ * bất kể tổng điểm.
  */
 public final class TheoryExamRules {
 
@@ -18,21 +19,20 @@ public final class TheoryExamRules {
         }
     }
 
-    private static final Rule DEFAULT = new Rule(35, 32, 22); // như hạng B
+    /** Quy tắc chung cho A1 / A / B1. */
+    private static final Rule STANDARD = new Rule(25, 21, 19);
 
     private TheoryExamRules() {}
 
     public static Rule resolve(String licenceClass) {
-        if (licenceClass == null) return DEFAULT;
+        if (licenceClass == null) {
+            return STANDARD;
+        }
         String c = licenceClass.trim().toUpperCase().replaceAll("\\s+", "");
-        if (c.startsWith("A1")) return new Rule(25, 21, 19);
-        if (c.startsWith("A"))  return new Rule(25, 21, 19);   // A2, A3, A4
-        if (c.startsWith("B1")) return new Rule(30, 27, 20);
-        if (c.startsWith("B"))  return new Rule(35, 32, 22);   // B2, B
-        if (c.startsWith("C"))  return new Rule(40, 36, 24);
-        if (c.startsWith("D"))  return new Rule(45, 41, 26);
-        if (c.startsWith("E"))  return new Rule(45, 41, 26);
-        if (c.startsWith("F"))  return new Rule(45, 41, 26);
-        return DEFAULT;
+        if (c.startsWith("A1") || c.startsWith("A") || c.startsWith("B1")) {
+            return STANDARD;
+        }
+        // Hạng ngoài phạm vi hỗ trợ — vẫn áp ngưỡng chuẩn để không nới lỏng điều kiện đạt.
+        return STANDARD;
     }
 }

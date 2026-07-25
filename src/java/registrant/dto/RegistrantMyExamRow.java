@@ -27,7 +27,7 @@ public class RegistrantMyExamRow {
     private String theoryResultLabel;
     private String practicalResultLabel;
     private String overallResultLabel;
-    /** Hiển thị chính lý thuyết: vd. "32/35" (số câu đúng / tổng câu). */
+    /** Hiển thị chính lý thuyết: vd. "21/25" (số câu đúng / tổng câu). */
     private String theoryScoreDisplay;
     private String theoryScoreDetail;
     private Integer theoryCorrectCount;
