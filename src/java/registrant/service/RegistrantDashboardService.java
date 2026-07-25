@@ -5,10 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
- * Hợp đồng service trang dashboard thí sinh ({@code DashboardServlet}).
- * <p>
- * Gom thống kê ca thi/hồ sơ, tổng phí đã thu ({@code Payment}), hoạt động gần đây,
- * ca sắp tới và panel "Việc cần làm" từ {@code RegistrantDAO} + {@code PaymentDAO}.
+ * Hợp đồng service trang dashboard thí sinh (DashboardServlet).
+ * Gom thống kê ca thi/hồ sơ, tổng phí đã thu (Payment), hoạt động gần đây, ca sắp tới và panel "Việc cần làm" từ RegistrantDAO + PaymentDAO.
  */
 public interface RegistrantDashboardService {
     /** Xây model dashboard (stats, ca thi, hoạt động, CTA) cho thí sinh. */

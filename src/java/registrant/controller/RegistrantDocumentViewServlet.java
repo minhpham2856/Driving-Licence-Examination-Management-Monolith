@@ -17,11 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Servlet xem tài liệu hồ sơ — {@code GET /registrant/document-view?id=DocumentId}.
- * <p>
- * Sau {@link RegistrantAuth#requireRegistrant}, kiểm tra tài liệu thuộc {@code Profile} của user,
- * resolve {@code DocumentUrl} qua {@link registrant.util.DocumentUrlResolver}
- * (Cloudinary signed / legacy {@code /uploads/registrant/*} / placeholder seed) rồi redirect trình duyệt.
+ * Servlet xem tài liệu hồ sơ — GET /registrant/document-view?id=DocumentId.
+ * Sau requireRegistrant, kiểm tra tài liệu thuộc Profile của user, resolve DocumentUrl qua DocumentUrlResolver (Cloudinary signed / legacy /uploads/registrant/* / placeholder seed) rồi redirect trình duyệt.
  * Không stream trực tiếp từ DB; chỉ ủy quyền xem file đã upload.
  */
 @WebServlet("/registrant/document-view")

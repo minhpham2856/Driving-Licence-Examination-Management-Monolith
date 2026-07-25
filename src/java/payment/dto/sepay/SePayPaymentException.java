@@ -1,11 +1,10 @@
 package payment.dto.sepay;
 
 /**
- * Ngoại lệ nghiệp vụ khi tích hợp SePay ở bước <b>checkout</b> (tạo phiên thanh toán).
- * <p>
- * Ném khi thiếu cấu hình ({@code SEPAY_MERCHANT_ID}, {@code SEPAY_SECRET_KEY}),
- * validate {@link SePayCheckoutRequest} thất bại, callback URL không hợp lệ hoặc lỗi ký form.
- * Bước IPN không dùng exception này — IPN trả {@link SePayIpnResult#reject} thay vì throw.
+ * Ngoại lệ nghiệp vụ khi tích hợp SePay ở bước checkout (tạo phiên thanh toán).
+ * Ném khi thiếu cấu hình (SEPAY_MERCHANT_ID, SEPAY_SECRET_KEY),
+ * validate SePayCheckoutRequest thất bại, callback URL không hợp lệ hoặc lỗi ký form.
+ * Bước IPN không dùng exception này — IPN trả SePayIpnResult.reject thay vì throw.
  */
 public class SePayPaymentException extends Exception {
 

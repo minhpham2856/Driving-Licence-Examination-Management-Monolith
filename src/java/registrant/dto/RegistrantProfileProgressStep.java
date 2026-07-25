@@ -3,10 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * DTO một mốc trên timeline tiến trình hồ sơ ({@code track-profile.jsp}).
- * <p>
- * 5 bước: Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD; {@code state} = completed/active/pending.
- * Dựng bởi {@link registrant.util.RegistrantProfileProgressBuilder}.
+ * DTO một mốc trên timeline tiến trình hồ sơ (track-profile.jsp).
+ * 5 bước: Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD; state = completed/active/pending. Dựng bởi RegistrantProfileProgressBuilder.
  */
 public class RegistrantProfileProgressStep {
 
