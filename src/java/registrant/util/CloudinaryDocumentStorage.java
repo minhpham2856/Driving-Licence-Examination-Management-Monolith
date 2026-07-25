@@ -21,9 +21,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 /**
  * Upload hồ sơ thí sinh lên Cloudinary (authenticated) - phục vụ xem khi chờ duyệt.
- * <p>
- * Cấu trúc: {@code dlem/pending/p{profileId}/{DocumentType}/{uuid}}.
- * Trong DB: {@code cloudinary:image:dlem/pending/p42/IdFront/a1b2c3d4}.
+ * Cấu trúc: dlem/pending/p{profileId}/{DocumentType}/{uuid}. Trong DB: cloudinary:image:dlem/pending/p42/IdFront/a1b2c3d4.
  */
 public final class CloudinaryDocumentStorage {
 
@@ -68,7 +66,7 @@ public final class CloudinaryDocumentStorage {
     }
 
     /**
-     * Upload multipart từ {@link Part}, trả về tham chiếu lưu DB.
+     * Upload multipart từ Part, trả về tham chiếu lưu DB.
      */
     public static String upload(Part part, int profileId, String docType, String ext) throws IOException {
         if (!isConfigured()) {
@@ -156,7 +154,7 @@ public final class CloudinaryDocumentStorage {
 
     /**
      * URL xem tạm trên trình duyệt cho asset authenticated.
-     * Dùng chữ ký delivery {@code /s--XXXX--/} (không dùng query api_key — res.cloudinary.com sẽ từ chối).
+     * Dùng chữ ký delivery /s--XXXX--/ (không dùng query api_key — res.cloudinary.com sẽ từ chối).
      */
     public static String signedDeliveryUrl(String resourceType, String publicId) {
         if (!isConfigured() || blank(publicId) || blank(resourceType)) {

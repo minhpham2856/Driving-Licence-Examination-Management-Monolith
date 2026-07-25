@@ -13,10 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Triển khai {@link registrant.dao.AuditLogDAO} trên bảng {@code Audit} (DLEM_DB_2).
- * <p>
- * {@link #insert} ghi hành động thí sinh/staff; {@link #getLogsByProfileId} join {@code User}/{@code Profile}
- * để lấy tên người thay đổi phục vụ timeline {@code track-profile.jsp}.
+ * Triển khai AuditLogDAO trên bảng Audit (DLEM_DB_2).
+ * insert ghi hành động thí sinh/staff; getLogsByProfileId join User/Profile để lấy tên người thay đổi phục vụ timeline track-profile.jsp.
  */
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 

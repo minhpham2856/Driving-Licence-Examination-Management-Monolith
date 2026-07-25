@@ -11,11 +11,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Servlet xử lý redirect trình duyệt sau thanh toán SePay (bước <b>return</b> — không phải IPN).
- * <p>
- * Ba URL: {@code /success} (UX thành công), {@code /cancel} (khách hủy), {@code /error} (lỗi cổng).
- * Không ghi bảng {@code Payment} — ghi nhận thật qua {@link payment.controller.SePayIpnServlet}.
- * Hủy/lỗi: đưa staff về bước 3 thu lệ phí ({@code procedure?step=3}); thành công: thông báo đóng tab,
+ * Servlet xử lý redirect trình duyệt sau thanh toán SePay (bước return — không phải IPN).
+ * Ba URL: /success (UX thành công), /cancel (khách hủy), /error (lỗi cổng).
+ * Không ghi bảng Payment — ghi nhận thật qua SePayIpnServlet.
+ * Hủy/lỗi: đưa staff về bước 3 thu lệ phí (procedure?step=3); thành công: thông báo đóng tab,
  * desk cập nhật khi IPN tới hoặc bấm Kiểm tra.
  */
 @WebServlet({"/payment/sepay/success", "/payment/sepay/error", "/payment/sepay/cancel"})
@@ -94,7 +93,7 @@ public class SePayReturnServlet extends HttpServlet {
 
     /**
      * URL bước 3 desk: SePay + tiền mặt cùng hiện.
-     * {@code #procedure-desk} giúp cuộn đúng khối thu phí.
+     * Anchor #procedure-desk giúp cuộn đúng khối thu phí.
      */
     private static String paymentStepUrl(HttpServletRequest request, String sbd, boolean cancelled) {
         String ctx = request.getContextPath() == null ? "" : request.getContextPath();
@@ -108,7 +107,7 @@ public class SePayReturnServlet extends HttpServlet {
     }
 
     /**
-     * Checkout mở bằng {@code window.open} → tab return là popup.
+     * Checkout mở bằng window.open → tab return là popup.
      * Ưu tiên: refresh tab gốc (opener) rồi đóng popup; không có opener thì redirect tab hiện tại.
      */
     private static void writeBackToPayment(HttpServletResponse response, String deskUrl, boolean cancelled)

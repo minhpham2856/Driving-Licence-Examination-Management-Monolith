@@ -31,11 +31,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Triển khai {@link registrant.service.RegistrantTrackProfileService} cho trang theo dõi hồ sơ.
- * <p>
- * Đọc {@code AuditLogDAO}, {@code DocumentDAO}, {@code RegistrantDAO}; hợp nhất audit + upload tài liệu
- * thành {@link registrant.dto.RegistrantTrackingLog}, dựng timeline 5 bước qua
- * {@link registrant.util.RegistrantProfileProgressBuilder} và áp bộ lọc phân trang.
+ * Triển khai RegistrantTrackProfileService cho trang theo dõi hồ sơ.
+ * Đọc AuditLogDAO, DocumentDAO, RegistrantDAO; hợp nhất audit + upload tài liệu thành RegistrantTrackingLog, dựng timeline 5 bước qua RegistrantProfileProgressBuilder và áp bộ lọc phân trang.
  */
 public class RegistrantTrackProfileServiceImpl implements RegistrantTrackProfileService {
 

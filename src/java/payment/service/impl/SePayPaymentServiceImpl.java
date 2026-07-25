@@ -20,12 +20,10 @@ import java.util.Map;
 
 /**
  * Triển khai tích hợp SePay Payment Gateway cho bàn thủ tục (Examstaff).
- * <p>
- * Luồng: (1) {@link #createCheckout} + {@link #buildAutoSubmitHtml} — tạo form signed,
- * mở QR/chuyển khoản; (2) khách thanh toán → SePay gọi IPN → {@link #handleIpn}
- * parse {@code ORDER_PAID}/{@code CAPTURED} và INSERT {@code Payment} (Hoàn tất, TransactionReference);
- * (3) return URL chỉ phục vụ UX ({@link payment.controller.SePayReturnServlet}).
- * Idempotent IPN qua {@link payment.dao.PaymentDAO#existsCompletedByTransactionReference}.
+ * Luồng: (1) createCheckout + buildAutoSubmitHtml — tạo form signed, mở QR/chuyển khoản;
+ * (2) khách thanh toán → SePay gọi IPN → handleIpn parse ORDER_PAID/CAPTURED và INSERT Payment Hoàn tất kèm TransactionReference;
+ * (3) return URL chỉ phục vụ UX trình duyệt (SePayReturnServlet).
+ * IPN idempotent qua kiểm tra TransactionReference đã tồn tại trong PaymentDAO.
  */
 public class SePayPaymentServiceImpl implements SePayPaymentService {
 
@@ -90,7 +88,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     /**
      * Bước 2 — HTML tạm trong popup: form hidden + JS submit → cổng SePay.
-     * Staff mở URL này qua {@code window.open(createSePayCheckout)}.
+     * Staff mở URL này qua window.open(createSePayCheckout).
      */
     @Override
     public String buildAutoSubmitHtml(SePayCheckoutSession session) {
@@ -137,7 +135,7 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
 
     /**
      * IPN: auth → parse → nếu ORDER_PAID+CAPTURED thì ghi Payment → trả OK/reject.
-     * Idempotent: {@link #recordPaidIpn} bỏ qua nếu transaction_ref đã có.
+     * Idempotent: recordPaidIpn bỏ qua nếu transaction_ref đã có.
      */
     @Override
     public SePayIpnResult handleIpn(String rawBody, String secretHeader,
@@ -220,12 +218,9 @@ public class SePayPaymentServiceImpl implements SePayPaymentService {
     }
 
     /**
-     * Xác thực IPN:
-     * <ul>
-     *   <li>{@code X-Secret-Key} / Apikey = {@code SEPAY_IPN_SECRET} (mặc định = {@code SEPAY_SECRET_KEY})</li>
-     *   <li>hoặc HMAC {@code X-SePay-Signature} + {@code X-SePay-Timestamp}</li>
-     * </ul>
-     * Dashboard phải chọn auth SECRET_KEY (hoặc HMAC) với đúng secret — thiếu header → Unauthorized.
+     * Xác thực IPN: X-Secret-Key hoặc Apikey khớp SEPAY_IPN_SECRET (mặc định = SEPAY_SECRET_KEY),
+     * hoặc HMAC X-SePay-Signature kèm X-SePay-Timestamp.
+     * Dashboard phải chọn auth SECRET_KEY hoặc HMAC với đúng secret — thiếu header → Unauthorized.
      */
     private static boolean verifyIpnAuth(String rawBody, String secretHeader,
             String signatureHeader, String timestampHeader) {

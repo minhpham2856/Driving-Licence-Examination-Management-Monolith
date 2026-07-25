@@ -2,8 +2,7 @@ package registrant.dto;
 
 /**
  * DTO một lựa chọn trong dropdown bộ lọc (value + nhãn hiển thị + cờ selected).
- * <p>
- * Dùng trên dashboard, my-exams, register-exam và track-profile qua {@link registrant.util.RegistrantFilterSupport}.
+ * Dùng trên dashboard, my-exams, register-exam và track-profile qua RegistrantFilterSupport.
  */
 public class RegistrantFilterOption {
 

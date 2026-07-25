@@ -1,8 +1,7 @@
 package registrant.dto;
 
 /**
- * DTO tuỳ chọn hạng GPLX trên wizard đăng ký đợt thi ({@code register-exam.jsp}).
- * <p>
+ * DTO tuỳ chọn hạng GPLX trên wizard đăng ký đợt thi (register-exam.jsp).
  * Chứa mã hạng (khớp seed DB: A, A1, B1…), tên hiển thị, phí tham khảo UI và loại phương tiện (icon moto/car).
  */
 public class RegistrantLicenceOption {

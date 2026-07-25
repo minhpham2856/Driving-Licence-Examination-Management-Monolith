@@ -2,8 +2,7 @@ package registrant.enums;
 
 /**
  * Hằng số ánh xạ dữ liệu theo schema DLEM_DB_2 dùng bởi cổng Registrant.
- * <p>
- * Gồm tiền tố SBD tạm {@code PENDING-SBD-*} khi thí sinh đăng ký online, chưa được cán bộ import SBD chính thức.
+ * Gồm tiền tố SBD tạm PENDING-SBD-* khi thí sinh đăng ký online, chưa được cán bộ import SBD chính thức.
  */
 public final class Db2Mappings {
 
