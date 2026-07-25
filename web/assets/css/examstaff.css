@@ -2950,6 +2950,19 @@ a.procedure-step-item--link:hover {
     color: #0f172a;
 }
 
+.procedure-done-panel__filter-count {
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85em;
+}
+
+.procedure-done-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 18px 12px;
+    font-size: 0.9rem;
+}
+
 .procedure-done-panel__hint {
     margin: 4px 0 0;
     font-size: 0.75rem;
