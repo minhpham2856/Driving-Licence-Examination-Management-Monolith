@@ -34,7 +34,11 @@
                 <h1 class="page-title">Quản lý Máy thi &amp; Thiết bị</h1>
                 <p class="page-subtitle">Máy tính (thi lý thuyết) và mô tô (thi thực hành) đặt trong từng phòng/sân. Chọn khu vực rồi phòng/sân trước khi khai báo.</p>
             </div>
-            <div class="page-actions" style="display:flex;gap:10px;">
+            <div class="page-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+                <a href="${ctx}/admin/exam-computer?action=template" class="btn-export" style="height:42px;padding:0 1.25rem;border-radius:8px;display:inline-flex;align-items:center;text-decoration:none;">Tải biểu mẫu Excel</a>
+                <button type="button" class="btn-export" onclick="openImportModal()" style="height:42px;padding:0 1.25rem;border-radius:8px;cursor:pointer;">Import máy/thiết bị</button>
+                <a href="${ctx}/admin/exam-computer?action=export&amp;searchKeyword=${fn:escapeXml(param.searchKeyword)}&amp;filterType=${fn:escapeXml(param.filterType)}&amp;filterZone=${fn:escapeXml(param.filterZone)}&amp;filterArea=${fn:escapeXml(param.filterArea)}"
+                   class="btn-export" style="height:42px;padding:0 1.25rem;border-radius:8px;display:inline-flex;align-items:center;text-decoration:none;">Xuất Excel</a>
                 <button type="button" class="btn-filter" onclick="openDevModal()" style="height:42px;padding:0 1.25rem;border-radius:8px;cursor:pointer;">+ Thêm máy/thiết bị</button>
             </div>
         </header>
@@ -66,9 +70,17 @@
         <section class="log-card">
             <header class="log-card-header"><h2 class="log-card-title">Danh sách máy thi / thiết bị
                 <c:if test="${not empty devices}"><span style="font-size:.78rem;font-weight:600;background:rgba(0,82,204,.08);color:#0052cc;padding:2px 10px;border-radius:9999px;margin-left:6px;">${fn:length(devices)}</span></c:if>
-            </h2></header>
+            </h2>
+            <div class="log-card-actions" style="display:flex;gap:10px;align-items:center;">
+                <button type="button" id="bulkDelBtn" class="btn-export" onclick="bulkDeleteSelected()" disabled
+                        style="cursor:pointer;border-color:rgba(239,68,68,.35);color:#dc2626;">Xóa mục đã chọn (<span id="selCount">0</span>)</button>
+                <c:if test="${not empty devices}">
+                    <button type="button" class="btn-export" onclick="bulkDeleteFiltered()" style="cursor:pointer;border-color:rgba(239,68,68,.35);color:#dc2626;">Xóa toàn bộ kết quả lọc</button>
+                </c:if>
+            </div></header>
             <div class="table-responsive"><table class="audit-table">
                 <thead><tr>
+                    <th style="width:42px;text-align:center;"><input type="checkbox" id="checkAll" onclick="toggleAll(this)" title="Chọn tất cả"></th>
                     <th class="col-id">STT</th><th style="width:100px;">Mã</th><th>Tên máy/thiết bị</th>
                     <th style="width:140px;text-align:center;">Loại</th><th>Phòng/sân</th><th>Khu vực</th>
                     <th style="width:120px;text-align:center;">Trạng thái</th><th style="width:200px;text-align:center;">Thao tác</th>
@@ -78,6 +90,7 @@
                     <c:when test="${not empty devices}">
                         <c:forEach var="d" items="${devices}" varStatus="st">
                             <tr>
+                                <td style="text-align:center;"><input type="checkbox" class="rowChk" value="${d.deviceId}" data-name="${fn:escapeXml(d.deviceName)}" onclick="updateSel()"></td>
                                 <td class="col-id">${st.index+1}</td>
                                 <td style="font-weight:700;color:#0052cc;font-family:monospace;">${d.code}</td>
                                 <td><span class="user-name" style="font-weight:600;color:#0f172a;">${d.deviceName}</span></td>
@@ -102,7 +115,7 @@
                             </tr>
                         </c:forEach>
                     </c:when>
-                    <c:otherwise><tr><td colspan="8" style="text-align:center;padding:4rem 1.5rem;color:#64748b;">Chưa có máy thi/thiết bị nào. Nhấn <b>Thêm máy/thiết bị</b> để bắt đầu.</td></tr></c:otherwise>
+                    <c:otherwise><tr><td colspan="9" style="text-align:center;padding:4rem 1.5rem;color:#64748b;">Chưa có máy thi/thiết bị nào. Nhấn <b>Thêm máy/thiết bị</b> để bắt đầu.</td></tr></c:otherwise>
                 </c:choose>
                 </tbody>
             </table></div>
@@ -115,6 +128,17 @@
     <input type="hidden" name="action" value="delete"><input type="hidden" name="id" id="delId"></form>
 <form id="toggleForm" action="${ctx}/admin/exam-computer" method="POST" style="display:none;">
     <input type="hidden" name="action" value="toggle"><input type="hidden" name="id" id="tgId"><input type="hidden" name="active" id="tgActive"></form>
+
+<%-- Xóa hàng loạt: gửi danh sách id đã tick, hoặc scope=filtered kèm bộ lọc hiện tại --%>
+<form id="bulkForm" action="${ctx}/admin/exam-computer" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="bulkDelete">
+    <input type="hidden" name="scope" id="bulkScope" value="">
+    <input type="hidden" name="searchKeyword" value="${fn:escapeXml(param.searchKeyword)}">
+    <input type="hidden" name="filterType" value="${fn:escapeXml(param.filterType)}">
+    <input type="hidden" name="filterZone" value="${fn:escapeXml(param.filterZone)}">
+    <input type="hidden" name="filterArea" value="${fn:escapeXml(param.filterArea)}">
+    <div id="bulkIds"></div>
+</form>
 
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.45);align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow-y:auto;}
@@ -171,7 +195,32 @@
     </div>
 </div>
 
+<div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()"><div class="modal-card" style="max-width:560px;">
+    <form action="${ctx}/admin/exam-computer" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="import">
+        <div class="modal-head"><h3>Import máy / thiết bị thi từ Excel</h3><button type="button" class="modal-close" onclick="closeImportModal()">&times;</button></div>
+        <div class="modal-body">
+            <div style="margin-bottom:1.1rem;padding:.7rem .9rem;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:.82rem;line-height:1.6;">
+                Dùng đúng <b>biểu mẫu Excel (.xlsx)</b> tải từ nút <b>Tải biểu mẫu Excel</b>. Cột <b>Khu vực thi</b> và
+                <b>Phòng/sân thi</b> phải trùng tên đã có (biểu mẫu kèm sheet <b>"Phòng sân hiện có"</b> để đối chiếu).
+                Dòng sai dữ liệu sẽ bị bỏ qua và báo lại chi tiết.
+            </div>
+            <div class="input-group">
+                <label class="input-label">Chọn file Excel <span style="color:#dc2626;">*</span></label>
+                <input type="file" id="importFile" name="file" class="input-field" accept=".xlsx" required style="padding:8px;">
+            </div>
+        </div>
+        <div class="modal-foot">
+            <a href="${ctx}/admin/exam-computer?action=template" class="btn-reset" style="height:44px;padding:0 1.25rem;display:inline-flex;align-items:center;text-decoration:none;">Tải biểu mẫu</a>
+            <button type="button" class="btn-reset" onclick="closeImportModal()" style="height:44px;padding:0 1.5rem;display:inline-flex;align-items:center;">Hủy</button>
+            <button type="submit" class="btn-filter" style="height:44px;padding:0 1.5rem;">Bắt đầu import</button>
+        </div>
+    </form>
+</div></div>
+
 <script>
+function openImportModal(){document.getElementById('importFile').value='';document.getElementById('importModal').classList.add('is-open');}
+function closeImportModal(){document.getElementById('importModal').classList.remove('is-open');}
 // Phòng/sân theo khu vực
 var AREAS_BY_ZONE = {};
 <c:forEach var="a" items="${areas}">
@@ -213,7 +262,60 @@ function editDev(b){document.getElementById('devTitle').textContent='Chỉnh s�
 function closeDevModal(){document.getElementById('devModal').classList.remove('is-open');}
 function delDev(id,name){if(confirm('Xóa "'+name+'"?\nKhông thể hoàn tác.')){document.getElementById('delId').value=id;document.getElementById('delForm').submit();}}
 function toggleDev(id,toActive){document.getElementById('tgId').value=id;document.getElementById('tgActive').value=toActive?'true':'false';document.getElementById('toggleForm').submit();}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDevModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDevModal();closeImportModal();}});
+
+/* ---------------- Xóa hàng loạt ---------------- */
+function selectedRows(){return Array.prototype.slice.call(document.querySelectorAll('.rowChk:checked'));}
+function updateSel(){
+    var n=selectedRows().length;
+    document.getElementById('selCount').textContent=n;
+    document.getElementById('bulkDelBtn').disabled=(n===0);
+    var all=document.querySelectorAll('.rowChk');
+    var head=document.getElementById('checkAll');
+    if(head){head.checked=(all.length>0&&n===all.length);}
+}
+function toggleAll(box){
+    document.querySelectorAll('.rowChk').forEach(function(c){c.checked=box.checked;});
+    updateSel();
+}
+function submitBulk(scope,ids){
+    document.getElementById('bulkScope').value=scope;
+    var box=document.getElementById('bulkIds');
+    box.innerHTML='';
+    (ids||[]).forEach(function(v){
+        var i=document.createElement('input');i.type='hidden';i.name='ids';i.value=v;box.appendChild(i);
+    });
+    document.getElementById('bulkForm').submit();
+}
+function bulkDeleteSelected(){
+    var rows=selectedRows();
+    if(rows.length===0){alert('Bạn chưa chọn máy/thiết bị nào.');return;}
+    var names=rows.slice(0,5).map(function(c){return '• '+c.getAttribute('data-name');}).join('\n');
+    if(rows.length>5){names+='\n• ... và '+(rows.length-5)+' máy/thiết bị khác';}
+    var msg='CẢNH BÁO - XÓA VĨNH VIỄN '+rows.length+' MÁY/THIẾT BỊ THI\n\n'+names+
+            '\n\nMáy đang gắn với kỳ thi sẽ được tự động bỏ qua.\n'+
+            'Hành động này KHÔNG THỂ hoàn tác. Bạn có chắc chắn muốn xóa?';
+    if(confirm(msg)){submitBulk('',rows.map(function(c){return c.value;}));}
+}
+function bulkDeleteFiltered(){
+    var total=document.querySelectorAll('.rowChk').length;
+    var f=[];
+    var kw=document.querySelector('input[name="searchKeyword"]');
+    var tp=document.querySelector('select[name="filterType"]');
+    var zn=document.querySelector('select[name="filterZone"]');
+    var ar=document.querySelector('select[name="filterArea"]');
+    if(kw&&kw.value.trim()){f.push('Từ khóa: "'+kw.value.trim()+'"');}
+    if(tp&&tp.value){f.push('Loại: '+tp.options[tp.selectedIndex].text);}
+    if(zn&&zn.value){f.push('Khu vực: '+zn.options[zn.selectedIndex].text);}
+    if(ar&&ar.value){f.push('Phòng/sân: '+ar.options[ar.selectedIndex].text);}
+    var scope=f.length?('theo bộ lọc — '+f.join(' | ')):'TOÀN BỘ danh sách (không áp bộ lọc nào)';
+    var msg='CẢNH BÁO - XÓA VĨNH VIỄN TẤT CẢ MÁY/THIẾT BỊ ĐANG HIỂN THỊ\n\n'+
+            'Phạm vi: '+scope+'\nSố máy/thiết bị sẽ bị xóa: khoảng '+total+
+            '\n\nMáy đang gắn với kỳ thi sẽ được tự động bỏ qua.\n'+
+            'Hành động này KHÔNG THỂ hoàn tác. Bạn có chắc chắn muốn xóa?';
+    if(confirm(msg)){submitBulk('filtered',null);}
+}
+updateSel();
 </script>
 
 <c:if test="${sessionScope.reopenModal eq 'device'}">

@@ -34,7 +34,11 @@
                 <h1 class="page-title">Quản lý Phòng thi &amp; Sân thi</h1>
                 <p class="page-subtitle">Mỗi phòng/sân thuộc một khu vực thi. Chọn khu vực trước khi khai báo phòng, sân.</p>
             </div>
-            <div class="page-actions" style="display:flex;gap:10px;">
+            <div class="page-actions" style="display:flex;gap:10px;flex-wrap:wrap;">
+                <a href="${ctx}/admin/exam-room?action=template" class="btn-export" style="height:42px;padding:0 1.25rem;border-radius:8px;display:inline-flex;align-items:center;text-decoration:none;">Tải biểu mẫu Excel</a>
+                <button type="button" class="btn-export" onclick="openImportModal()" style="height:42px;padding:0 1.25rem;border-radius:8px;cursor:pointer;">Import phòng/sân</button>
+                <a href="${ctx}/admin/exam-room?action=export&amp;searchKeyword=${fn:escapeXml(param.searchKeyword)}&amp;filterType=${fn:escapeXml(param.filterType)}&amp;filterZone=${fn:escapeXml(param.filterZone)}"
+                   class="btn-export" style="height:42px;padding:0 1.25rem;border-radius:8px;display:inline-flex;align-items:center;text-decoration:none;">Xuất Excel</a>
                 <button type="button" class="btn-filter" onclick="openRoomModal()" style="height:42px;padding:0 1.25rem;border-radius:8px;cursor:pointer;">+ Thêm phòng/sân</button>
             </div>
         </header>
@@ -66,9 +70,17 @@
         <section class="log-card">
             <header class="log-card-header"><h2 class="log-card-title">Danh sách phòng/sân thi
                 <c:if test="${not empty areas}"><span style="font-size:.78rem;font-weight:600;background:rgba(0,82,204,.08);color:#0052cc;padding:2px 10px;border-radius:9999px;margin-left:6px;">${fn:length(areas)}</span></c:if>
-            </h2></header>
+            </h2>
+            <div class="log-card-actions" style="display:flex;gap:10px;align-items:center;">
+                <button type="button" id="bulkDelBtn" class="btn-export" onclick="bulkDeleteSelected()" disabled
+                        style="cursor:pointer;border-color:rgba(239,68,68,.35);color:#dc2626;">Xóa mục đã chọn (<span id="selCount">0</span>)</button>
+                <c:if test="${not empty areas}">
+                    <button type="button" class="btn-export" onclick="bulkDeleteFiltered()" style="cursor:pointer;border-color:rgba(239,68,68,.35);color:#dc2626;">Xóa toàn bộ kết quả lọc</button>
+                </c:if>
+            </div></header>
             <div class="table-responsive"><table class="audit-table">
                 <thead><tr>
+                    <th style="width:42px;text-align:center;"><input type="checkbox" id="checkAll" onclick="toggleAll(this)" title="Chọn tất cả"></th>
                     <th class="col-id">STT</th><th style="width:100px;">Mã</th><th>Tên phòng/sân</th>
                     <th style="width:130px;text-align:center;">Loại</th><th>Khu vực</th>
                     <th style="width:100px;text-align:center;">Sức chứa</th><th style="width:90px;text-align:center;">Máy thi</th>
@@ -79,6 +91,7 @@
                     <c:when test="${not empty areas}">
                         <c:forEach var="a" items="${areas}" varStatus="st">
                             <tr>
+                                <td style="text-align:center;"><input type="checkbox" class="rowChk" value="${a.areaId}" data-name="${fn:escapeXml(a.areaName)}" onclick="updateSel()"></td>
                                 <td class="col-id">${st.index+1}</td>
                                 <td style="font-weight:700;color:#0052cc;font-family:monospace;">${a.code}</td>
                                 <td><span class="user-name" style="font-weight:600;color:#0f172a;">${a.areaName}</span>
@@ -98,7 +111,7 @@
                             </tr>
                         </c:forEach>
                     </c:when>
-                    <c:otherwise><tr><td colspan="8" style="text-align:center;padding:4rem 1.5rem;color:#64748b;">Chưa có phòng/sân thi nào. Nhấn <b>Thêm phòng/sân</b> để bắt đầu.</td></tr></c:otherwise>
+                    <c:otherwise><tr><td colspan="9" style="text-align:center;padding:4rem 1.5rem;color:#64748b;">Chưa có phòng/sân thi nào. Nhấn <b>Thêm phòng/sân</b> để bắt đầu.</td></tr></c:otherwise>
                 </c:choose>
                 </tbody>
             </table></div>
@@ -109,6 +122,16 @@
 
 <form id="delForm" action="${ctx}/admin/exam-room" method="POST" style="display:none;">
     <input type="hidden" name="action" value="delete"><input type="hidden" name="id" id="delId"></form>
+
+<%-- Xóa hàng loạt: gửi danh sách id đã tick, hoặc scope=filtered kèm bộ lọc hiện tại --%>
+<form id="bulkForm" action="${ctx}/admin/exam-room" method="POST" style="display:none;">
+    <input type="hidden" name="action" value="bulkDelete">
+    <input type="hidden" name="scope" id="bulkScope" value="">
+    <input type="hidden" name="searchKeyword" value="${fn:escapeXml(param.searchKeyword)}">
+    <input type="hidden" name="filterType" value="${fn:escapeXml(param.filterType)}">
+    <input type="hidden" name="filterZone" value="${fn:escapeXml(param.filterZone)}">
+    <div id="bulkIds"></div>
+</form>
 
 <style>
 .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(15,23,42,.45);align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow-y:auto;}
@@ -166,7 +189,31 @@
     </div>
 </div>
 
+<div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()"><div class="modal-card" style="max-width:560px;">
+    <form action="${ctx}/admin/exam-room" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="import">
+        <div class="modal-head"><h3>Import phòng / sân thi từ Excel</h3><button type="button" class="modal-close" onclick="closeImportModal()">&times;</button></div>
+        <div class="modal-body">
+            <div style="margin-bottom:1.1rem;padding:.7rem .9rem;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:.82rem;line-height:1.6;">
+                Dùng đúng <b>biểu mẫu Excel (.xlsx)</b> tải từ nút <b>Tải biểu mẫu Excel</b>. Cột <b>Khu vực thi</b> phải
+                trùng tên khu vực đã có. Dòng sai dữ liệu sẽ bị bỏ qua và báo lại chi tiết.
+            </div>
+            <div class="input-group">
+                <label class="input-label">Chọn file Excel <span style="color:#dc2626;">*</span></label>
+                <input type="file" id="importFile" name="file" class="input-field" accept=".xlsx" required style="padding:8px;">
+            </div>
+        </div>
+        <div class="modal-foot">
+            <a href="${ctx}/admin/exam-room?action=template" class="btn-reset" style="height:44px;padding:0 1.25rem;display:inline-flex;align-items:center;text-decoration:none;">Tải biểu mẫu</a>
+            <button type="button" class="btn-reset" onclick="closeImportModal()" style="height:44px;padding:0 1.5rem;display:inline-flex;align-items:center;">Hủy</button>
+            <button type="submit" class="btn-filter" style="height:44px;padding:0 1.5rem;">Bắt đầu import</button>
+        </div>
+    </form>
+</div></div>
+
 <script>
+function openImportModal(){document.getElementById('importFile').value='';document.getElementById('importModal').classList.add('is-open');}
+function closeImportModal(){document.getElementById('importModal').classList.remove('is-open');}
 // Danh sách phòng/sân theo khu vực (để xem khu vực đã có gì)
 var AREAS_BY_ZONE = {};
 <c:forEach var="a" items="${allAreas}">
@@ -200,7 +247,58 @@ function editRoom(b){document.getElementById('roomTitle').textContent='Chỉnh s
     document.getElementById('roomModal').classList.add('is-open');}
 function closeRoomModal(){document.getElementById('roomModal').classList.remove('is-open');}
 function delRoom(id,name){if(confirm('Xóa "'+name+'"?\nKhông thể hoàn tác.')){document.getElementById('delId').value=id;document.getElementById('delForm').submit();}}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeRoomModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRoomModal();closeImportModal();}});
+
+/* ---------------- Xóa hàng loạt ---------------- */
+function selectedRows(){return Array.prototype.slice.call(document.querySelectorAll('.rowChk:checked'));}
+function updateSel(){
+    var n=selectedRows().length;
+    document.getElementById('selCount').textContent=n;
+    document.getElementById('bulkDelBtn').disabled=(n===0);
+    var all=document.querySelectorAll('.rowChk');
+    var head=document.getElementById('checkAll');
+    if(head){head.checked=(all.length>0&&n===all.length);}
+}
+function toggleAll(box){
+    document.querySelectorAll('.rowChk').forEach(function(c){c.checked=box.checked;});
+    updateSel();
+}
+function submitBulk(scope,ids){
+    document.getElementById('bulkScope').value=scope;
+    var box=document.getElementById('bulkIds');
+    box.innerHTML='';
+    (ids||[]).forEach(function(v){
+        var i=document.createElement('input');i.type='hidden';i.name='ids';i.value=v;box.appendChild(i);
+    });
+    document.getElementById('bulkForm').submit();
+}
+function bulkDeleteSelected(){
+    var rows=selectedRows();
+    if(rows.length===0){alert('Bạn chưa chọn phòng/sân thi nào.');return;}
+    var names=rows.slice(0,5).map(function(c){return '• '+c.getAttribute('data-name');}).join('\n');
+    if(rows.length>5){names+='\n• ... và '+(rows.length-5)+' phòng/sân khác';}
+    var msg='CẢNH BÁO - XÓA VĨNH VIỄN '+rows.length+' PHÒNG/SÂN THI\n\n'+names+
+            '\n\nPhòng/sân đang được sử dụng sẽ được tự động bỏ qua.\n'+
+            'Hành động này KHÔNG THỂ hoàn tác. Bạn có chắc chắn muốn xóa?';
+    if(confirm(msg)){submitBulk('',rows.map(function(c){return c.value;}));}
+}
+function bulkDeleteFiltered(){
+    var total=document.querySelectorAll('.rowChk').length;
+    var f=[];
+    var kw=document.querySelector('input[name="searchKeyword"]');
+    var tp=document.querySelector('select[name="filterType"]');
+    var zn=document.querySelector('select[name="filterZone"]');
+    if(kw&&kw.value.trim()){f.push('Từ khóa: "'+kw.value.trim()+'"');}
+    if(tp&&tp.value){f.push('Loại: '+tp.options[tp.selectedIndex].text);}
+    if(zn&&zn.value){f.push('Khu vực: '+zn.options[zn.selectedIndex].text);}
+    var scope=f.length?('theo bộ lọc — '+f.join(' | ')):'TOÀN BỘ danh sách (không áp bộ lọc nào)';
+    var msg='CẢNH BÁO - XÓA VĨNH VIỄN TẤT CẢ PHÒNG/SÂN THI ĐANG HIỂN THỊ\n\n'+
+            'Phạm vi: '+scope+'\nSố phòng/sân sẽ bị xóa: khoảng '+total+
+            '\n\nPhòng/sân đang được sử dụng sẽ được tự động bỏ qua.\n'+
+            'Hành động này KHÔNG THỂ hoàn tác. Bạn có chắc chắn muốn xóa?';
+    if(confirm(msg)){submitBulk('filtered',null);}
+}
+updateSel();
 </script>
 
 <c:if test="${sessionScope.reopenModal eq 'room'}">
