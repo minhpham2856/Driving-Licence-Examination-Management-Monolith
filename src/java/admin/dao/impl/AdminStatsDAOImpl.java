@@ -25,8 +25,9 @@ public class AdminStatsDAOImpl extends DBContext implements AdminStatsDAO {
     }
 
     @Override
-    public int countActiveExams() {
-        String sql = "SELECT COUNT(*) FROM [User] WHERE [Status] = 1";
+    public int countActiveAccounts() {
+        // Bảng [User] dùng cột IsActive, không có cột Status
+        String sql = "SELECT COUNT(*) FROM [User] WHERE IsActive = 1";
         try (PreparedStatement st = getConnection().prepareStatement(sql);
              ResultSet rs = st.executeQuery()) { if (rs.next()) return rs.getInt(1); }
         catch (SQLException e) { e.printStackTrace(); }
