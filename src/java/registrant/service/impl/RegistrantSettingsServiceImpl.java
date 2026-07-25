@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * Triển khai {@link registrant.service.RegistrantSettingsService} — trang {@code settings.jsp}.
  * <p>
- * Đổi mật khẩu qua {@code UserDAO} + {@code PasswordUtil}; gửi email xác nhận qua {@code EmailServiceImpl};
- * deactivate đặt {@code User.IsActive=0} và xóa session. Thông báo Gmail luôn bật (không lưu tùy chọn UI).
+ * Đổi mật khẩu qua {@code UserDAO} + {@code PasswordUtil}; gửi email xác nhận qua {@code EmailServiceImpl}.
+ * Không có luồng vô hiệu hóa tài khoản (thí sinh không có quyền). Thông báo Gmail luôn bật (không lưu tùy chọn UI).
  */
 public class RegistrantSettingsServiceImpl implements RegistrantSettingsService {
 
@@ -80,22 +80,6 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
             return true;
         }
         return rawPassword.equals(stored);
-    }
-
-    /** Vô hiệu hóa tài khoản và invalidate session khi confirmed; null nếu OK. */
-    @Override
-    public String deactivateAccount(UserDTO user, boolean confirmed, HttpSession session) {
-        if (!confirmed) {
-            return "Bạn cần xác nhận trước khi vô hiệu hoá tài khoản.";
-        }
-        if (!userdao.deactivate(user.getUserId())) {
-            return "Không thể vô hiệu hoá tài khoản. Vui lòng liên hệ hỗ trợ.";
-        }
-        user.setActive(false);
-        if (session != null) {
-            RegistrantAuditHelper.logAccountDeactivate(session, user.getUserId());
-        }
-        return null;
     }
 
     private void applyAccountSummary(UserDTO user, HttpServletRequest request) {
