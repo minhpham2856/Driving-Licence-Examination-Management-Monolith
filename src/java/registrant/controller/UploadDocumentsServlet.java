@@ -17,16 +17,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Upload giấy tờ — {@code GET/POST /registrant/upload-documents} (multipart, tối đa 5MB/file).
- * <p>
- * <b>GET:</b> load Document + ExamRegistration status → JSP (4 loại bắt buộc + Other).
- * <p>
- * <b>POST actions:</b>
- * <ul>
- *   <li>Upload file → ghi {@code Document} (DocumentTypeId, DocumentUrl, Notes, ProfileId)</li>
- *   <li>{@code action=requestApproval} → ER {@code Pending} + Notes {@code #PROFILE_DOC#} / Document {@code #PENDING#}</li>
- *   <li>{@code action=deleteDocument} → xóa khi status cho phép (Draft/Rejected)</li>
- * </ul>
+ * Upload giấy tờ — GET/POST /registrant/upload-documents (multipart, tối đa 5MB/file).
+ * GET: load Document + ExamRegistration status → JSP (4 loại bắt buộc + Other).
+ * POST actions: upload file → ghi Document (DocumentTypeId, DocumentUrl, Notes, ProfileId);
+ * action=requestApproval → ER Pending + Notes #PROFILE_DOC# / Document #PENDING#;
+ * action=deleteDocument → xóa khi status cho phép (Draft/Rejected).
  * Không tạo Payment / Candidate — chỉ hồ sơ trước ngày thi.
  */
 @WebServlet("/registrant/upload-documents")

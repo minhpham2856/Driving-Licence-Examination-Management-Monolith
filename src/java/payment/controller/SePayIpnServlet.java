@@ -15,12 +15,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Webhook IPN SePay — <b>nguồn sự thật</b> ghi nhận thanh toán vào bảng {@code Payment}.
- * <p>
- * Bước <b>IPN</b> trong luồng checkout → IPN → return: SePay server POST JSON tới
- * {@code /payment/sepay/ipn} (public qua ngrok khi dev), xác thực {@code X-Secret-Key}
- * hoặc HMAC, parse {@code ORDER_PAID}/{@code CAPTURED}, INSERT Payment Hoàn tất.
- * Khác return URL (success/cancel/error): IPN không phụ thuộc trình duyệt staff.
+ * Webhook IPN SePay — nguồn sự thật ghi Payment Hoàn tất tại /payment/sepay/ipn.
+ * Luồng checkout → IPN → return; khác return URL chỉ UX trình duyệt.
+ * SePay server POST JSON (public qua ngrok khi dev), xác thực X-Secret-Key hoặc HMAC,
+ * parse ORDER_PAID/CAPTURED, INSERT Payment Hoàn tất. IPN không phụ thuộc trình duyệt staff.
  */
 @WebServlet("/payment/sepay/ipn")
 public class SePayIpnServlet extends HttpServlet {
@@ -64,7 +62,7 @@ public class SePayIpnServlet extends HttpServlet {
         response.getWriter().write(result.responseJson());
     }
 
-    /** {@code Authorization: Apikey xxx} (một số cấu hình webhook SePay). */
+    /** Authorization: Apikey xxx (một số cấu hình webhook SePay). */
     private static String extractApikeyAuthorization(String authorization) {
         if (authorization == null || authorization.isBlank()) {
             return null;

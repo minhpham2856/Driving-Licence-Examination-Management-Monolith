@@ -12,10 +12,12 @@ import java.util.List;
 
 public class AuditLogViewDAOImpl extends DBContext implements AuditLogViewDAO {
 
+    /** Tên vai trò lấy từ bảng [Role]; bảng [User] chỉ có RoleId, không có cột Role. */
     private static final String BASE =
             "SELECT a.AuditId, a.Action, a.EntityName, a.NewValue, a.Reason, a.Details, a.OldValue, " +
-            "       a.CreatedAt, a.UserId, u.Username, u.[Role] AS RoleDb, p.FullName " +
+            "       a.CreatedAt, a.UserId, u.Username, r.RoleName AS RoleDb, p.FullName " +
             "FROM Audit a LEFT JOIN [User] u ON u.UserId = a.UserId " +
+            "LEFT JOIN [Role] r ON r.RoleId = u.RoleId " +
             "LEFT JOIN Profile p ON p.UserId = a.UserId ";
 
     private String where(String keyword, String dbRole, String action, String dateFrom, String dateTo, List<Object> params) {
@@ -25,7 +27,7 @@ public class AuditLogViewDAOImpl extends DBContext implements AuditLogViewDAO {
             String k = "%" + keyword.trim() + "%";
             params.add(k); params.add(k); params.add(k); params.add(k); params.add(k);
         }
-        if (dbRole != null && !dbRole.isBlank()) { w.append(" AND u.[Role] = ? "); params.add(dbRole); }
+        if (dbRole != null && !dbRole.isBlank()) { w.append(" AND r.RoleName = ? "); params.add(dbRole); }
         if (action != null && !action.isBlank()) { w.append(" AND a.Action = ? "); params.add(action); }
         if (dateFrom != null && !dateFrom.isBlank()) { w.append(" AND CAST(a.CreatedAt AS DATE) >= ? "); params.add(dateFrom); }
         if (dateTo != null && !dateTo.isBlank()) { w.append(" AND CAST(a.CreatedAt AS DATE) <= ? "); params.add(dateTo); }
@@ -50,7 +52,9 @@ public class AuditLogViewDAOImpl extends DBContext implements AuditLogViewDAO {
     @Override
     public int count(String keyword, String dbRole, String action, String dateFrom, String dateTo) {
         List<Object> params = new ArrayList<>();
-        String sql = "SELECT COUNT(*) FROM Audit a LEFT JOIN [User] u ON u.UserId = a.UserId LEFT JOIN Profile p ON p.UserId = a.UserId "
+        String sql = "SELECT COUNT(*) FROM Audit a LEFT JOIN [User] u ON u.UserId = a.UserId "
+                + "LEFT JOIN [Role] r ON r.RoleId = u.RoleId "
+                + "LEFT JOIN Profile p ON p.UserId = a.UserId "
                 + where(keyword, dbRole, action, dateFrom, dateTo, params);
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));

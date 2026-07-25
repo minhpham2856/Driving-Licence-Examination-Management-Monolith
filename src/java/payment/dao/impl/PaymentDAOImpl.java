@@ -14,9 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Triển khai JDBC truy cập bảng {@code Payment} (Cash desk, SePay IPN, dashboard Registrant).
- * <p>
- * INSERT gắn {@code ExamEnrollmentId} (resolve từ Candidate nếu thiếu), cột PaymentStatus Hoàn tất,
+ * Triển khai JDBC truy cập bảng Payment (Cash desk, SePay IPN, dashboard Registrant).
+ * INSERT gắn ExamEnrollmentId (resolve từ Candidate nếu thiếu), cột PaymentStatus Hoàn tất,
  * TransactionReference UNIQUE cho idempotent IPN. Portal/desk suy trạng thái đã trả từ tồn tại
  * bản ghi Payment — không có cờ riêng trên bảng Candidate.
  */
@@ -75,7 +74,7 @@ public class PaymentDAOImpl extends DBContext implements PaymentDAO {
     }
 
     /**
-     * Dashboard Registrant {@code totalFee}: SUM TotalAmount các Payment hoàn tất
+     * Dashboard Registrant totalFee: SUM TotalAmount các Payment hoàn tất
      * của user — cầu nối Profile.GovernmentIdNumber = Candidate.GovernmentIdNumber.
      * Gồm cả Cash và SePay đã thu tại bàn thủ tục.
      */

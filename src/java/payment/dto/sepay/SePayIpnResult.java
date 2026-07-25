@@ -1,12 +1,11 @@
 package payment.dto.sepay;
 
 /**
- * Kết quả xử lý webhook IPN trả về cho {@link payment.controller.SePayIpnServlet}.
- * <p>
- * Thuộc bước <b>IPN</b> sau khi service xác thực {@code X-Secret-Key}/HMAC và parse payload:
- * {@code accepted=true} → HTTP 200 + {@code {"success":true}} cho SePay;
- * {@code rejected} → 401 (auth) hoặc 400 (payload) kèm JSON lỗi.
- * Không ghi DB trực tiếp — chỉ đóng gói trạng thái chấp nhận và {@link SePayIpnEvent} (nếu OK).
+ * Kết quả xử lý webhook IPN trả về cho SePayIpnServlet.
+ * Thuộc bước IPN sau khi service xác thực X-Secret-Key/HMAC và parse payload:
+ * accepted=true → HTTP 200 + JSON success cho SePay;
+ * rejected → 401 (auth) hoặc 400 (payload) kèm JSON lỗi.
+ * Không ghi DB trực tiếp — chỉ đóng gói trạng thái chấp nhận và SePayIpnEvent (nếu OK).
  */
 public class SePayIpnResult {
 
