@@ -146,9 +146,6 @@
                                                     · ${not empty exam.sessionTimeDisplay ? exam.sessionTimeDisplay : ''}
                                                     <c:if test="${empty exam.sessionTimeDisplay}">
                                                         <fmt:formatDate value="${exam.sessionStart}" pattern="HH:mm"/>
-                                                        <c:if test="${not empty exam.sessionEnd}">
-                                                            –<fmt:formatDate value="${exam.sessionEnd}" pattern="HH:mm"/>
-                                                        </c:if>
                                                     </c:if>
                                                 </c:if>
                                             </span>
@@ -241,9 +238,6 @@
                                                         </c:when>
                                                         <c:when test="${selectedExam.sessionTimePublished}">
                                                             <fmt:formatDate value="${selectedExam.sessionStart}" pattern="HH:mm"/>
-                                                            <c:if test="${not empty selectedExam.sessionEnd}">
-                                                                –<fmt:formatDate value="${selectedExam.sessionEnd}" pattern="HH:mm"/>
-                                                            </c:if>
                                                         </c:when>
                                                         <c:otherwise>Chờ Ban sát hạch mở ca</c:otherwise>
                                                     </c:choose>

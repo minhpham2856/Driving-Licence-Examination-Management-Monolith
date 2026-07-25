@@ -14,17 +14,17 @@ import java.util.List;
 
 /**
  * Read model kỳ thi (một hàng / Exam) cho sidebar picker và list kỳ.
- * {@code examId} trên view = {@code ExamId} để tương thích UI cũ.
+ * examId trên view = ExamId để tương thích UI cũ.
  *
  * Cách hoạt động:
- * Mọi query bắt đầu từ {@link examstaff.dao.Db2ExamSummarySql#EXAM_SUMMARY_SELECT},
- * rồi gắn {@code ORDER BY} / {@code WHERE} tùy method ({@link #findAllOrdered}, {@link #findByExamId}, …).
- * Khác {@code ExamDAOImpl}: class này thiên về <b>đọc danh sách / view</b>; ghi Status vẫn qua ExamDAO.
+ * Mọi query bắt đầu từ examstaff.dao.Db2ExamSummarySql.EXAM_SUMMARY_SELECT,
+ * rồi gắn ORDER BY / WHERE tùy method (findAllOrdered, findByExamId, …).
+ * Khác ExamDAOImpl: class này thiên về <b>đọc danh sách / view</b>; ghi Status vẫn qua ExamDAO.
  */
 public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
 
     /**
-     * Liệt kê mọi kỳ thi theo thứ tự ngày/ca giảm dần từ bảng {@code Exam}.
+     * Liệt kê mọi kỳ thi theo thứ tự ngày/ca giảm dần từ bảng Exam.
      */
     @Override
     public List<ExamSummaryDTO> findAllOrdered() {
@@ -33,7 +33,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
     }
 
     /**
-     * Tìm một kỳ thi theo mã từ {@code Exam} JOIN {@code Licence}.
+     * Tìm một kỳ thi theo mã từ Exam JOIN Licence.
      */
     @Override
     public ExamSummaryDTO findByExamId(int examId) {

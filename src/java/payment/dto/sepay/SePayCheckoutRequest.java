@@ -1,7 +1,11 @@
 package payment.dto.sepay;
 
 /**
- * Yêu cầu tạo phiên thanh toán SePay.
+ * DTO đầu vào tạo phiên checkout SePay tại bàn thu lệ phí (bước checkout).
+ * Desk điền amountVnd, order_invoice_number (sinh từ SePayInvoice),
+ * mô tả đơn và URL success/error/cancel trỏ về SePayReturnServlet.
+ * SePayPaymentServiceImpl.createCheckout validate, ký HMAC
+ * và chuyển thành SePayCheckoutSession để POST lên cổng SePay.
  */
 public class SePayCheckoutRequest {
 

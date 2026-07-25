@@ -29,6 +29,7 @@ import java.time.LocalDate;
     "/examstaff/profile",
     "/examiner/profile",
     "/managingstaff/profile",
+    "/police/profile",
     "/admin/profile"
 })
 public class ProfileServlet extends HttpServlet {

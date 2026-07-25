@@ -17,12 +17,12 @@ import java.util.Set;
  * Điều phối auto-allocate và thao tác đổi phòng/sân cho một thí sinh.
  *
  * Hai lối vào:
- * - {@link #autoAllocateOnOverview} — batch: overview/theory → auto LT;
- *       overview/practical → auto TH (qua {@code ExaminerAllocationServiceImpl})
- * - {@link #executeCandidateAction} — một thí sinh: {@code allocateRoom} (LT)
- *       hoặc {@code allocatePracticalRoom} (TH) theo {@code areaId} form
- * <p>Trước khi gán, kiểm tra phòng/sân đã có sát hạch viên ({@code ExaminerAssignmentRules}).
- * Persist qua {@code RegistrationService} → {@code ExamEnrollmentSectionSupport}.
+ * - autoAllocateOnOverview — batch: overview/theory → auto LT;
+ *       overview/practical → auto TH (qua ExaminerAllocationServiceImpl)
+ * - executeCandidateAction — một thí sinh: allocateRoom (LT)
+ *       hoặc allocatePracticalRoom (TH) theo areaId form
+ * <p>Trước khi gán, kiểm tra phòng/sân đã có sát hạch viên (ExaminerAssignmentRules).
+ * Persist qua RegistrationService → ExamEnrollmentSectionSupport.
  */
 public class AllocationActionServiceImpl {
 
@@ -97,7 +97,7 @@ public class AllocationActionServiceImpl {
      * @param regId  mã đăng ký
      * @param examId mã kỳ thi (dùng khi queue không có)
      * @param queue  hàng đợi nguồn (ưu tiên tra trước)
-     * @return hồ sơ khớp, hoặc {@code null}
+     * @return hồ sơ khớp, hoặc null
      */
     public ExamRegistrationDTO findCandidate(int regId, int examId, List<ExamRegistrationDTO> queue) {
         // load từ queue trước

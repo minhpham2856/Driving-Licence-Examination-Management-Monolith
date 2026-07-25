@@ -28,21 +28,21 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Báo cáo kỳ thi: thống kê + trạng thái thủ tục; xuất Excel/PDF hoặc forward {@code report.jsp}.
+ * Báo cáo kỳ thi: thống kê + trạng thái thủ tục; xuất Excel/PDF hoặc forward report.jsp.
  *
  * Vai trò:
  * Trang báo cáo tổng hợp kỳ: KPI đậu/rớt/vắng, thống kê theo hạng GPLX, vi phạm,
- * trạng thái thủ tục (thiếu ảnh, chưa hoàn tất). Hỗ trợ export Excel/PDF qua {@link DocumentService}
+ * trạng thái thủ tục (thiếu ảnh, chưa hoàn tất). Hỗ trợ export Excel/PDF qua DocumentService
  * (chặn export khi còn thiếu ảnh thủ tục).
  *
  * Luồng GET:
- * - {@code prepareExamStaffPage} → consume flash exam-control
- * - {@code analyzeProcedureStatus} + {@code computeReportStats} → bind KPI
- * - Nếu {@code exportExcel/Pdf} và không bị chặn → stream document
- * - Ngược lại → forward {@code report.jsp} (kèm cờ exportBlocked nếu thiếu ảnh)
+ * - prepareExamStaffPage → consume flash exam-control
+ * - analyzeProcedureStatus + computeReportStats → bind KPI
+ * - Nếu exportExcel/Pdf và không bị chặn → stream document
+ * - Ngược lại → forward report.jsp (kèm cờ exportBlocked nếu thiếu ảnh)
  *
  * Ai gọi:
- * Menu exam staff; sidebar sau chọn kỳ; link export từ {@code report.jsp}.
+ * Menu exam staff; sidebar sau chọn kỳ; link export từ report.jsp.
  */
 @WebServlet("/examstaff/report")
 public class ReportServlet extends HttpServlet {
@@ -53,7 +53,7 @@ public class ReportServlet extends HttpServlet {
     /**
      * GET: prepare page → analyze procedure + stats → (exportExcel/Pdf nếu không bị chặn) hoặc JSP.
      * <p>
-     * Export bị chặn khi còn thiếu ảnh thủ tục ({@code missingPhotoCount &gt; 0}).
+     * Export bị chặn khi còn thiếu ảnh thủ tục (missingPhotoCount > 0).
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi stream/export
      */
@@ -158,18 +158,13 @@ public class ReportServlet extends HttpServlet {
      */
     private String resolveExporterName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
-        if (profileObj instanceof Profile) {
-            Profile profile = (Profile) profileObj;
-            if (profile.getFullName() != null) {
-                return profile.getFullName();
-            }
+        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
+            return profile.getFullName();
         }
         Object userObj = session.getAttribute(Attributes.Session.USER);
-        if (userObj instanceof UserDTO) {
-            UserDTO user = (UserDTO) userObj;
-            if (user.getProfile() != null && user.getProfile().getFullName() != null) {
-                return user.getProfile().getFullName();
-            }
+        if (userObj instanceof UserDTO user && user.getProfile() != null
+                && user.getProfile().getFullName() != null) {
+            return user.getProfile().getFullName();
         }
         return SessionUserHelper.resolveUsername(session);
     }

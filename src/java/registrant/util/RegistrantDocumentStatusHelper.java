@@ -15,7 +15,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Hiển thị tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý); Notes chỉ marker tệp. A1/A/B1: 4 giấy bắt buộc. */
+/**
+ * Logic hiển thị và tóm tắt trạng thái tài liệu theo ExamRegistration.RegistrationStatus (nguồn chân lý).
+ * Document.Notes chỉ chứa marker tệp (#PENDING#, #APPROVED#, #LICENCE#); hạng A1/A/B1 cần đủ 4 giấy bắt buộc. Dùng trên upload, profile, track-profile và dashboard.
+ */
 public final class RegistrantDocumentStatusHelper {
 
     public static final String[] REQUIRED_TYPES = {
@@ -137,7 +140,7 @@ public final class RegistrantDocumentStatusHelper {
         return false;
     }
 
-    /** Có request bổ sung đang chờ: ưu tiên {@code ExamRegistration}, fallback marker legacy trên Notes. */
+    /** Có request bổ sung đang chờ: ưu tiên ExamRegistration, fallback marker legacy trên Notes. */
     public static boolean hasAnySupplementPendingReview(RegistrantDAO registrantdao, int profileId,
             List<RegistrantDocumentView> allDocs) {
         if (profileId > 0 && registrantdao != null && registrantdao.hasOpenSupplementPending(profileId)) {
@@ -180,7 +183,7 @@ public final class RegistrantDocumentStatusHelper {
 
     /**
      * Chỉ enable hạng đã có bản duyệt hồ sơ kèm đúng hạng đó
-     * ({@code approvedLicenceCodes} từ ExamRegistration Approved).
+     * (approvedLicenceCodes từ ExamRegistration Approved).
      */
     public static boolean isLicenceAllowedWithDocuments(String uiLicenceCode,
             List<RegistrantDocumentView> allDocs, Collection<String> approvedLicenceCodes) {

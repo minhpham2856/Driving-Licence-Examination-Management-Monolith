@@ -9,7 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-/** Audit cổng thí sinh: ghi log thao tác và map bản ghi Audit sang dòng theo dõi hồ sơ. */
+/**
+ * Facade audit cổng thí sinh: ghi log thao tác và map bản ghi Audit sang RegistrantTrackingLog.
+ * Bao bọc RegistrantAuditLogHelper với message tiếng Việt cho upload, gửi duyệt, xóa tài liệu, cập nhật profile; toTrackingLogs dùng trên trang track-profile.
+ */
 public final class RegistrantAuditHelper {
 
     private RegistrantAuditHelper() {
@@ -62,12 +65,6 @@ public final class RegistrantAuditHelper {
     public static void logPasswordChange(HttpSession session, int userId) {
         RegistrantAuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
                 "Đổi mật khẩu tài khoản", "Đã đổi mật khẩu", userId);
-    }
-
-    /** Ghi audit khi vô hiệu hoá tài khoản thí sinh. */
-    public static void logAccountDeactivate(HttpSession session, int userId) {
-        RegistrantAuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
-                "Vô hiệu hoá tài khoản thí sinh", "Đã vô hiệu hoá", userId);
     }
 
     /** Đổi danh sách AuditLog sang dòng theo dõi hồ sơ (timeline). */

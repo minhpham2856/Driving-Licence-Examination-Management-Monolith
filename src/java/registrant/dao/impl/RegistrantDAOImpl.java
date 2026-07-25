@@ -33,9 +33,20 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** DAO cổng thí sinh: hạng GPLX, đợt thi mở, đăng ký ExamRegistration, dashboard/tracking. */
+/**
+ * DAO cổng thí sinh: hạng GPLX, đợt thi mở, đăng ký ExamRegistration, dashboard/tracking.
+ * Cách tìm: Ctrl+F REGION: hoặc dùng LOC index bên dưới (số dòng gần đúng — cập nhật lại khi sửa lớn). Cùng thứ tự RegistrantDAO.
+ * LOC index Impl:
+ * Hạng GPLX ~L121 — listOpenLicenceOptions ~L125; resolveLicenceIdByUiCode ~L153; resolveLatestLicenceClassByProfileId ~L175
+ * ExamDates / nguyện vọng ~L220 — listOpenExamSessionsByLicenceCode ~L224; findExamSessionByCode ~L258; registerPreferredExamDate ~L296; hasActivePreferredExamDate ~L331
+ * Danh sách đăng ký thi ~L486 — listRegisteredExamsByUserId ~L488; listRegisteredExamsByProfileId ~L498; listActiveExamRegistrationsByProfileId ~L625
+ * Dashboard ~L656 — loadDashboardStats ~L658; findUpcomingExamByUserId ~L708; findUpcomingExamByProfileId ~L716; listRecentActivities ~L776; daysUntil ~L807
+ * My-exams ~L823 — listMyExamsByUserId ~L831; findMyExamByCandidateId ~L951
+ * Hồ sơ tài liệu ~L999 — findProfileDocumentRegistrationStatus ~L1003; listApprovedDocumentLicenceCodes ~L1031; hasOpenSupplementPending ~L1099; insertSupplementDocumentRegistration ~L1132; insertLicenceDocumentRegistration ~L1167; mapSupplementRegistrationStatuses ~L1205; syncProfileDocumentRegistration ~L1237
+ * Track-profile ~L1346 — buildProfileTrackingLogs ~L1348
+ * Helpers mapper ~L1371; activity ~L1506; tracking ~L1623
+ */
 public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
-
     private static final Logger LOG = Logger.getLogger(RegistrantDAOImpl.class.getName());
 
     private final DocumentDAO documentdao = new DocumentDAOImpl();
@@ -77,6 +88,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     + " N'Open', N'Scheduled', N'InProgress', N'RegistrationOpen'"
                     + ")";
 
+    // =========================================================================
+    // REGION: Hạng GPLX / resolve LicenceId  (~L121)
+    // =========================================================================
     /** Query hạng đang mở đăng ký từ LicenceClass/ExamDates. */
     @Override
     public List<RegistrantLicenceOption> listOpenLicenceOptions() {
@@ -105,6 +119,77 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return options;
     }
 
+    /** Resolve LicenceId từ mã hạng UI. */
+    @Override
+    public int resolveLicenceIdByUiCode(String uiLicenceCode) {
+        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
+        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
+        String sql = "SELECT TOP 1 LicenceId FROM Licence WHERE UPPER(LTRIM(RTRIM(LicenceClass))) IN ("
+                + placeholders + ")";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < licenceCodes.length; i++) {
+                ps.setString(i + 1, licenceCodes[i]);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("LicenceId");
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không resolve LicenceId: {0}", e.getMessage());
+        }
+        return -1;
+    }
+
+    /** Mã hạng UI mới nhất từ đăng ký/hồ sơ. */
+    @Override
+    public String resolveLatestLicenceClassByProfileId(int profileId) {
+        if (profileId <= 0) {
+            return null;
+        }
+        String fromExam = queryLicenceClass("""
+                SELECT TOP 1 l.LicenceClass
+                FROM Profile prof
+                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
+                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
+                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
+                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
+                INNER JOIN ExamRegistration er ON er.ProfileId = prof.ProfileId
+                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                WHERE prof.ProfileId = ?
+                ORDER BY c.CandidateId DESC
+                """, profileId);
+        if (fromExam != null) {
+            return fromExam;
+        }
+        return queryLicenceClass("""
+                SELECT TOP 1 l.LicenceClass
+                FROM ExamRegistration er
+                INNER JOIN Licence l ON l.LicenceId = er.LicenceId
+                WHERE er.ProfileId = ?
+                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                ORDER BY er.ExamRegistrationId DESC
+                """, profileId);
+    }
+
+    private String queryLicenceClass(String sql, int profileId) {
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không tải hạng GPLX hồ sơ {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return null;
+    }
+
+    // =========================================================================
+    // REGION: Ngày thi dự kiến (ExamDates) & nguyện vọng (RegistrationDates)  (~L220)
+    // =========================================================================
     /** Liệt kê ExamDates mở theo mã hạng UI. */
     @Override
     public List<RegistrantExamSessionOption> listOpenExamSessionsByLicenceCode(String uiLicenceCode) {
@@ -170,13 +255,11 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     /**
      * Ghi nhận ngày thi mong muốn của thí sinh (portal).
-     * <p>
      * Đọc: ExamDates khớp Licence + còn mở; ExamRegistration Approved theo profile+licence.
-     * Ghi: INSERT/MERGE {@code RegistrationDates} IsActive=1.
+     * Ghi: INSERT/MERGE RegistrationDates IsActive=1.
      * Mỗi profile+hạng chỉ một nguyện vọng active — không deactivate/đổi ngày đã chọn.
      * Không tạo Candidate / ExamEnrollment / Payment.
-     *
-     * @return {@code null} nếu OK; ngược lại message lỗi tiếng Việt
+     * Trả về null nếu OK; ngược lại message lỗi tiếng Việt.
      */
     @Override
     public String registerPreferredExamDate(int profileId, int examDateId, int licenceId) {
@@ -367,7 +450,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     /** Gộp nguyện vọng + lịch chính thức theo UserId. */
-    @Override
+
+    // =========================================================================
+    // REGION: Danh sách đăng ký thi (dashboard / hồ sơ)  (~L486)
+    // =========================================================================
     public List<RegistrantRegisteredExamRow> listRegisteredExamsByUserId(int userId, int limit) {
         int safeLimit = Math.max(1, Math.min(limit, 50));
         List<RegistrantRegisteredExamRow> rows = new ArrayList<>();
@@ -534,7 +620,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     /** Tính số liệu thống kê cho dashboard thí sinh. */
-    @Override
+
+    // =========================================================================
+    // REGION: Dashboard — stats, upcoming, activity, daysUntil  (~L656)
+    // =========================================================================
     public Map<String, Object> loadDashboardStats(int userId, int profileId) {
         /*
          * Gộp COUNT vào một round-trip: nguyện vọng + lifecycle ER + kết quả chính thức.
@@ -681,6 +770,27 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
         return activities;
     }
+
+    /** Số ngày còn lại tới examDate; null nếu không hợp lệ. */
+    @Override
+    public Integer daysUntil(java.util.Date examDate) {
+        if (examDate == null) {
+            return null;
+        }
+        // Interface khai báo java.util.Date; impl dùng java.sql.Date ở chỗ khác — chuyển an toàn sang LocalDate.
+        LocalDate target;
+        if (examDate instanceof Date) {
+            target = ((Date) examDate).toLocalDate();
+        } else {
+            target = new Date(examDate.getTime()).toLocalDate();
+        }
+        long days = ChronoUnit.DAYS.between(LocalDate.now(), target);
+        return (int) Math.max(0, days);
+    }
+
+    // =========================================================================
+    // REGION: Lịch thi & kết quả (my-exams)  (~L823)
+    // =========================================================================
 
     /**
      * Danh sách “ca của tôi”: ngày mong muốn (RegistrationDates) + ca chính thức
@@ -853,97 +963,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     /** Ghép log theo dõi hồ sơ rồi sort mới nhất trước. */
-    @Override
-    public List<RegistrantTrackingLog> buildProfileTrackingLogs(int profileId, int userId) {
-        List<RegistrantTrackingLog> logs = new ArrayList<>();
 
-        // Bước 1: đăng ký tài khoản / hồ sơ
-        appendTrackingLog(logs, "Tạo hồ sơ đăng ký", "Thí sinh", "approved", "Thành công",
-                "Hồ sơ cá nhân đã được tạo trên hệ thống.", queryProfileCreatedAt(profileId),
-                RegistrantTrackingCategories.PROFILE);
-
-        // Bước 2: trạng thái ExamRegistration mới nhất
-        loadRegistrationTracking(profileId, logs);
-
-        // Bước 3: thanh toán gần nhất
-        loadPaymentTracking(userId, logs);
-
-        // Bước 4: nhật ký tài liệu đính kèm (upload / gửi duyệt / phê duyệt / từ chối)
-        java.util.Date profileCreated = queryProfileCreatedAt(profileId);
-        loadDocumentTracking(profileId, profileCreated, logs);
-
-        logs.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
-        return logs;
-    }
-
-    /** Resolve LicenceId từ mã hạng UI. */
-    @Override
-    public int resolveLicenceIdByUiCode(String uiLicenceCode) {
-        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
-        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
-        String sql = "SELECT TOP 1 LicenceId FROM Licence WHERE UPPER(LTRIM(RTRIM(LicenceClass))) IN ("
-                + placeholders + ")";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < licenceCodes.length; i++) {
-                ps.setString(i + 1, licenceCodes[i]);
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("LicenceId");
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không resolve LicenceId: {0}", e.getMessage());
-        }
-        return -1;
-    }
-
-    /** Mã hạng UI mới nhất từ đăng ký/hồ sơ. */
-    @Override
-    public String resolveLatestLicenceClassByProfileId(int profileId) {
-        if (profileId <= 0) {
-            return null;
-        }
-        String fromExam = queryLicenceClass("""
-                SELECT TOP 1 l.LicenceClass
-                FROM Profile prof
-                INNER JOIN Candidate c ON c.GovernmentIdNumber = prof.GovernmentIdNumber
-                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
-                INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
-                INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
-                INNER JOIN ExamRegistration er ON er.ProfileId = prof.ProfileId
-                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
-                WHERE prof.ProfileId = ?
-                ORDER BY c.CandidateId DESC
-                """, profileId);
-        if (fromExam != null) {
-            return fromExam;
-        }
-        return queryLicenceClass("""
-                SELECT TOP 1 l.LicenceClass
-                FROM ExamRegistration er
-                INNER JOIN Licence l ON l.LicenceId = er.LicenceId
-                WHERE er.ProfileId = ?
-                  AND er.RegistrationStatus NOT IN (N'Draft', N'Pending', N'Approved', N'Rejected')
-                ORDER BY er.ExamRegistrationId DESC
-                """, profileId);
-    }
-
-    private String queryLicenceClass(String sql, int profileId) {
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, profileId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
-                }
-            }
-        } catch (SQLException e) {
-            LOG.log(Level.WARNING, "Không tải hạng GPLX hồ sơ {0}: {1}",
-                    new Object[] { profileId, e.getMessage() });
-        }
-        return null;
-    }
-
+    // =========================================================================
+    // REGION: Hồ sơ tài liệu — ExamRegistration workflow (#PROFILE_DOC# …)  (~L999)
+    // =========================================================================
     /** Đọc RegistrationStatus ER hồ sơ gốc (#PROFILE_DOC#). */
     @Override
     public String findProfileDocumentRegistrationStatus(int profileId) {
@@ -1288,25 +1311,34 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return resolveLicenceIdByUiCode("B1");
     }
 
-    /** Số ngày còn lại tới examDate; null nếu không hợp lệ. */
-    @Override
-    public Integer daysUntil(java.util.Date examDate) {
-        if (examDate == null) {
-            return null;
-        }
-        // Interface khai báo java.util.Date; impl dùng java.sql.Date ở chỗ khác — chuyển an toàn sang LocalDate.
-        LocalDate target;
-        if (examDate instanceof Date) {
-            target = ((Date) examDate).toLocalDate();
-        } else {
-            target = new Date(examDate.getTime()).toLocalDate();
-        }
-        long days = ChronoUnit.DAYS.between(LocalDate.now(), target);
-        return (int) Math.max(0, days);
+    // =========================================================================
+    // REGION: Theo dõi hồ sơ (track-profile)  (~L1346)
+    // =========================================================================
+    public List<RegistrantTrackingLog> buildProfileTrackingLogs(int profileId, int userId) {
+        List<RegistrantTrackingLog> logs = new ArrayList<>();
+
+        // Bước 1: đăng ký tài khoản / hồ sơ
+        appendTrackingLog(logs, "Tạo hồ sơ đăng ký", "Thí sinh", "approved", "Thành công",
+                "Hồ sơ cá nhân đã được tạo trên hệ thống.", queryProfileCreatedAt(profileId),
+                RegistrantTrackingCategories.PROFILE);
+
+        // Bước 2: trạng thái ExamRegistration mới nhất
+        loadRegistrationTracking(profileId, logs);
+
+        // Bước 3: thanh toán gần nhất
+        loadPaymentTracking(userId, logs);
+
+        // Bước 4: nhật ký tài liệu đính kèm (upload / gửi duyệt / phê duyệt / từ chối)
+        java.util.Date profileCreated = queryProfileCreatedAt(profileId);
+        loadDocumentTracking(profileId, profileCreated, logs);
+
+        logs.sort((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()));
+        return logs;
     }
 
-    // ======================== Hàm map & helper nội bộ ========================
-
+    // =========================================================================
+    // REGION: Helpers — mapper ResultSet (private)  (~L1371)
+    // =========================================================================
     private RegistrantExamSessionOption mapSessionOption(ResultSet rs) throws SQLException {
         RegistrantExamSessionOption opt = new RegistrantExamSessionOption();
         String examCode = rs.getString("ExamCode");
@@ -1439,6 +1471,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return row;
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers: dashboard activity appenders (private)  (~L1506)
+    // -------------------------------------------------------------------------
     private void appendPaymentActivities(int profileId, List<RegistrantDashboardActivity> out, int limit) {
         String sql = """
                 SELECT TOP (?) p.TotalAmount, p.PaidAt, l.LicenceClass
@@ -1553,6 +1588,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers: track-profile builders (private)  (~L1623)
+    // -------------------------------------------------------------------------
     private java.util.Date queryProfileCreatedAt(int profileId) {
         // Profile không có CreatedAt — dùng ExamRegistration đầu tiên làm mốc
         String sql = """

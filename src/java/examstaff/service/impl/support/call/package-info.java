@@ -20,11 +20,11 @@
  * </pre>
  *
  * Thành phần chính:
- * - {@link examstaff.service.impl.support.call.CandidateCallPageServiceImpl} — dựng view trang gọi
- * - {@link examstaff.service.impl.support.call.CandidateCallWorkflowServiceImpl} — dispatch action (gọi / vắng / đóng ca)
- * - {@link examstaff.service.impl.support.call.CandidateQueueServiceImpl} — làm mới / sắp / resolve SBD đang gọi
- * - {@link examstaff.service.impl.support.call.CandidateQueueQueryServiceImpl} — đọc danh sách thí sinh kỳ thi
- * - {@link examstaff.service.impl.support.call.CandidateAttendanceServiceImpl} — đánh vắng / đình chỉ / khôi phục
- * - {@link examstaff.service.impl.support.call.CallQueueRules} / {@link examstaff.service.impl.support.call.CallBoardRules} — quy tắc thuần không HTTP
+ * - examstaff.service.impl.support.call.CandidateCallPageServiceImpl — dựng view trang gọi
+ * - examstaff.service.impl.support.call.CandidateCallWorkflowServiceImpl — dispatch action (gọi / vắng / đóng ca)
+ * - examstaff.service.impl.support.call.CandidateQueueServiceImpl — làm mới / sắp / resolve SBD đang gọi
+ * - examstaff.service.impl.support.call.CandidateQueueQueryServiceImpl — đọc danh sách thí sinh kỳ thi
+ * - examstaff.service.impl.support.call.CandidateAttendanceServiceImpl — đánh vắng / đình chỉ / khôi phục
+ * - examstaff.service.impl.support.call.CallQueueRules / examstaff.service.impl.support.call.CallBoardRules — quy tắc thuần không HTTP
  */
 package examstaff.service.impl.support.call;

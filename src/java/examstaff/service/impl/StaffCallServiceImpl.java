@@ -25,8 +25,8 @@ import examstaff.service.impl.support.call.CandidateAttendanceServiceImpl;
  * Gộp trang gọi + CallBoard + Public Call snapshot + thao tác hàng đợi dùng chung.
  *
  * Call Board — cách service dùng DAO:
- * Mọi method {@code *Board} / desk nhận {@link CallBoardDAO} từ servlet
- * ({@code ExamStaffHttpSupport.callBoardDao}). Service <b>không</b> tự tạo DAO để dễ test
+ * Mọi method *Board / desk nhận CallBoardDAO từ servlet
+ * (ExamStaffHttpSupport.callBoardDao). Service <b>không</b> tự tạo DAO để dễ test
  * và để Presentation quyết định nguồn storage (hiện tại: singleton in-memory).
  * <pre>
  *   getBoardState      → dao.getState(examId)
@@ -68,7 +68,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateCallPageServiceImpl#preparePage}.
+     * Ủy quyền sang CandidateCallPageServiceImpl.preparePage.
      * @param command lệnh trang gọi
      * @return DTO trang gọi
      */
@@ -78,12 +78,12 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Đọc trạng thái CallBoard; trả {@code null} nếu DAO/kỳ không hợp lệ.
+     * Đọc trạng thái CallBoard; trả null nếu DAO/kỳ không hợp lệ.
      * <p>
-     * Bản trả về là copy từ DAO — caller mutate rồi phải {@code saveState} (qua sync/occupy/…).
+     * Bản trả về là copy từ DAO — caller mutate rồi phải saveState (qua sync/occupy/…).
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
-     * @return trạng thái hoặc {@code null}
+     * @return trạng thái hoặc null
      */
     @Override
     public CallBoardState getBoardState(CallBoardDAO callBoardDAO, int examId) {
@@ -98,7 +98,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     /**
      * Lấy mã kỳ active trên CallBoard.
      * @param callBoardDAO DAO bảng gọi
-     * @return mã kỳ hoặc {@code null}
+     * @return mã kỳ hoặc null
      */
     @Override
     public Integer getActiveCallExamId(CallBoardDAO callBoardDAO) {
@@ -106,9 +106,9 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Đồng bộ bảng gọi: áp dụng {@link CallBoardRules#syncBoard} rồi lưu + set kỳ active.
+     * Đồng bộ bảng gọi: áp dụng CallBoardRules.syncBoard rồi lưu + set kỳ active.
      * <p>
-     * Dùng sau khi đổi SBD đang gọi / kết ca — Public Call poll sẽ thấy {@code updatedAtMs} mới.
+     * Dùng sau khi đổi SBD đang gọi / kết ca — Public Call poll sẽ thấy updatedAtMs mới.
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param callingSbd   SBD đang gọi
@@ -199,9 +199,9 @@ public class StaffCallServiceImpl implements StaffCallService {
     /**
      * Tiếp tục bảng gọi: xóa cờ tạm dừng / kết ca rồi lưu.
      * <p>
-     * Khác sync: chỉ clear {@code shiftEnded}/{@code examPaused} trên board đã có;
-     * nếu chưa từng {@code saveState} (state null) thì không tạo board mới.
-     * Gọi từ {@code ExamStaffShiftSupport.startOrResumeShift} / exam-control resume.
+     * Khác sync: chỉ clear shiftEnded/examPaused trên board đã có;
+     * nếu chưa từng saveState (state null) thì không tạo board mới.
+     * Gọi từ ExamStaffShiftSupport.startOrResumeShift / exam-control resume.
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      */
@@ -280,7 +280,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#buildSnapshot}.
+     * Ủy quyền sang CandidateQueueServiceImpl.buildSnapshot.
      * @param queue          hàng đợi
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
@@ -292,7 +292,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#refreshQueue}.
+     * Ủy quyền sang CandidateQueueServiceImpl.refreshQueue.
      * @param input lệnh trang
      * @return snapshot
      */
@@ -302,7 +302,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueQueryServiceImpl#listByExamId} (View DAO).
+     * Ủy quyền sang CandidateQueueQueryServiceImpl.listByExamId (View DAO).
      * @param examId mã kỳ thi
      * @return danh sách hàng đợi UI
      */
@@ -312,7 +312,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveSyncedCallingSbd}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveSyncedCallingSbd.
      * @param httpCallingSbd SBD từ request
      * @param callBoard      trạng thái bảng gọi
      * @param queue          hàng đợi
@@ -325,10 +325,10 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveCallingCandidate}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveCallingCandidate.
      * @param callingSbd SBD đang gọi
      * @param queue      hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     @Override
     public ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue) {
@@ -336,7 +336,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#listSuspendedInExam}.
+     * Ủy quyền sang CandidateQueueServiceImpl.listSuspendedInExam.
      * @param queue hàng đợi
      * @return danh sách đình chỉ
      */
@@ -346,7 +346,7 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveNextCallingSbd}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveNextCallingSbd.
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD vừa xử lý
      * @return SBD tiếp theo
@@ -357,10 +357,10 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#findBySbd}.
+     * Ủy quyền sang CandidateQueueServiceImpl.findBySbd.
      * @param queue hàng đợi
      * @param sbd   số báo danh
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     @Override
     public ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd) {
@@ -368,10 +368,10 @@ public class StaffCallServiceImpl implements StaffCallService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#moveCallableCandidateToFront}.
+     * Ủy quyền sang CandidateQueueServiceImpl.moveCallableCandidateToFront.
      * @param queue hàng đợi (mutate)
      * @param sbd   số báo danh
-     * @return {@code true} nếu đã chuyển
+     * @return true nếu đã chuyển
      */
     @Override
     public boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd) {

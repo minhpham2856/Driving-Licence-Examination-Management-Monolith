@@ -9,7 +9,7 @@ import examstaff.dto.ExamRegistrationDTO;
  * Gắn thí sinh với stage (key/label/path) để UI điều hướng đúng màn stage sau khi search.
  *
  * Ai tạo / tiêu thụ:
- * {@code AllocationStageViewServiceImpl} → nằm trong {@link AllocationStageViewDTO#getOverviewSearchHits()}
+ * AllocationStageViewServiceImpl → nằm trong AllocationStageViewDTO.getOverviewSearchHits()
  * → JSP allocation overview.
  */
 public class AllocationOverviewHitDTO {

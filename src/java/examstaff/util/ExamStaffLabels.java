@@ -14,19 +14,19 @@ import java.util.Locale;
  *
  * Vai trò trong luồng examstaff:
  * Dữ liệu audit/ báo cáo lưu mã EN hoặc tên bảng SQL; UI cần nhãn VI đọc được.
- * {@link #applyDisplayLabels} gắn entity/action/details lên {@link AuditDTO}.
- * Nhóm report ({@link #formatTheoryResult}, {@link #formatFinalResult}, …) và procedure
- * ({@link #formatFeeAmount}, {@link #formatAutoAllocateDetail}) phục vụ JSP/export.
+ * applyDisplayLabels gắn entity/action/details lên AuditDTO.
+ * Nhóm report (formatTheoryResult, formatFinalResult, …) và procedure
+ * (formatFeeAmount, formatAutoAllocateDetail) phục vụ JSP/export.
  *
  * Nhóm chức năng:
- * - Audit — {@link #formatEntityLabel}, {@link #formatActionType}, {@link #formatOperationDetail}
- *       (dùng {@link examstaff.enums.AuditEntity}).
- * - Báo cáo — kết quả LT/TH/tổng, yes/no, {@link #safeFileToken} cho tên file export.
+ * - Audit — formatEntityLabel, formatActionType, formatOperationDetail
+ *       (dùng examstaff.enums.AuditEntity).
+ * - Báo cáo — kết quả LT/TH/tổng, yes/no, safeFileToken cho tên file export.
  * - Thủ tục — format tiền lệ phí, mô tả auto-allocate sau thu phí, tiêu đề phiếu xác nhận.
  *
  * Ai gọi:
- * {@code StaffAuditPageServiceImpl}, {@code StaffAuditExportServiceImpl}, {@code ReportServlet},
- * {@code ProcedureServlet}, {@code CandidateDossierServiceImpl} — mọi màn cần text VI từ DTO thô.
+ * StaffAuditPageServiceImpl, StaffAuditExportServiceImpl, ReportServlet,
+ * ProcedureServlet, CandidateDossierServiceImpl — mọi màn cần text VI từ DTO thô.
  */
 public final class ExamStaffLabels {
 
@@ -39,7 +39,7 @@ public final class ExamStaffLabels {
     // -------------------------------------------------------------------------
 
     /**
-     * Gán các nhãn hiển thị (entity / action / chi tiết) lên {@link AuditDTO}.
+     * Gán các nhãn hiển thị (entity / action / chi tiết) lên AuditDTO.
      * <p>
      * Thứ tự: entity label → action type → display details. null log → no-op.
      * @param log bản ghi audit (null → no-op)
@@ -58,7 +58,7 @@ public final class ExamStaffLabels {
      * Loại thao tác tiếng Việt (ưu tiên suy từ details, rồi action code).
      * <p>
      * Luồng: null → “Khác”; quét details (RESET / phân bổ / thu phí / import);
-     * không khớp → {@link #formatActionCode}.
+     * không khớp → formatActionCode.
      * @param log bản ghi audit
      * @return nhãn action
      */
@@ -91,7 +91,7 @@ public final class ExamStaffLabels {
      * Map mã action thô (INSERT/UPDATE/…) sang nhãn tiếng Việt.
      * <p>
      * Luồng: blank → “Khác”; WARNING / REMOVE|DELETE → nhãn tương ứng;
-     * switch exact code; default → {@link #formatActionCodeFromPhrase}.
+     * switch exact code; default → formatActionCodeFromPhrase.
      * @param action mã hoặc cụm action
      * @return nhãn hiển thị
      */
@@ -147,8 +147,8 @@ public final class ExamStaffLabels {
     /**
      * Nhãn thực thể theo tên bảng / alias enum.
      * <p>
-     * Luồng: blank → “Khác”; switch mã bảng; rồi {@link AuditEntity#resolveLabel};
-     * cuối cùng {@link #normalizeVietnameseEntityAlias}.
+     * Luồng: blank → “Khác”; switch mã bảng; rồi AuditEntity.resolveLabel;
+     * cuối cùng normalizeVietnameseEntityAlias.
      * @param tableName tên bảng hoặc mã entity
      * @return nhãn tiếng Việt
      */
@@ -257,7 +257,7 @@ public final class ExamStaffLabels {
 
     /**
      * Đổi cờ đạt/trượt phần thi thành nhãn hiển thị.
-     * @param passed {@code passed}/{@code failed}/{@code none}/khác
+     * @param passed passed/failed/none/khác
      * @return nhãn tiếng Việt hoặc chuỗi gốc
      */
     public static String formatSectionResult(String passed) {
@@ -274,9 +274,9 @@ public final class ExamStaffLabels {
     }
 
     /**
-     * Kết quả lý thuyết (kể cả bảo lưu khi {@code skipsTheory}).
+     * Kết quả lý thuyết (kể cả bảo lưu khi skipsTheory).
      * @param reg hồ sơ đăng ký
-     * @return nhãn hoặc chuỗi rỗng nếu {@code reg == null}
+     * @return nhãn hoặc chuỗi rỗng nếu reg == null
      */
     public static String formatTheoryResult(ExamRegistrationDTO reg) {
         if (reg == null) {
@@ -290,9 +290,9 @@ public final class ExamStaffLabels {
     }
 
     /**
-     * Kết quả thực hành (kể cả bảo lưu khi {@code skipsPractical}).
+     * Kết quả thực hành (kể cả bảo lưu khi skipsPractical).
      * @param reg hồ sơ đăng ký
-     * @return nhãn hoặc chuỗi rỗng nếu {@code reg == null}
+     * @return nhãn hoặc chuỗi rỗng nếu reg == null
      */
     public static String formatPracticalResult(ExamRegistrationDTO reg) {
         if (reg == null) {
@@ -307,7 +307,7 @@ public final class ExamStaffLabels {
     /**
      * Kết quả tổng: đình chỉ → vắng → chưa xong → đạt / trượt.
      * @param reg hồ sơ đăng ký
-     * @return nhãn hoặc chuỗi rỗng nếu {@code reg == null}
+     * @return nhãn hoặc chuỗi rỗng nếu reg == null
      */
     public static String formatFinalResult(ExamRegistrationDTO reg) {
         if (reg == null) {
@@ -329,15 +329,15 @@ public final class ExamStaffLabels {
     /**
      * Boolean → Có / Chưa (dùng cột báo cáo / checklist).
      * @param value giá trị
-     * @return {@code "Có"} hoặc {@code "Chưa"}
+     * @return "Có" hoặc "Chưa"
      */
     public static String yesNo(boolean value) {
         return value ? "Có" : "Chưa";
     }
 
     /**
-     * Chuẩn hóa token an toàn cho tên file: ký tự lạ → {@code _}, gộp nhiều {@code _}.
-     * @param raw chuỗi gốc (blank → {@code "ca_thi"})
+     * Chuẩn hóa token an toàn cho tên file: ký tự lạ → _, gộp nhiều _.
+     * @param raw chuỗi gốc (blank → "ca_thi")
      * @return token file
      */
     public static String safeFileToken(String raw) {
@@ -356,7 +356,7 @@ public final class ExamStaffLabels {
     /**
      * Format số tiền lệ phí; thiếu preview hoặc total ≤ 0 thì dùng mặc định 200.000 đ.
      * @param feePreview kết quả tính phí (có thể null)
-     * @return chuỗi tiền kèm đơn vị {@code đ}
+     * @return chuỗi tiền kèm đơn vị đ
      */
     public static String formatFeeAmount(ProcedureFeeResultDTO feePreview) {
         if (feePreview == null || feePreview.getFeeTotal() <= 0) {
@@ -368,7 +368,7 @@ public final class ExamStaffLabels {
     /**
      * Cụm mô tả kết quả tự phân bổ phòng sau khi thu phí.
      * <p>
-     * Có allocatedCount &gt; 0 → câu thành công; có errorMsg → ngoặc lỗi;
+     * Có allocatedCount > 0 → câu thành công; có errorMsg → ngoặc lỗi;
      * còn lại → cảnh báo chưa phân phòng.
      * @param allocResult kết quả auto-allocate (có thể null)
      * @return chuỗi bổ sung (thành công / lỗi / cảnh báo)
@@ -397,7 +397,7 @@ public final class ExamStaffLabels {
     }
 
     /**
-     * Phụ đề theo mô tô ({@link #isMotorcycleLicense}) hoặc hạng cụ thể khác.
+     * Phụ đề theo mô tô (isMotorcycleLicense) hoặc hạng cụ thể khác.
      * @param licenseCode mã hạng
      * @return chuỗi phụ đề trong ngoặc
      */
@@ -410,10 +410,10 @@ public final class ExamStaffLabels {
     }
 
     /**
-     * Cùng ngữ nghĩa {@code LicenseClassRules.isMotorcycle} — tránh util phụ thuộc BLL.
+     * Cùng ngữ nghĩa LicenseClassRules.isMotorcycle — tránh util phụ thuộc BLL.
      * Chỉ A1 / A được coi là mô tô (B1 được nhận diện trong switch nhưng không trả true).
      * @param licenseCode mã hạng GPLX
-     * @return {@code true} nếu A1 hoặc A
+     * @return true nếu A1 hoặc A
      */
     private static boolean isMotorcycleLicense(String licenseCode) {
         if (licenseCode == null || licenseCode.isBlank()) {

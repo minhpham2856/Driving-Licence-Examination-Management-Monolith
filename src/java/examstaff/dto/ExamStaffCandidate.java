@@ -9,19 +9,19 @@ import java.sql.Timestamp;
  *
  * Vai trò trong luồng examstaff:
  * Nằm ở biên Persistence → BLL. DAO view đổ dữ liệu thô vào class này;
- * {@code ExamStaffCandidateMapper} chuyển sang {@link ExamRegistrationDTO} để Presentation/JSP dùng.
+ * ExamStaffCandidateMapper chuyển sang ExamRegistrationDTO để Presentation/JSP dùng.
  * Không bind trực tiếp lên JSP; không chứa logic nghiệp vụ (vắng, đậu, thủ tục…).
  *
  * Ai tạo:
- * {@code ExamStaffCandidateViewDAOImpl#mapRow} (và các query list theo kỳ thi).
+ * ExamStaffCandidateViewDAOImpl#mapRow (và các query list theo kỳ thi).
  *
  * Ai tiêu thụ:
- * {@code ExamStaffCandidateMapper} → sản phẩm là {@link ExamRegistrationDTO};
- * {@code CandidateQueueQueryServiceImpl} gọi DAO rồi map sang danh sách đăng ký cho queue.
+ * ExamStaffCandidateMapper → sản phẩm là ExamRegistrationDTO;
+ * CandidateQueueQueryServiceImpl gọi DAO rồi map sang danh sách đăng ký cho queue.
  *
  * Trang / servlet:
  * Không gắn attribute request trực tiếp. Dữ liệu sau map xuất hiện trên
- * {@code dashboard.jsp}, {@code candidatecall.jsp}, allocation, dossier, … qua {@link ExamRegistrationDTO}.
+ * dashboard.jsp, candidatecall.jsp, allocation, dossier, … qua ExamRegistrationDTO.
  */
 public class ExamStaffCandidate {
 
@@ -89,7 +89,7 @@ public class ExamStaffCandidate {
         this.examEnrollmentId = examEnrollmentId;
     }
 
-    /** Số báo danh dạng số (map sang SBD trên {@link ExamRegistrationDTO}). */
+    /** Số báo danh dạng số (map sang SBD trên ExamRegistrationDTO). */
     public int getCandidateNo() {
         return candidateNo;
     }
@@ -279,7 +279,7 @@ public class ExamStaffCandidate {
         this.reasonForTaking = reasonForTaking;
     }
 
-    /** Cờ thi phần lý thuyết ({@code false} = bảo lưu). */
+    /** Cờ thi phần lý thuyết (false = bảo lưu). */
     public Boolean getTakeTheory() {
         return takeTheory;
     }
@@ -289,7 +289,7 @@ public class ExamStaffCandidate {
         this.takeTheory = takeTheory;
     }
 
-    /** Cờ thi phần thực hành ({@code false} = bảo lưu). */
+    /** Cờ thi phần thực hành (false = bảo lưu). */
     public Boolean getTakePractical() {
         return takePractical;
     }

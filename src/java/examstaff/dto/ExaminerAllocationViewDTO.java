@@ -13,7 +13,7 @@ import java.util.Map;
  * Mang danh sách slot trong ngày, SHV all / available / busy và options khu vực để form assign.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExaminerAllocationDeskServiceImpl} → {@code ExaminerAllocationServlet} → {@code examiner-allocation.jsp}.
+ * ExaminerAllocationDeskServiceImpl → ExaminerAllocationServlet → examiner-allocation.jsp.
  */
 public class ExaminerAllocationViewDTO {
 

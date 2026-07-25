@@ -13,17 +13,17 @@ import java.util.List;
  * Vai trò trong luồng examstaff:
  * Mang action gọi (gọi tiếp, vắng, đình chỉ, undo…), SBD mục tiêu, cờ ca (pause/end),
  * khóa mutation khi kỳ đã hoàn tất/hủy, snapshot board và cache hàng chờ.
- * {@code CandidateCallPageServiceImpl} xử lý rồi trả {@link CandidateCallPageViewDTO}.
+ * CandidateCallPageServiceImpl xử lý rồi trả CandidateCallPageViewDTO.
  *
  * Ai tạo:
- * {@code CandidateCallServlet#buildCommand} (đọc request + session + board).
+ * CandidateCallServlet#buildCommand (đọc request + session + board).
  *
  * Ai tiêu thụ:
- * {@code StaffCallServiceImpl#preparePage} → {@code CandidateCallPageServiceImpl}.
+ * StaffCallServiceImpl#preparePage → CandidateCallPageServiceImpl.
  *
  * Trang / JSP:
  * Không bind object command lên JSP; servlet forward kết quả sang
- * {@code candidatecall.jsp} hoặc {@code candidate-suspended.jsp}.
+ * candidatecall.jsp hoặc candidate-suspended.jsp.
  */
 public class CandidateCallPageCommand {
 
@@ -97,7 +97,7 @@ public class CandidateCallPageCommand {
         this.examId = examId;
     }
 
-    /** ExamId gắn với {@link CallBoardState} đang đọc (có thể khác session nếu lệch sync). */
+    /** ExamId gắn với CallBoardState đang đọc (có thể khác session nếu lệch sync). */
     public int getBoardExamId() {
         return boardExamId;
     }
@@ -189,7 +189,7 @@ public class CandidateCallPageCommand {
         this.callQueueOrder = callQueueOrder;
     }
 
-    /** ExamId gắn với {@link #getCallQueueOrder()}. */
+    /** ExamId gắn với getCallQueueOrder(). */
     public Integer getCallQueueOrderExamId() {
         return callQueueOrderExamId;
     }

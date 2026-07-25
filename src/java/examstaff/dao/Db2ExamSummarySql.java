@@ -1,19 +1,19 @@
 package examstaff.dao;
 
 /**
- * Hằng SQL SELECT tóm tắt kỳ thi ({@code Exam} JOIN {@code Licence}) dùng chung.
+ * Hằng SQL SELECT tóm tắt kỳ thi (Exam JOIN Licence) dùng chung.
  *
  * Ai dùng?:
- * - {@code ExamDAOImpl#getById} — {@code EXAM_SUMMARY_SELECT + " WHERE e.ExamId = ?"}
- * - {@code ExamViewDAOImpl} — list / picker kỳ thi (thêm {@code ORDER BY} / filter status)
- * Một chỗ định nghĩa cột → map {@code ExamSummaryDTO} không lệch giữa “đọc 1 kỳ” và “list kỳ”.
+ * - ExamDAOImpl#getById — EXAM_SUMMARY_SELECT + " WHERE e.ExamId = ?"
+ * - ExamViewDAOImpl — list / picker kỳ thi (thêm ORDER BY / filter status)
+ * Một chỗ định nghĩa cột → map ExamSummaryDTO không lệch giữa “đọc 1 kỳ” và “list kỳ”.
  *
  * Cột quan trọng:
- * - {@code id} / {@code examId} — cùng {@code Exam.ExamId} (alias kép cho mapper cũ)
- * - {@code examName} — ưu tiên {@code ExamCode}; trống thì ghép {@code Hạng + LicenceClass + ngày}
- * - {@code status} — {@code Exam.Status} (DB), khác pause runtime trên Call Board
- * - {@code licenseCode} — hạng GPLX từ {@code Licence}
- * <p>Caller <b>phải</b> gắn {@code WHERE} / {@code ORDER BY} khi chạy — hằng này chỉ là phần SELECT…FROM…JOIN.
+ * - id / examId — cùng Exam.ExamId (alias kép cho mapper cũ)
+ * - examName — ưu tiên ExamCode; trống thì ghép Hạng + LicenceClass + ngày
+ * - status — Exam.Status (DB), khác pause runtime trên Call Board
+ * - licenseCode — hạng GPLX từ Licence
+ * <p>Caller <b>phải</b> gắn WHERE / ORDER BY khi chạy — hằng này chỉ là phần SELECT…FROM…JOIN.
  */
 public final class Db2ExamSummarySql {
 
@@ -21,8 +21,8 @@ public final class Db2ExamSummarySql {
     }
 
     /**
-     * SELECT một hàng kỳ thi: alias {@code id} và {@code examId} cùng trỏ {@code ExamId}.
-     * Caller gắn {@code WHERE e.ExamId = ?} hoặc {@code ORDER BY ...} khi chạy.
+     * SELECT một hàng kỳ thi: alias id và examId cùng trỏ ExamId.
+     * Caller gắn WHERE e.ExamId = ? hoặc ORDER BY ... khi chạy.
      */
     public static final String EXAM_SUMMARY_SELECT = """
             SELECT e.ExamId AS id,

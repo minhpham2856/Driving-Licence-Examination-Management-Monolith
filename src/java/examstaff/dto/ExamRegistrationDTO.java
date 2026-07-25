@@ -15,25 +15,25 @@ import java.sql.Date;
  * và cờ trạng thái vận hành (có mặt / vắng / đình chỉ / lệ phí / ảnh).
  *
  * Ai tạo:
- * - {@code ExamRegistrationDAOImpl} — map trực tiếp từ JDBC khi đọc bảng đăng ký.
- * - {@code ExamStaffCandidateMapper#toDto} — chuyển từ read-model {@link ExamStaffCandidate}
+ * - ExamRegistrationDAOImpl — map trực tiếp từ JDBC khi đọc bảng đăng ký.
+ * - ExamStaffCandidateMapper#toDto — chuyển từ read-model ExamStaffCandidate
  *       (DAO view JOIN Candidate+Enrollment) sang DTO này.
  * - Một số service (ví dụ thủ tục / thanh toán) có thể tạo stub rỗng rồi đổ field.
  *
  * Ai tiêu thụ:
- * - BLL: {@code RegistrationServiceImpl}, {@code CandidateQueue*}, {@code Procedure*},
- *       {@code StaffCallServiceImpl}, {@code Allocation*}, {@code DocumentServiceImpl},
- *       {@code CallQueueRules}, {@code ExamEnrollmentMerge}.
- * - Presentation binders: {@code ExamStaffPageBinder}, {@code PublicCallSnapshotSupport}.
- * - Servlet: {@code DashboardServlet}, {@code CandidateCallServlet}, {@code ProcedureServlet},
- *       {@code AllocationServlet}, {@code PublicCallServlet}, {@code CandidateDossierServlet},
- *       {@code ReportServlet}, …
+ * - BLL: RegistrationServiceImpl, CandidateQueue*, Procedure*,
+ *       StaffCallServiceImpl, Allocation*, DocumentServiceImpl,
+ *       CallQueueRules, ExamEnrollmentMerge.
+ * - Presentation binders: ExamStaffPageBinder, PublicCallSnapshotSupport.
+ * - Servlet: DashboardServlet, CandidateCallServlet, ProcedureServlet,
+ *       AllocationServlet, PublicCallServlet, CandidateDossierServlet,
+ *       ReportServlet, …
  *
  * Trang / JSP liên quan:
- * Bound dưới các attribute như {@code candidateQueue}, {@code callingCandidate}, {@code profile},
- * {@code waitingQueue}, … trên {@code dashboard.jsp}, {@code candidatecall.jsp} (+ include
- * {@code procedure.jsp}), {@code candidate-suspended.jsp}, {@code candidate-dossier.jsp},
- * các JSP phân bổ, {@code public-call.jsp}, báo cáo.
+ * Bound dưới các attribute như candidateQueue, callingCandidate, profile,
+ * waitingQueue, … trên dashboard.jsp, candidatecall.jsp (+ include
+ * procedure.jsp), candidate-suspended.jsp, candidate-dossier.jsp,
+ * các JSP phân bổ, public-call.jsp, báo cáo.
  * <p>Không chứa Servlet API; chỉ mang dữ liệu qua Presentation ↔ BLL.</p>
  */
 public class ExamRegistrationDTO {
@@ -70,7 +70,7 @@ public class ExamRegistrationDTO {
     private Integer practicalAllocatedAreaId;
     private String practicalAllocatedAreaName;
     private boolean validCapturedPhoto;
-    /** {@code null} = thi phần đó; {@code false} = bảo lưu, không thi lại phần này. */
+    /** null = thi phần đó; false = bảo lưu, không thi lại phần này. */
     private Boolean takeTheory;
     private Boolean takePractical;
     private Date examDate;
@@ -102,8 +102,8 @@ public class ExamRegistrationDTO {
     }
 
     /**
-     * Số báo danh dạng chuỗi 3 chữ số (pad từ {@code candidateNo}) để hiển thị / so khớp bảng gọi.
-     * Nếu {@code candidateNo <= 0} trả {@code "000"}; nếu &gt;= 1000 giữ nguyên dạng số đầy đủ.
+     * Số báo danh dạng chuỗi 3 chữ số (pad từ candidateNo) để hiển thị / so khớp bảng gọi.
+     * Nếu candidateNo <= 0 trả "000"; nếu >= 1000 giữ nguyên dạng số đầy đủ.
      * @return SBD chuẩn hóa cho UI và CallBoard
      */
     public String getSbd() {
@@ -135,7 +135,7 @@ public class ExamRegistrationDTO {
         this.examId = examId;
     }
 
-    /** Mã enrollment kỳ thi (FK ExamEnrollment) — phân biệt với {@link #getId()}. */
+    /** Mã enrollment kỳ thi (FK ExamEnrollment) — phân biệt với getId(). */
     public int getExamEnrollmentId() {
         return examEnrollmentId;
     }
@@ -145,7 +145,7 @@ public class ExamRegistrationDTO {
         this.examEnrollmentId = examEnrollmentId;
     }
 
-    /** Số báo danh dạng số nguyên (nguồn để format {@link #getSbd()}). */
+    /** Số báo danh dạng số nguyên (nguồn để format getSbd()). */
     public int getCandidateNo() {
         return candidateNo;
     }
@@ -167,7 +167,7 @@ public class ExamRegistrationDTO {
 
     /**
      * Bean-style: đã hoàn tất thu lệ phí thủ tục hay chưa.
-     * Tên {@code isIsPaymentCompleted} giữ tương thích JSP/legacy getter.
+     * Tên isIsPaymentCompleted giữ tương thích JSP/legacy getter.
      */
     public boolean isIsPaymentCompleted() {
         return isPaymentCompleted;
@@ -304,7 +304,7 @@ public class ExamRegistrationDTO {
     }
 
     /**
-     * Trạng thái phần lý thuyết: thường {@code none}/{@code passed}/{@code failed}.
+     * Trạng thái phần lý thuyết: thường none/passed/failed.
      */
     public String getTheoryPassed() {
         return theoryPassed;
@@ -316,7 +316,7 @@ public class ExamRegistrationDTO {
     }
 
     /**
-     * Trạng thái phần thực hành / sa hình: thường {@code none}/{@code passed}/{@code failed}.
+     * Trạng thái phần thực hành / sa hình: thường none/passed/failed.
      */
     public String getPracticalPassed() {
         return practicalPassed;
@@ -408,7 +408,7 @@ public class ExamRegistrationDTO {
     }
 
     /**
-     * Cờ thi lại lý thuyết: {@code null}/true = phải thi; {@code false} = bảo lưu, bỏ qua phần này.
+     * Cờ thi lại lý thuyết: null/true = phải thi; false = bảo lưu, bỏ qua phần này.
      */
     public Boolean getTakeTheory() {
         return takeTheory;
@@ -420,7 +420,7 @@ public class ExamRegistrationDTO {
     }
 
     /**
-     * Cờ thi lại thực hành: {@code null}/true = phải thi; {@code false} = bảo lưu, bỏ qua phần này.
+     * Cờ thi lại thực hành: null/true = phải thi; false = bảo lưu, bỏ qua phần này.
      */
     public Boolean getTakePractical() {
         return takePractical;
@@ -433,15 +433,15 @@ public class ExamRegistrationDTO {
 
     /**
      * Bảo lưu lý thuyết — không thi lại phần lý thuyết trong kỳ này.
-     * @return true khi {@code takeTheory == Boolean.FALSE}
+     * @return true khi takeTheory == Boolean.FALSE
      */
     public boolean skipsTheory() {
         return Boolean.FALSE.equals(takeTheory);
     }
 
     /**
-     * Alias bean cho JSP EL: {@code ${profile.skipsTheory}}.
-     * @return cùng nghĩa {@link #skipsTheory()}
+     * Alias bean cho JSP EL: ${profile.skipsTheory}.
+     * @return cùng nghĩa skipsTheory()
      */
     public boolean isSkipsTheory() {
         return skipsTheory();
@@ -449,15 +449,15 @@ public class ExamRegistrationDTO {
 
     /**
      * Bảo lưu thực hành / sa hình — không thi lại phần này.
-     * @return true khi {@code takePractical == Boolean.FALSE}
+     * @return true khi takePractical == Boolean.FALSE
      */
     public boolean skipsPractical() {
         return Boolean.FALSE.equals(takePractical);
     }
 
     /**
-     * Alias bean cho JSP EL: {@code ${profile.skipsPractical}}.
-     * @return cùng nghĩa {@link #skipsPractical()}
+     * Alias bean cho JSP EL: ${profile.skipsPractical}.
+     * @return cùng nghĩa skipsPractical()
      */
     public boolean isSkipsPractical() {
         return skipsPractical();
@@ -473,22 +473,22 @@ public class ExamRegistrationDTO {
         this.examDate = examDate;
     }
 
-    /** Alias họ tên cho JSP / view legacy ExamStaff ({@code name}). */
+    /** Alias họ tên cho JSP / view legacy ExamStaff (name). */
     public String getName() {
         return fullName;
     }
 
-    /** Alias hạng bằng ({@code clazz}) cho JSP / view legacy. */
+    /** Alias hạng bằng (clazz) cho JSP / view legacy. */
     public String getClazz() {
         return licenseCode;
     }
 
-    /** Alias ngày sinh ({@code dob}) cho JSP / view legacy. */
+    /** Alias ngày sinh (dob) cho JSP / view legacy. */
     public java.sql.Date getDob() {
         return dateOfBirth;
     }
 
-    /** Alias CCCD ({@code cccd}) cho JSP / view legacy. */
+    /** Alias CCCD (cccd) cho JSP / view legacy. */
     public String getCccd() {
         return govIdNo;
     }
@@ -497,8 +497,8 @@ public class ExamRegistrationDTO {
      * Thủ tục bàn đã hoàn tất: đã thu lệ phí và có ảnh chụp hợp lệ.
      * Vắng / đình chỉ luôn trả false (không tính là xong thủ tục).
      * - Loại trừ absent / suspended.
-     * - Yêu cầu {@code isPaymentCompleted}.
-     * - Yêu cầu {@code validCapturedPhoto}.
+     * - Yêu cầu isPaymentCompleted.
+     * - Yêu cầu validCapturedPhoto.
      * @return true nếu đủ điều kiện đóng bước thủ tục tại bàn
      */
     public boolean isProcedureComplete() {
@@ -523,7 +523,7 @@ public class ExamRegistrationDTO {
      * - Bỏ lý thuyết (bảo lưu): chỉ phụ thuộc thực hành.
      * - Bỏ thực hành + đậu lý thuyết → kết thúc.
      * - Trượt thực hành (khi vẫn thi) → kết thúc.
-     * - Còn lại: cả lý thuyết và thực hành hiệu lực đều {@code passed}.
+     * - Còn lại: cả lý thuyết và thực hành hiệu lực đều passed.
      * @return true nếu thí sinh không còn phần thi mở
      */
     public boolean isExamFinished() {
@@ -582,8 +582,8 @@ public class ExamRegistrationDTO {
 
     /**
      * Trạng thái thực hành “hiệu lực” khi xét kết thúc / đậu cuối:
-     * nếu bảo lưu thực hành và đã đậu lý thuyết thì coi như {@code passed};
-     * ngược lại chuẩn hóa blank → {@code none}.
+     * nếu bảo lưu thực hành và đã đậu lý thuyết thì coi như passed;
+     * ngược lại chuẩn hóa blank → none.
      */
     private String effectivePracticalPassed() {
         if (skipsPractical() && "passed".equalsIgnoreCase(theoryPassed)) {

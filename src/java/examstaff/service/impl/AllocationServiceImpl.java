@@ -13,14 +13,14 @@ import examstaff.service.impl.support.allocation.AllocationActionServiceImpl;
 import examstaff.service.impl.support.allocation.ExamAreaQueryServiceImpl;
 
 /**
- * Implementation {@link AllocationService}: ủy quyền action phân phòng và truy vấn khu vực.
+ * Implementation AllocationService: ủy quyền action phân phòng và truy vấn khu vực.
  *
  * Ủy quyền support services:
- * - {@link AllocationActionServiceImpl} — {@code autoAllocateOnOverview},
- *       {@code executeCandidateAction}, {@code findCandidate}
- * - {@link ExamAreaQueryServiceImpl} — {@code listStaffedTheoryRoomsForExam},
- *       {@code listStaffedPracticalAreasForExam}, {@code findAreaById}
- * Action thành công bọc {@link ServiceResult#ok}; lỗi validation trả {@code ServiceResult.fail}.
+ * - AllocationActionServiceImpl — autoAllocateOnOverview,
+ *       executeCandidateAction, findCandidate
+ * - ExamAreaQueryServiceImpl — listStaffedTheoryRoomsForExam,
+ *       listStaffedPracticalAreasForExam, findAreaById
+ * Action thành công bọc ServiceResult.ok; lỗi validation trả ServiceResult.fail.
  */
 public class AllocationServiceImpl implements AllocationService {
 
@@ -43,7 +43,7 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Ủy quyền auto-allocate rồi bọc {@link ServiceResult#ok}.
+     * Ủy quyền auto-allocate rồi bọc ServiceResult.ok.
      * @param examId mã kỳ thi
      * @param stage  giai đoạn
      * @return kết quả phân bổ
@@ -57,7 +57,7 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Thực hiện thao tác thí sinh; lỗi trong DTO → {@link ServiceResult#fail}.
+     * Thực hiện thao tác thí sinh; lỗi trong DTO → ServiceResult.fail.
      * @param request yêu cầu thao tác
      * @return kết quả / lỗi validation
      */
@@ -75,11 +75,11 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Ủy quyền sang {@link AllocationActionServiceImpl#findCandidate}.
+     * Ủy quyền sang AllocationActionServiceImpl.findCandidate.
      * @param regId  mã đăng ký / thí sinh
      * @param examId mã kỳ thi
      * @param queue  hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     @Override
     public ExamRegistrationDTO findCandidate(int regId, int examId, List<ExamRegistrationDTO> queue) {
@@ -87,7 +87,7 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamAreaQueryServiceImpl#listStaffedTheoryRoomsForExam}.
+     * Ủy quyền sang ExamAreaQueryServiceImpl.listStaffedTheoryRoomsForExam.
      * @param examId mã kỳ thi
      * @return danh sách phòng LT có SHV
      */
@@ -97,7 +97,7 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamAreaQueryServiceImpl#listStaffedPracticalAreasForExam}.
+     * Ủy quyền sang ExamAreaQueryServiceImpl.listStaffedPracticalAreasForExam.
      * @param examId mã kỳ thi
      * @return danh sách sân TH có SHV
      */
@@ -107,9 +107,9 @@ public class AllocationServiceImpl implements AllocationService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamAreaQueryServiceImpl#findById}.
+     * Ủy quyền sang ExamAreaQueryServiceImpl.findById.
      * @param examAreaId mã khu vực
-     * @return khu vực hoặc {@code null}
+     * @return khu vực hoặc null
      */
     @Override
     public ExamArea findAreaById(int examAreaId) {

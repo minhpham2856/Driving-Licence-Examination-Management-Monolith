@@ -16,7 +16,7 @@ import java.util.List;
  * Hai nguồn dữ liệu:
  * - <b>DB</b> — danh sách thí sinh / trạng thái đăng ký (qua queue services)
  * - <b>CallBoardDAO</b> — trạng thái runtime (calling, desk, pause) trong JVM
- * Pattern board: {@code getState} → {@code CallBoardRules} → {@code saveState} (+ {@code setActiveExamId}).
+ * Pattern board: getState → CallBoardRules → saveState (+ setActiveExamId).
  */
 public interface StaffCallService {
 
@@ -31,14 +31,14 @@ public interface StaffCallService {
      * Đọc trạng thái CallBoard theo kỳ thi.
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
-     * @return trạng thái hoặc {@code null}
+     * @return trạng thái hoặc null
      */
     CallBoardState getBoardState(CallBoardDAO callBoardDAO, int examId);
 
     /**
      * Mã kỳ đang active trên CallBoard.
      * @param callBoardDAO DAO bảng gọi
-     * @return mã kỳ hoặc {@code null}
+     * @return mã kỳ hoặc null
      */
     Integer getActiveCallExamId(CallBoardDAO callBoardDAO);
 
@@ -54,7 +54,7 @@ public interface StaffCallService {
             List<ExamRegistrationDTO> queue, boolean shiftEnded);
 
     /**
-     * Đánh dấu bàn đang bận với thí sinh {@code deskSbd}.
+     * Đánh dấu bàn đang bận với thí sinh deskSbd.
      * @param callBoardDAO DAO bảng gọi
      * @param examId       mã kỳ thi
      * @param deskSbd      SBD tại bàn
@@ -135,7 +135,7 @@ public interface StaffCallService {
      * Resolve thí sinh đang được gọi theo SBD.
      * @param callingSbd số báo danh đang gọi
      * @param queue      hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue);
 
@@ -147,10 +147,10 @@ public interface StaffCallService {
     List<ExamRegistrationDTO> listSuspendedInExam(List<ExamRegistrationDTO> queue);
 
     /**
-     * SBD tiếp theo có thể gọi sau {@code afterSbd}.
+     * SBD tiếp theo có thể gọi sau afterSbd.
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD vừa xử lý
-     * @return SBD tiếp theo hoặc {@code null}
+     * @return SBD tiếp theo hoặc null
      */
     String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd);
 
@@ -158,7 +158,7 @@ public interface StaffCallService {
      * Tìm thí sinh trong hàng đợi theo SBD.
      * @param queue hàng đợi
      * @param sbd   số báo danh
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     ExamRegistrationDTO findBySbd(List<ExamRegistrationDTO> queue, String sbd);
 
@@ -166,7 +166,7 @@ public interface StaffCallService {
      * Đưa thí sinh có thể gọi lên đầu hàng đợi (mutate list).
      * @param queue hàng đợi (mutate)
      * @param sbd   số báo danh
-     * @return {@code true} nếu đã chuyển
+     * @return true nếu đã chuyển
      */
     boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd);
 }

@@ -1,23 +1,23 @@
 package examstaff.enums;
 
 /**
- * Enum phần thi trong kỳ — ánh xạ nhãn tiếng Việt sang {@code ExamTypeId} trên CSDL
+ * Enum phần thi trong kỳ — ánh xạ nhãn tiếng Việt sang ExamTypeId trên CSDL
  * (lý thuyết, thực hành trong hình, thực hành trên đường).
  *
  * Vai trò trong luồng examstaff:
  * Chuẩn hóa tên phần thi khi JOIN điểm, lọc thiết bị, phân loại khu vực thi và hiển thị báo cáo.
- * {@link #LY_THUYET} dùng làm nhãn AreaType “chuẩn” schema Clean; thực hành có thể alias
- * qua {@code ExamAreaTypeResolver}.
+ * LY_THUYET dùng làm nhãn AreaType “chuẩn” schema Clean; thực hành có thể alias
+ * qua ExamAreaTypeResolver.
  *
  * Giá trị và ExamTypeId:
- * - {@link #LY_THUYET} — {@code ExamTypeId = 1}.
- * - {@link #THUC_HANH_TRONG_HINH} — {@code ExamTypeId = 2} (sa hình).
- * - {@link #THUC_HANH_TREN_DUONG} — {@code ExamTypeId = 4} (đường trường).
+ * - LY_THUYET — ExamTypeId = 1.
+ * - THUC_HANH_TRONG_HINH — ExamTypeId = 2 (sa hình).
+ * - THUC_HANH_TREN_DUONG — ExamTypeId = 4 (đường trường).
  *
  * Ai sử dụng:
- * {@code ExamAreaDAOImpl}, {@code ExamEnrollmentSectionSupport}, {@code Db2CandidateSql},
- * {@code Db2ExamSchemaSql}, {@code AllocationPassRules}, {@code ReportInfractionViewDAOImpl},
- * {@code ExamAreaTypeResolver} — mọi query/filter theo loại phần thi.
+ * ExamAreaDAOImpl, ExamEnrollmentSectionSupport, Db2CandidateSql,
+ * Db2ExamSchemaSql, AllocationPassRules, ReportInfractionViewDAOImpl,
+ * ExamAreaTypeResolver — mọi query/filter theo loại phần thi.
  */
 public enum ExamSection {
     /** Phần lý thuyết (ExamTypeId = 1). */
@@ -51,7 +51,7 @@ public enum ExamSection {
     }
 
     /**
-     * Lấy {@code ExamTypeId} dùng trong query / join điểm.
+     * Lấy ExamTypeId dùng trong query / join điểm.
      * @return mã loại phần thi (1, 2 hoặc 4)
      */
     public int getExamTypeId() {

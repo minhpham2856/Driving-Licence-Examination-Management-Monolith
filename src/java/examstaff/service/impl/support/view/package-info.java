@@ -17,13 +17,13 @@
  * </pre>
  *
  * Nhóm chức năng:
- * - <b>Chọn kỳ / context trang</b> — {@link examstaff.service.impl.support.view.ExamStaffSelectionServiceImpl},
- *       {@link examstaff.service.impl.support.view.ExamStaffPageServiceImpl}
- * - <b>Dashboard</b> — {@link examstaff.service.impl.support.view.ExamStaffDashboardServiceImpl}
- * - <b>Hồ sơ &amp; ảnh</b> — {@link examstaff.service.impl.support.view.CandidateDossierServiceImpl},
- *       {@link examstaff.service.impl.support.view.CandidatePhotoServiceImpl}
- * - <b>Báo cáo</b> — {@link examstaff.service.impl.support.view.ExamReportStatsServiceImpl},
- *       {@link examstaff.service.impl.support.view.ExamReportProcedureStatusServiceImpl}
- * <p>Không gọi trực tiếp từ servlet — luôn qua consolidator {@code ExamStaffViewServiceImpl}.
+ * - <b>Chọn kỳ / context trang</b> — examstaff.service.impl.support.view.ExamStaffSelectionServiceImpl,
+ *       examstaff.service.impl.support.view.ExamStaffPageServiceImpl
+ * - <b>Dashboard</b> — examstaff.service.impl.support.view.ExamStaffDashboardServiceImpl
+ * - <b>Hồ sơ & ảnh</b> — examstaff.service.impl.support.view.CandidateDossierServiceImpl,
+ *       examstaff.service.impl.support.view.CandidatePhotoServiceImpl
+ * - <b>Báo cáo</b> — examstaff.service.impl.support.view.ExamReportStatsServiceImpl,
+ *       examstaff.service.impl.support.view.ExamReportProcedureStatusServiceImpl
+ * <p>Không gọi trực tiếp từ servlet — luôn qua consolidator ExamStaffViewServiceImpl.
  */
 package examstaff.service.impl.support.view;

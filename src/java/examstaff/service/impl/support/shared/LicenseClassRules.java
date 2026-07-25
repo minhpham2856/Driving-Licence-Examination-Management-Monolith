@@ -8,16 +8,16 @@ import java.util.Locale;
  *
  * Vai trò trong luồng examstaff:
  * Hạng mô tô (A1/A) có quy trình thủ tục và phiếu xác nhận khác (không bắt buộc phần thi như B).
- * {@link #isMotorcycle} và {@link #normalizeManaged} dùng trước khi tính phí, phân bổ sân,
+ * isMotorcycle và normalizeManaged dùng trước khi tính phí, phân bổ sân,
  * hoặc render dossier — tránh nhận diện sai hạng ngoài tập quản lý.
  *
  * Cách hoạt động:
- * - {@link #normalizeManaged} — trim/upper; chỉ giữ A1/A/B1; ngoài tập → {@code ""}.
- * - {@link #isMotorcycle} — true khi normalize ra A1 hoặc A (B1 không coi là mô tô).
+ * - normalizeManaged — trim/upper; chỉ giữ A1/A/B1; ngoài tập → "".
+ * - isMotorcycle — true khi normalize ra A1 hoặc A (B1 không coi là mô tô).
  *
  * Ai gọi:
- * {@code ProcedureFeeQueryServiceImpl}, {@code AllocationPassRules}, {@code ExaminerAllocationDeskServiceImpl},
- * {@code CandidateDossierServiceImpl}, {@code CandidateCallPageServiceImpl} — logic theo hạng GPLX.
+ * ProcedureFeeQueryServiceImpl, AllocationPassRules, ExaminerAllocationDeskServiceImpl,
+ * CandidateDossierServiceImpl, CandidateCallPageServiceImpl — logic theo hạng GPLX.
  */
 public final class LicenseClassRules {
 
@@ -27,7 +27,7 @@ public final class LicenseClassRules {
     /**
      * Hạng mô tô (A1 hoặc A).
      * @param licenseCode mã hạng thô
-     * @return {@code true} nếu sau chuẩn hóa là A1/A
+     * @return true nếu sau chuẩn hóa là A1/A
      */
     public static boolean isMotorcycle(String licenseCode) {
         String code = normalizeManaged(licenseCode);
@@ -40,7 +40,7 @@ public final class LicenseClassRules {
     /**
      * Chuẩn hóa mã hạng về tập quản lý; ngoài tập → chuỗi rỗng.
      * @param licenseCode mã hạng thô
-     * @return {@code A1}/{@code A}/{@code B1} hoặc {@code ""}
+     * @return A1/A/B1 hoặc ""
      */
     public static String normalizeManaged(String licenseCode) {
         // Validate

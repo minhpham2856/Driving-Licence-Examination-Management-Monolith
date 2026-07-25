@@ -7,7 +7,8 @@ import java.time.format.ResolverStyle;
 import java.util.Locale;
 
 /**
- * Parse và hiển thị ngày theo định dạng quen thuộc dd/MM/yyyy.
+ * Tiện ích parse và hiển thị ngày theo định dạng dd/MM/yyyy cho form/JSP cổng thí sinh.
+ * Hỗ trợ validate chặt (STRICT), chuyển sang ISO yyyy-MM-dd cho input type="date" và format hoạt động dashboard. Ủy quyền trim tham số cho RegistrantListFilter.
  */
 public final class RegistrantDateSupport {
 
@@ -31,7 +32,7 @@ public final class RegistrantDateSupport {
         return date == null ? "" : date.format(VI_DATE);
     }
 
-    /** Giá trị cho {@code <input type="date">} (yyyy-MM-dd). */
+    /** Giá trị cho input type="date" (yyyy-MM-dd). */
     public static String toIsoValue(LocalDate date) {
         return date == null ? "" : date.toString();
     }

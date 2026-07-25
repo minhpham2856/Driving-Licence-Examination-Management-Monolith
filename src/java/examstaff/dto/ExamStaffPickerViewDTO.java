@@ -12,8 +12,8 @@ import java.util.List;
  * (dropdown / sidebar chọn kỳ).
  *
  * Ai tạo / tiêu thụ:
- * {@code ExamStaffPageServiceImpl} gắn vào {@link ExamStaffPageContext#getPickerView()};
- * {@code ExamStaffPageBinder} bind attribute trên hầu hết trang staff.
+ * ExamStaffPageServiceImpl gắn vào ExamStaffPageContext.getPickerView();
+ * ExamStaffPageBinder bind attribute trên hầu hết trang staff.
  */
 public class ExamStaffPickerViewDTO {
 

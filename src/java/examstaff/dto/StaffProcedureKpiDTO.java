@@ -4,10 +4,10 @@ package examstaff.dto;
  * KPI thủ tục của staff trên màn audit: số hồ sơ hoàn tất và tổng lệ phí đã thu.
  *
  * Vai trò:
- * Hiển thị nhanh hiệu suất bàn thủ tục của user đang xem nhật ký ({@code audit.jsp}).
+ * Hiển thị nhanh hiệu suất bàn thủ tục của user đang xem nhật ký (audit.jsp).
  *
  * Ai tạo / tiêu thụ:
- * {@code AuditLogDAOImpl} → gắn vào {@link StaffAuditPageViewDTO#getProcedureKpi()} → {@code AuditServlet}.
+ * AuditLogDAOImpl → gắn vào StaffAuditPageViewDTO.getProcedureKpi() → AuditServlet.
  */
 public class StaffProcedureKpiDTO {
     private final int completedCount;

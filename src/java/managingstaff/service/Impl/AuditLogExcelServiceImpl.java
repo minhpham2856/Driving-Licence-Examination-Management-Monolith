@@ -129,8 +129,8 @@ public class AuditLogExcelServiceImpl implements AuditLogExcelService {
 
     private static void writeCell(Row row, int column, Object value, CellStyle style) {
         Cell cell = row.createCell(column);
-        if (value instanceof Number) {
-            cell.setCellValue(((Number) value).doubleValue());
+        if (value instanceof Number number) {
+            cell.setCellValue(number.doubleValue());
         } else {
             cell.setCellValue(safeForExcel(value == null ? "-" : String.valueOf(value)));
         }

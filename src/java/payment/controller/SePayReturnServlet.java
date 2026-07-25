@@ -11,16 +11,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Trang return mà SePay redirect trình duyệt sau thanh toán (không phải IPN).
- * <p>
- * Ba URL map cùng servlet:
- * <ul>
- *   <li>{@code /payment/sepay/success} — khách thanh toán xong (chỉ UX; Payment ghi bởi IPN)</li>
- *   <li>{@code /payment/sepay/cancel} — khách bấm Hủy trên cổng SePay</li>
- *   <li>{@code /payment/sepay/error} — lỗi phía cổng SePay</li>
- * </ul>
- * Hủy/lỗi: đưa staff về bước 3 thu lệ phí để chọn lại SePay hoặc tiền mặt.
- * Thành công: hiện thông báo đóng tab; desk tự cập nhật khi IPN tới hoặc bấm “Kiểm tra”.
+ * Servlet xử lý redirect trình duyệt sau thanh toán SePay (bước return — không phải IPN).
+ * Ba URL: /success (UX thành công), /cancel (khách hủy), /error (lỗi cổng).
+ * Không ghi bảng Payment — ghi nhận thật qua SePayIpnServlet.
+ * Hủy/lỗi: đưa staff về bước 3 thu lệ phí (procedure?step=3); thành công: thông báo đóng tab,
+ * desk cập nhật khi IPN tới hoặc bấm Kiểm tra.
  */
 @WebServlet({"/payment/sepay/success", "/payment/sepay/error", "/payment/sepay/cancel"})
 public class SePayReturnServlet extends HttpServlet {
@@ -98,7 +93,7 @@ public class SePayReturnServlet extends HttpServlet {
 
     /**
      * URL bước 3 desk: SePay + tiền mặt cùng hiện.
-     * {@code #procedure-desk} giúp cuộn đúng khối thu phí.
+     * Anchor #procedure-desk giúp cuộn đúng khối thu phí.
      */
     private static String paymentStepUrl(HttpServletRequest request, String sbd, boolean cancelled) {
         String ctx = request.getContextPath() == null ? "" : request.getContextPath();
@@ -112,7 +107,7 @@ public class SePayReturnServlet extends HttpServlet {
     }
 
     /**
-     * Checkout mở bằng {@code window.open} → tab return là popup.
+     * Checkout mở bằng window.open → tab return là popup.
      * Ưu tiên: refresh tab gốc (opener) rồi đóng popup; không có opener thì redirect tab hiện tại.
      */
     private static void writeBackToPayment(HttpServletResponse response, String deskUrl, boolean cancelled)

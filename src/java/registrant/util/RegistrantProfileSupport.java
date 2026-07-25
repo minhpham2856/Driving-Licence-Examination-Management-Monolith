@@ -18,7 +18,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Helper dùng chung: nạp profile, tài liệu, trạng thái duyệt cho cổng thí sinh. */
+/**
+ * Helper nạp hồ sơ thí sinh dùng chung giữa các service/controller cổng Registrant.
+ * Resolve Profile từ session, liệt kê Document, đồng bộ ExamRegistration.RegistrationStatus, build RegistrantProfileContext và gắn attribute lên request cho JSP.
+ */
 public final class RegistrantProfileSupport {
 
     private static final Logger LOG = Logger.getLogger(RegistrantProfileSupport.class.getName());
@@ -198,7 +201,7 @@ public final class RegistrantProfileSupport {
         return result;
     }
 
-    /** Ghi RegistrationStatus + Notes mô tả lên dòng hồ sơ gốc ({@code #PROFILE_DOC#}). */
+    /** Ghi RegistrationStatus + Notes mô tả lên dòng hồ sơ gốc (#PROFILE_DOC#). */
     public static boolean updateRegistrationStatus(int profileId, String status,
             List<RegistrantDocumentView> docs, RegistrantDAO registrantdao) {
         return updateRegistrationStatus(profileId, status, docs, registrantdao, 0);

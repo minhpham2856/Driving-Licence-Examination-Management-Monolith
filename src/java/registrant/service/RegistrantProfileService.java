@@ -5,6 +5,11 @@ import auth.dto.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * Hợp đồng service trang hồ sơ cá nhân (ProfileServlet).
+ * Nạp Profile + trạng thái duyệt tài liệu lên request, validate form POST, INSERT/UPDATE bảng Profile và ghi audit khi cập nhật thành công.
+ * CCCD (GovernmentIdNumber) là khóa nối sang Candidate về sau.
+ */
 public interface RegistrantProfileService {
     /** Nạp hồ sơ, trạng thái duyệt và cờ UI lên request cho trang profile. */
     void copyProfileToRequest(UserDTO user, HttpServletRequest request);

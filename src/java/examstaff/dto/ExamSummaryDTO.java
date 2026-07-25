@@ -12,8 +12,8 @@ import java.sql.Timestamp;
  * không chứa nghiệp vụ gọi / thủ tục.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExamViewDAOImpl}, {@code ExamDAOImpl} → binders, {@link ExamStaffPickerViewDTO},
- * {@link PublicCallSnapshotDTO}, hầu hết servlet staff.
+ * ExamViewDAOImpl, ExamDAOImpl → binders, ExamStaffPickerViewDTO,
+ * PublicCallSnapshotDTO, hầu hết servlet staff.
  */
 public class ExamSummaryDTO {
 

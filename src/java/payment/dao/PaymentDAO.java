@@ -3,18 +3,16 @@ package payment.dao;
 import payment.dto.PaymentRecord;
 
 /**
- * Truy cập bảng {@code Payment}.
- * <ul>
- *   <li>{@link #insert} — Cash desk hoặc SePay IPN</li>
- *   <li>{@link #sumCompletedPaymentsByUserId} — Dashboard Registrant {@code totalFee}</li>
- *   <li>{@link #existsCompletedByTransactionReference} — chống IPN trùng</li>
- * </ul>
+ * Giao diện truy cập bảng Payment — dùng chung tiền mặt desk, SePay IPN và dashboard Registrant.
+ * insert ghi Payment Hoàn tất (Cash hoặc sau IPN ORDER_PAID/CAPTURED);
+ * existsCompletedByTransactionReference chống webhook trùng (idempotent IPN);
+ * sumCompletedPaymentsByUserId tổng lệ phí đã nộp qua join Profile↔Candidate↔ExamEnrollment.
  */
 public interface PaymentDAO {
 
     /**
      * Ghi Payment hoàn tất; resolve ExamEnrollmentId từ CandidateId nếu thiếu.
-     * @return true nếu insert OK (có PaymentId generated)
+     * Trả true nếu insert OK (có PaymentId generated).
      */
     boolean insert(PaymentRecord payment);
 

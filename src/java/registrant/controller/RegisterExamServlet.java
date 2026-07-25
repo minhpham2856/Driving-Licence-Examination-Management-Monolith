@@ -11,16 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Đăng ký <b>ngày thi mong muốn</b> — {@code GET/POST /registrant/register-exam}.
- * <p>
- * <b>GET — lấy data:</b> Profile Approved + hạng GPLX + danh sách {@code ExamDates}
- * (+ phí UI hardcode tham khảo, không phải Licence_Fee desk).
- * <p>
- * <b>POST {@code confirmRegistration=1}:</b> validate →
- * {@code MERGE RegistrationDates} (ExamRegistrationId, ExamDateId, IsActive=1)
- * → redirect {@code /registrant/my-exams?success=registered}.
- * <p>
- * <b>Không</b> tạo Candidate / ExamEnrollment / Payment / SePay checkout.
+ * Đăng ký ngày thi mong muốn — GET/POST /registrant/register-exam.
+ * GET — lấy data: Profile Approved + hạng GPLX + danh sách ExamDates (+ phí UI hardcode tham khảo, không phải Licence_Fee desk).
+ * POST confirmRegistration=1: validate → MERGE RegistrationDates (ExamRegistrationId, ExamDateId, IsActive=1) → redirect /registrant/my-exams?success=registered.
+ * Không tạo Candidate / ExamEnrollment / Payment / SePay checkout.
  */
 @WebServlet("/registrant/register-exam")
 public class RegisterExamServlet extends HttpServlet {

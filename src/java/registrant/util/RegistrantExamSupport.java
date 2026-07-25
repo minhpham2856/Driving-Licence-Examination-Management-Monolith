@@ -12,7 +12,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-/** Tiện ích thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch đăng ký. */
+/**
+ * Tiện ích nghiệp vụ thi cho cổng thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch.
+ * Dùng trên dashboard, my-exams, register-exam; tích hợp ExamSessionStatus, ProfileRegistrationStatus và nhãn nguyện vọng/SBD/chờ kết quả.
+ */
 public final class RegistrantExamSupport {
 
     public static final String SBD_PENDING_MESSAGE = "SBD sẽ được cập nhật sau";
@@ -410,15 +413,12 @@ public final class RegistrantExamSupport {
         row.setSessionTimeDisplay(formatSessionTimeRange(sessionStart, sessionEnd));
     }
 
-    /** Định dạng khoảng giờ ca thi cho dashboard (vd: "08:00 — 10:00"). */
+    /** Định dạng giờ bắt đầu ca thi (vd: "08:00") — không hiện giờ kết thúc. */
     public static String formatSessionTimeRange(java.util.Date start, java.util.Date end) {
         if (start == null && end == null) {
             return null;
         }
         SimpleDateFormat hm = new SimpleDateFormat("HH:mm", Locale.ROOT);
-        if (start != null && end != null) {
-            return hm.format(start) + " — " + hm.format(end);
-        }
         return start != null ? hm.format(start) : hm.format(end);
     }
 

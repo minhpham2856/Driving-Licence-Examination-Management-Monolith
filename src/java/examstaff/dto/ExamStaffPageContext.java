@@ -6,22 +6,22 @@ import java.util.List;
  * Ngữ cảnh trang ExamStaff đã chuẩn bị xong: kỳ thi hiện tại, danh sách kỳ, thí sinh và view picker.
  *
  * Vai trò trong luồng examstaff:
- * Đầu ra của bước {@code prepareExamStaffPage}: sau khi resolve examId (từ
- * {@link ExamStaffPageCommand}) và tùy chọn load candidates, servlet lấy context này để bind
+ * Đầu ra của bước prepareExamStaffPage: sau khi resolve examId (từ
+ * ExamStaffPageCommand) và tùy chọn load candidates, servlet lấy context này để bind
  * attribute request / tiếp tục nghiệp vụ (gọi, thủ tục, phân bổ, báo cáo…).
  *
  * Ai tạo:
- * {@code ExamStaffPageServiceImpl} ({@code new ExamStaffPageContext});
- * trả về qua {@code ExamStaffPageSupport#prepareExamStaffPage}.
+ * ExamStaffPageServiceImpl (new ExamStaffPageContext);
+ * trả về qua ExamStaffPageSupport#prepareExamStaffPage.
  *
  * Ai tiêu thụ:
- * {@code DashboardServlet}, {@code CandidateCallServlet}, {@code ProcedureServlet},
- * {@code AllocationServlet}, {@code ReportServlet}, {@code ExaminerAllocationServlet}
- * (chủ yếu lấy {@code examId} + {@code candidates}).
+ * DashboardServlet, CandidateCallServlet, ProcedureServlet,
+ * AllocationServlet, ReportServlet, ExaminerAllocationServlet
+ * (chủ yếu lấy examId + candidates).
  *
  * Trang / JSP:
- * Gián tiếp qua binder: attributes {@code allExams}, {@code currentExam}, {@code candidateQueue}, …
- * trên {@code dashboard.jsp}, {@code candidatecall.jsp}, allocation / report / examiner-allocation.
+ * Gián tiếp qua binder: attributes allExams, currentExam, candidateQueue, …
+ * trên dashboard.jsp, candidatecall.jsp, allocation / report / examiner-allocation.
  */
 public class ExamStaffPageContext {
 

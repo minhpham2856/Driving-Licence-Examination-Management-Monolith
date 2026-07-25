@@ -10,13 +10,17 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import registrant.util.RegistrantSessionSupport;
 
-/** Helper auth servlet thí sinh — requireRegistrant lấy UserDTO an toàn (null = đã redirect/403). */
+/**
+ * Lớp tiện ích xác thực cho tầng controller cổng thí sinh.
+ * Mọi servlet dưới /registrant/* gọi requireRegistrant trước khi xử lý: kiểm tra session USER, role REGISTRANT, redirect /login hoặc HTTP 403 nếu không hợp lệ.
+ * requireProfileId lấy ProfileId từ UserDTO đã qua kiểm tra.
+ */
 public final class RegistrantAuth {
 
     private RegistrantAuth() {
     }
 
-    /** @return UserDTO đã đăng nhập với role Registrant; null nếu không hợp lệ. */
+    /** Trả về UserDTO đã đăng nhập với role Registrant; null nếu không hợp lệ. */
     public static UserDTO requireRegistrant(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession(false);

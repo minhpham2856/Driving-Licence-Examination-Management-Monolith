@@ -24,17 +24,17 @@ import java.util.List;
  *
  * Vai trò:
  * Trang landing sau đăng nhập exam staff: tổng quan kỳ đang chọn, KPI phân công sát hạch viên,
- * đồng bộ {@code callingSbd} giữa session HTTP và {@link examstaff.dao.CallBoardDAO}.
- * Tiêu thụ flash từ {@link ExamControlServlet} và {@link ExamSelectServlet}.
+ * đồng bộ callingSbd giữa session HTTP và examstaff.dao.CallBoardDAO.
+ * Tiêu thụ flash từ ExamControlServlet và ExamSelectServlet.
  *
  * Luồng GET:
- * - No-cache headers → {@code prepareExamStaffPage} (kỳ + queue sidebar)
- * - {@code syncCallingSbd}: session ↔ board → {@code staffCall.syncBoard}
- * - {@code buildDashboardView} → bind KPI examiner
- * - Consume flash exam-control / select-exam → forward {@code dashboard.jsp}
+ * - No-cache headers → prepareExamStaffPage (kỳ + queue sidebar)
+ * - syncCallingSbd: session ↔ board → staffCall.syncBoard
+ * - buildDashboardView → bind KPI examiner
+ * - Consume flash exam-control / select-exam → forward dashboard.jsp
  *
  * Ai gọi:
- * Redirect mặc định sau {@link ExamSelectServlet}; menu sidebar; fallback redirect an toàn từ nhiều servlet.
+ * Redirect mặc định sau ExamSelectServlet; menu sidebar; fallback redirect an toàn từ nhiều servlet.
  */
 @WebServlet("/examstaff/dashboard")
 public class DashboardServlet extends HttpServlet {

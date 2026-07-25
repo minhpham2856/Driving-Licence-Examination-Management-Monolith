@@ -12,6 +12,10 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Triển khai AuditLogDAO trên bảng Audit (DLEM_DB_2).
+ * insert ghi hành động thí sinh/staff; getLogsByProfileId join User/Profile để lấy tên người thay đổi phục vụ timeline track-profile.jsp.
+ */
 public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
     private static final String AUDIT_SELECT = """
@@ -35,12 +39,22 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
 
     private static final String PROFILE_AUDIT_WHERE = """
             WHERE (
+                /* EntityId = ProfileId (luồng registrant ghi audit) */
                 (a.EntityName IN (N'Profile', N'Document', N'ExamRegistration', N'Hồ sơ', N'Tài liệu hồ sơ')
                  AND TRY_CAST(a.EntityId AS INT) = ?)
+                /* EntityId = ExamRegistrationId thuộc profile (staff / seed) */
+                OR EXISTS (
+                    SELECT 1 FROM ExamRegistration er
+                    WHERE er.ProfileId = ?
+                      AND TRY_CAST(a.EntityId AS INT) = er.ExamRegistrationId
+                      AND a.EntityName IN (N'ExamRegistration', N'Profile', N'Document',
+                                           N'Hồ sơ', N'Tài liệu hồ sơ')
+                )
+                /* EntityId = CandidateId thuộc profile (qua CCCD) */
                 OR EXISTS (
                     SELECT 1 FROM Candidate c
-                    INNER JOIN ExamRegistration er ON er.ExamRegistrationId = c.ExamRegistrationId
-                    WHERE er.ProfileId = ?
+                    INNER JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
+                    WHERE prof.ProfileId = ?
                       AND TRY_CAST(a.EntityId AS INT) = c.CandidateId
                 )
             )
@@ -184,8 +198,9 @@ public class AuditLogDAOImpl extends DBContext implements AuditLogDAO {
             String searchQuery, String actionFilter, String fromDate, String toDate,
             int offset, int pageSize) throws SQLException {
         int idx = 1;
-        ps.setInt(idx++, profileId);
-        ps.setInt(idx++, profileId);
+        ps.setInt(idx++, profileId); // EntityId = ProfileId
+        ps.setInt(idx++, profileId); // ExamRegistration.ProfileId
+        ps.setInt(idx++, profileId); // Profile.ProfileId (Candidate via CCCD)
         idx = bindProfileFilterValues(ps, idx, searchQuery, actionFilter, fromDate, toDate);
         ps.setInt(idx++, offset);
         ps.setInt(idx, pageSize);

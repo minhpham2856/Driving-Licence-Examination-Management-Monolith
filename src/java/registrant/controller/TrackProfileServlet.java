@@ -11,10 +11,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Theo dõi hồ sơ — {@code GET /registrant/track-profile}.
- * <p>
- * Lấy Audit + Document + đăng ký → {@code RegistrantProfileProgressBuilder}
- * dựng timeline 5 bước (Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD) → JSP.
+ * Trang theo dõi tiến trình hồ sơ — GET /registrant/track-profile, forward track-profile.jsp.
+ * Luồng: auth → RegistrantTrackProfileService.copyTrackingToRequest → forward.
+ * Service gom audit + tài liệu thành profileTrackingLogs, profileProgressSteps (timeline 5 bước), documentSummary và cờ showSupplementAlert; hỗ trợ bộ lọc/paging trên nhật ký.
  */
 @WebServlet("/registrant/track-profile")
 public class TrackProfileServlet extends HttpServlet {

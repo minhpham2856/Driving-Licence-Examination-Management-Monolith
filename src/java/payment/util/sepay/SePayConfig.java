@@ -3,16 +3,10 @@ package payment.util.sepay;
 import shared.ConfigManager;
 
 /**
- * Đọc cấu hình SePay từ {@code .env} / biến môi trường (qua {@link ConfigManager}).
- * <p>
- * Key chính trong {@code .env}:
- * <ul>
- *   <li>{@code SEPAY_MERCHANT_ID}, {@code SEPAY_SECRET_KEY} — bắt buộc để checkout</li>
- *   <li>{@code SEPAY_ENV} — {@code sandbox} hoặc {@code production}</li>
- *   <li>{@code SEPAY_APP_BASE_URL} — URL public (thường ngrok) cho <b>IPN</b></li>
- *   <li>{@code SEPAY_RETURN_BASE_URL} — URL trình duyệt (localhost) cho success/error/<b>cancel</b>
- *       để tránh trang “Visit Site” của ngrok free</li>
- * </ul>
+ * Đọc cấu hình SePay từ .env/biến môi trường (qua ConfigManager).
+ * Phục vụ cả ba bước checkout → IPN → return: merchant/secret cho ký checkout;
+ * SEPAY_APP_BASE_URL cho webhook IPN; SEPAY_RETURN_BASE_URL cho redirect
+ * trình duyệt success/error/cancel. Thiếu merchant + secret → desk ẩn nút SePay.
  */
 public final class SePayConfig {
 
@@ -32,12 +26,12 @@ public final class SePayConfig {
         return ConfigManager.get("SEPAY_SECRET_KEY", "");
     }
 
-    /** Secret header IPN ({@code X-Secret-Key}); mặc định = SECRET_KEY. */
+    /** Secret header IPN (X-Secret-Key); mặc định = SECRET_KEY. */
     public static String ipnSecret() {
         return ConfigManager.get("SEPAY_IPN_SECRET", secretKey());
     }
 
-    /** {@code true} khi không phải production (mặc định sandbox nếu thiếu ENV). */
+    /** true khi không phải production (mặc định sandbox nếu thiếu ENV). */
     public static boolean sandbox() {
         String env = ConfigManager.get("SEPAY_ENV", SePayConstants.ENV_SANDBOX);
         return !SePayConstants.ENV_PRODUCTION.equalsIgnoreCase(env.trim());
@@ -45,7 +39,7 @@ public final class SePayConfig {
 
     /**
      * URL POST form HTML checkout (QR / chuyển khoản).
-     * Dùng domain <b>pay.sepay.vn</b> (sandbox: pay-sandbox), <b>không</b> dùng pgapi
+     * Dùng domain pay.sepay.vn (sandbox: pay-sandbox), không dùng pgapi
      * — pgapi là REST API; POST form lên đó sẽ 404.
      */
     public static String checkoutInitUrl() {
@@ -84,8 +78,8 @@ public final class SePayConfig {
     }
 
     /**
-     * Base URL khi <b>trình duyệt</b> bị SePay redirect (success / error / cancel).
-     * Ưu tiên {@code SEPAY_RETURN_BASE_URL}=localhost khi đang tunnel ngrok free.
+     * Base URL khi trình duyệt bị SePay redirect (success / error / cancel).
+     * Ưu tiên SEPAY_RETURN_BASE_URL=localhost khi đang tunnel ngrok free.
      */
     public static String browserReturnBaseUrl() {
         String override = ConfigManager.get("SEPAY_RETURN_BASE_URL");

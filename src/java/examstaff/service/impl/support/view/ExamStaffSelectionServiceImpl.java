@@ -13,21 +13,21 @@ import java.util.List;
 /**
  * Resolve và đồng bộ lựa chọn kỳ thi cho mọi trang Exam Staff.
  * <p>
- * Wrap {@link ExamStaffPageServiceImpl}; xử lý ưu tiên URL → session selected → default,
- * cờ clear cache/procedure khi đổi kỳ. Trả {@link examstaff.dto.ExamTransitionResultDTO}
- * hoặc {@link examstaff.dto.ServiceResult} cho endpoint select-exam.
+ * Wrap ExamStaffPageServiceImpl; xử lý ưu tiên URL → session selected → default,
+ * cờ clear cache/procedure khi đổi kỳ. Trả examstaff.dto.ExamTransitionResultDTO
+ * hoặc examstaff.dto.ServiceResult cho endpoint select-exam.
  *
  * Thứ tự ưu tiên examId:
- * - {@code urlExamId} từ request
- * - {@code selectedExamId} từ session
- * - {@code defaultExamId} / tham số chuỗi {@code examIdParam}
- * - Kỳ đầu tiên trong {@code allExams} ({@link ExamStaffPageServiceImpl#resolveDefaultExamId})
+ * - urlExamId từ request
+ * - selectedExamId từ session
+ * - defaultExamId / tham số chuỗi examIdParam
+ * - Kỳ đầu tiên trong allExams (ExamStaffPageServiceImpl.resolveDefaultExamId)
  *
  * Chuyển trang / đổi kỳ:
- * - {@link #preparePageTransition} — set {@code persistSelection}, clear candidate cache
- *       khi {@code loadedExamId} ≠ URL; clear procedure state khi đổi kỳ thật
- * - {@link #processSelection} — endpoint POST select-exam; validate URL khớp list kỳ
- * - {@link #syncExamSelection} — giữ {@code currentExamId} nếu còn hợp lệ trong ngữ cảnh ngày
+ * - preparePageTransition — set persistSelection, clear candidate cache
+ *       khi loadedExamId ≠ URL; clear procedure state khi đổi kỳ thật
+ * - processSelection — endpoint POST select-exam; validate URL khớp list kỳ
+ * - syncExamSelection — giữ currentExamId nếu còn hợp lệ trong ngữ cảnh ngày
  */
 public class ExamStaffSelectionServiceImpl {
 
@@ -210,7 +210,7 @@ public class ExamStaffSelectionServiceImpl {
 
     /**
      * Xử lý yêu cầu chọn kỳ thi (endpoint select-exam).
-     * @param request thông tin chọn kỳ từ URL/session ({@link ExamStaffPageCommand})
+     * @param request thông tin chọn kỳ từ URL/session (ExamStaffPageCommand)
      * @return kết quả chọn kỳ và cờ clear cache khi đổi kỳ
      */
     public ServiceResult<ExamTransitionResultDTO> processSelection(ExamStaffPageCommand request) {

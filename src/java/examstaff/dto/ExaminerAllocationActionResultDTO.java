@@ -7,8 +7,8 @@ package examstaff.dto;
  * Mang success, alert/error và cặp action/details để servlet ghi audit nếu cần.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExaminerAllocationDeskServiceImpl} (và service liên quan) → bọc {@link ServiceResult} →
- * {@code ExaminerAllocationServlet} → flash trên {@code examiner-allocation.jsp}.
+ * ExaminerAllocationDeskServiceImpl (và service liên quan) → bọc ServiceResult →
+ * ExaminerAllocationServlet → flash trên examiner-allocation.jsp.
  */
 public class ExaminerAllocationActionResultDTO {
 

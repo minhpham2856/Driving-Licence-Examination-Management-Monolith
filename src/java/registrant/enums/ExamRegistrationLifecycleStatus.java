@@ -1,6 +1,9 @@
 package registrant.enums;
 
-/** Trạng thái ER đăng ký đợt thi (portal) — tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected. */
+/**
+ * Hằng số trạng thái vòng đời đăng ký ca thi trên ExamRegistration — tách khỏi workflow tài liệu Draft/Pending/Approved/Rejected.
+ * Cung cấp mệnh đề SQL (SQL_LIFECYCLE_ONLY, SQL_EXCLUDE_PROFILE_DOC) lọc ER thi thật khỏi bản ghi hồ sơ tài liệu (#PROFILE_DOC#, #LICENCE_DOC#) trong dashboard/my-exams.
+ */
 public final class ExamRegistrationLifecycleStatus {
 
     public static final String PRE_REGISTERED = "PreRegistered";

@@ -16,7 +16,8 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 /**
- * Parse tham số bộ lọc, chuẩn hóa giá trị và dựng danh sách option theo từng ngữ cảnh trang.
+ * Parse tham số bộ lọc HTTP và dựng danh sách RegistrantFilterOption theo từng trang.
+ * Hỗ trợ dashboard (đợt thi đã đăng ký), my-exams, register-exam (ExamDates) và track-profile; state nội bộ ExamListFilterState, SessionListFilterState.
  */
 public final class RegistrantFilterSupport {
 

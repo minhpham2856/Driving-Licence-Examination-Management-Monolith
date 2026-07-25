@@ -5,7 +5,10 @@ import shared.model.Profile;
 import java.util.Collections;
 import java.util.List;
 
-/** Snapshot hồ sơ thí sinh + tài liệu + trạng thái đăng ký - dùng chung giữa các service registrant. */
+/**
+ * DTO snapshot hồ sơ thí sinh — gom Profile, danh sách tài liệu và kết quả đồng bộ trạng thái.
+ * Dùng chung giữa upload, register-exam và profile qua RegistrantProfileSupport.loadContext.
+ */
 public final class RegistrantProfileContext {
 
     private final Profile profile;

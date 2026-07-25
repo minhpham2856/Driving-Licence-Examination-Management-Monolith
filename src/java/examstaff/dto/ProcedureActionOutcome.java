@@ -6,21 +6,21 @@ import java.util.List;
  * Kết quả thao tác wizard thủ tục tại bàn (chụp ảnh / thu lệ phí / reset) từ BLL → Presentation.
  *
  * Vai trò trong luồng examstaff:
- * Sau khi staff thao tác trên desk (include {@code procedure.jsp} trong {@code candidatecall.jsp}),
+ * Sau khi staff thao tác trên desk (include procedure.jsp trong candidatecall.jsp),
  * workflow trả outcome gồm status ảnh/thanh toán, profile cập nhật, queue, và cờ audit.
- * {@code ProcedureServlet} đọc các field để set attribute lỗi/thành công và refresh hồ sơ / board.
+ * ProcedureServlet đọc các field để set attribute lỗi/thành công và refresh hồ sơ / board.
  *
  * Ai tạo:
- * {@code ProcedureWorkflowServiceImpl} ({@code saveCapturedPhoto}, {@code confirmPayment}, {@code resetProcedure});
- * có thể được {@code ProcedureServiceImpl} bọc thêm trong {@link ServiceResult}.
+ * ProcedureWorkflowServiceImpl (saveCapturedPhoto, confirmPayment, resetProcedure);
+ * có thể được ProcedureServiceImpl bọc thêm trong ServiceResult.
  *
  * Ai tiêu thụ:
- * {@code ProcedureServlet} — nhánh payment / photo / reset.
+ * ProcedureServlet — nhánh payment / photo / reset.
  *
  * Trang / JSP:
  *
- * Attribute trên {@code candidatecall.jsp} + {@code procedure.jsp} ({@code deskMode=true}):
- * {@code profile}, {@code photoRequiredMsg}, {@code paymentErrorMsg}, …
+ * Attribute trên candidatecall.jsp + procedure.jsp (deskMode=true):
+ * profile, photoRequiredMsg, paymentErrorMsg, …
  */
 public class ProcedureActionOutcome {
 
@@ -63,7 +63,7 @@ public class ProcedureActionOutcome {
     private String sbd;
     private int candidateId;
 
-    /** Trạng thái bước lưu ảnh trong outcome (mặc định {@link PhotoStatus#ERROR}). */
+    /** Trạng thái bước lưu ảnh trong outcome (mặc định PhotoStatus.ERROR). */
     public PhotoStatus getPhotoStatus() {
         return photoStatus;
     }
@@ -73,7 +73,7 @@ public class ProcedureActionOutcome {
         this.photoStatus = photoStatus;
     }
 
-    /** Trạng thái bước thanh toán lệ phí (mặc định {@link PaymentStatus#PAYMENT_FAILED}). */
+    /** Trạng thái bước thanh toán lệ phí (mặc định PaymentStatus.PAYMENT_FAILED). */
     public PaymentStatus getPaymentStatus() {
         return paymentStatus;
     }

@@ -19,18 +19,18 @@ import java.util.Locale;
 /**
  * Đọc phí và thanh toán dùng chung bàn thủ tục + báo cáo tài liệu.
  * <p>
- * Wrap {@link examstaff.dao.FeeDAO} và {@link examstaff.dao.PaymentDAO};
+ * Wrap examstaff.dao.FeeDAO và examstaff.dao.PaymentDAO;
  * presentation không gọi DAO trực tiếp. Dùng bởi
- * {@link ProcedurePaymentServiceImpl} và report consolidator.
+ * ProcedurePaymentServiceImpl và report consolidator.
  *
- * Resolve phí thủ tục ({@link #resolveProcedureFees}):
- * - Ưu tiên dòng phí gắn {@link shared.model.Payment} hiện có
- * - Fallback catalog theo mã hạng bằng ({@code licenseCode} / {@code clazz})
+ * Resolve phí thủ tục (resolveProcedureFees):
+ * - Ưu tiên dòng phí gắn shared.model.Payment hiện có
+ * - Fallback catalog theo mã hạng bằng (licenseCode / clazz)
  * - Lọc khoản phí theo cờ bỏ qua lý thuyết / thực hành trên hồ sơ
- * - Tính tổng qua {@link examstaff.util.ProcedureFeeTotals}
+ * - Tính tổng qua examstaff.util.ProcedureFeeTotals
  *
  * Báo cáo:
- * {@link #findPaymentSummary} trả {@link examstaff.dto.ReportPaymentSummaryDTO}
+ * findPaymentSummary trả examstaff.dto.ReportPaymentSummaryDTO
  * khi Payment đã hoàn tất — dùng cho dossier / document report.
  */
 public class ProcedureFeeQueryServiceImpl {

@@ -12,7 +12,7 @@ import shared.model.Profile;
 import registrant.dto.RegistrantRegisteredExamRow;
 import auth.dto.UserDTO;
 import auth.service.impl.EmailServiceImpl;
-import shared.util.PasswordUtil;
+import auth.util.PasswordUtil;
 import registrant.service.RegistrantSettingsService;
 import registrant.util.RegistrantAuditHelper;
 import registrant.util.RegistrantProfileSupport;
@@ -20,7 +20,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
-/** Đổi mật khẩu và vô hiệu hoá tài khoản thí sinh. Thông báo Gmail luôn bật (không lưu tùy chọn). */
+/**
+ * Triển khai RegistrantSettingsService — trang settings.jsp.
+ * Đổi mật khẩu qua UserDAO + PasswordUtil; gửi email xác nhận qua EmailServiceImpl.
+ * Không có luồng vô hiệu hóa tài khoản (thí sinh không có quyền). Thông báo Gmail luôn bật (không lưu tùy chọn UI).
+ */
 public class RegistrantSettingsServiceImpl implements RegistrantSettingsService {
 
     private final UserDAO userdao = new UserDAOImpl();
@@ -75,22 +79,6 @@ public class RegistrantSettingsServiceImpl implements RegistrantSettingsService 
             return true;
         }
         return rawPassword.equals(stored);
-    }
-
-    /** Vô hiệu hóa tài khoản và invalidate session khi confirmed; null nếu OK. */
-    @Override
-    public String deactivateAccount(UserDTO user, boolean confirmed, HttpSession session) {
-        if (!confirmed) {
-            return "Bạn cần xác nhận trước khi vô hiệu hoá tài khoản.";
-        }
-        if (!userdao.deactivate(user.getUserId())) {
-            return "Không thể vô hiệu hoá tài khoản. Vui lòng liên hệ hỗ trợ.";
-        }
-        user.setActive(false);
-        if (session != null) {
-            RegistrantAuditHelper.logAccountDeactivate(session, user.getUserId());
-        }
-        return null;
     }
 
     private void applyAccountSummary(UserDTO user, HttpServletRequest request) {

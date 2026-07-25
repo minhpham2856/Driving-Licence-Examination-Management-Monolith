@@ -12,18 +12,18 @@ import java.util.List;
 /**
  * Chuẩn hoá, lưu và phát stream ảnh chân dung thí sinh (thư mục data runtime, không webRoot).
  * <p>
- * Dùng {@code CandidatePhotoFiles} cho path tuyệt đối / kiểm tra file tồn tại.
- * Optional inject {@link CandidateQueueServiceImpl} để {@link #resolvePhoto} theo SBD.
+ * Dùng CandidatePhotoFiles cho path tuyệt đối / kiểm tra file tồn tại.
+ * Optional inject CandidateQueueServiceImpl để resolvePhoto theo SBD.
  *
  * Thao tác chính:
- * - {@link #normalizeQueue} / {@link #normalizePhotoPaths} — cập nhật cờ {@code validCapturedPhoto}
+ * - normalizeQueue / normalizePhotoPaths — cập nhật cờ validCapturedPhoto
  *       và path trên hàng đợi
- * - {@link #resolveCapturedPhoto} — kiểm tra file ảnh thực tế trên disk
- * - {@link #writePhotoFile} — ghi bytes ảnh mới sau chụp thủ tục
- * - {@link #resolvePhoto} — trả {@link examstaff.dto.CandidatePhotoStreamDTO} để servlet stream HTTP
+ * - resolveCapturedPhoto — kiểm tra file ảnh thực tế trên disk
+ * - writePhotoFile — ghi bytes ảnh mới sau chụp thủ tục
+ * - resolvePhoto — trả examstaff.dto.CandidatePhotoStreamDTO để servlet stream HTTP
  *
  * Tránh vòng phụ thuộc:
- * Constructor mặc định để {@code queueService = null} — composition root inject queue khi cần
+ * Constructor mặc định để queueService = null — composition root inject queue khi cần
  * resolve theo SBD; dossier/report gọi normalize mà không cần queue.
  */
 public class CandidatePhotoServiceImpl {
@@ -37,7 +37,7 @@ public class CandidatePhotoServiceImpl {
         this.queueService = null;
     }
 
-    /** Inject queue để {@link #resolvePhoto} theo SBD. */
+    /** Inject queue để resolvePhoto theo SBD. */
     public CandidatePhotoServiceImpl(CandidateQueueServiceImpl queueService) {
         this.queueService = queueService;
     }
@@ -96,7 +96,7 @@ public class CandidatePhotoServiceImpl {
 
     /**
      * File ảnh tồn tại trên đĩa data theo tham chiếu DB.
-     * @param photoUrl {@code candidate-photos/...} / basename / legacy
+     * @param photoUrl candidate-photos/... / basename / legacy
      * @return true nếu file tồn tại
      */
     public boolean photoFileExists(String photoUrl) {
@@ -113,7 +113,7 @@ public class CandidatePhotoServiceImpl {
     }
 
     /**
-     * Ghi bytes ảnh vào thư mục data runtime (Tomcat {@code dlem-data} / JVM).
+     * Ghi bytes ảnh vào thư mục data runtime (Tomcat dlem-data / JVM).
      * @param fileName   basename
      * @param imageBytes dữ liệu ảnh
      * @throws IOException nếu ghi thất bại
@@ -123,7 +123,7 @@ public class CandidatePhotoServiceImpl {
     }
 
     /**
-     * Tham chiếu lưu DB: {@code candidate-photos/{fileName}}.
+     * Tham chiếu lưu DB: candidate-photos/{fileName}.
      * @param fileName tên file
      * @return tham chiếu logic
      */

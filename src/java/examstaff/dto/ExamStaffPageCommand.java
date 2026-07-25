@@ -9,21 +9,21 @@ import java.util.List;
  * Vai trò trong luồng examstaff:
  * Gom tham số từ URL, session và cache: examId đang chọn, kỳ trước, có load danh sách thí sinh không,
  * danh sách kỳ để picker, cache hàng chờ và thứ tự gọi. BLL dùng command này để resolve kỳ thi hiện tại
- * và (tuỳ cờ) nạp candidates trước khi trả {@link ExamStaffPageContext}.
+ * và (tuỳ cờ) nạp candidates trước khi trả ExamStaffPageContext.
  *
  * Ai tạo:
- * - {@code ExamStaffPageSupport} — {@code buildPagePrepareInput} / transition / selection.
- * - Servlet hỗ trợ: {@code ProcedureServlet}, {@code AllocationServlet}, {@code ExamSelectServlet}.
- * - Service refresh: {@code ExamStaffPageServiceImpl}, {@code CandidateCallPageServiceImpl}.
+ * - ExamStaffPageSupport — buildPagePrepareInput / transition / selection.
+ * - Servlet hỗ trợ: ProcedureServlet, AllocationServlet, ExamSelectServlet.
+ * - Service refresh: ExamStaffPageServiceImpl, CandidateCallPageServiceImpl.
  *
  * Ai tiêu thụ:
- * {@code ExamStaffViewServiceImpl}, {@code ExamStaffPageServiceImpl}, {@code ExamStaffSelectionServiceImpl};
- * {@code CandidateQueueServiceImpl#refreshQueue}; facade {@code StaffCallService} / {@code ExamStaffViewService}.
+ * ExamStaffViewServiceImpl, ExamStaffPageServiceImpl, ExamStaffSelectionServiceImpl;
+ * CandidateQueueServiceImpl#refreshQueue; facade StaffCallService / ExamStaffViewService.
  *
  * Trang / servlet:
  * Không bind object này lên JSP. Kết quả sau xử lý phục vụ
  * Dashboard, Candidate Call, Procedure, Allocation, Report, Audit, Examiner Allocation, Exam Select
- * (thường qua {@link ExamStaffPageContext} + attributes).
+ * (thường qua ExamStaffPageContext + attributes).
  */
 public class ExamStaffPageCommand {
 
@@ -141,7 +141,7 @@ public class ExamStaffPageCommand {
         this.callQueueOrder = callQueueOrder;
     }
 
-    /** ExamId mà {@link #getCallQueueOrder()} đang gắn (tránh dùng nhầm thứ tự kỳ khác). */
+    /** ExamId mà getCallQueueOrder() đang gắn (tránh dùng nhầm thứ tự kỳ khác). */
     public Integer getCallQueueOrderExamId() {
         return callQueueOrderExamId;
     }

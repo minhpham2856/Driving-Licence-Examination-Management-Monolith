@@ -11,7 +11,7 @@ skills-lock.json
 sources.txt
 .agents/
 .cursor/
-.claude/
+.claude (hoặc .agents)/
 memory/
 private/
 build/
@@ -19,3 +19,13 @@ out/
 nbproject/build-impl.xml~
 docs/
 CLAUDE.md
+priv
+
+# Local docs and SQL scripts (keep on disk, do not track)
+*.md
+
+!web/WEB-INF/others/sql/MIGRATE_EXAM_DATES_CANCELLATION.sql
+doc/
+/.codex-artifacts
+tools/_lines_out.txt
+/outputs

@@ -28,7 +28,7 @@ public class AdminDashboardServlet extends HttpServlet {
         req.setAttribute("licenceCount", stats.count("Licence"));
         req.setAttribute("feeCount", stats.count("Fee"));
         req.setAttribute("auditCount", stats.count("Audit"));
-        req.setAttribute("accountCount", stats.countActiveExams());
+        req.setAttribute("accountCount", stats.countActiveAccounts());
         // 5 dòng nhật ký gần nhất
         req.setAttribute("recentLogs", auditDAO.search(null, null, null, null, null, 1, 5));
         req.getRequestDispatcher(VIEW).forward(req, resp);

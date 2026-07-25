@@ -5,7 +5,10 @@ import auth.dto.UserDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
-/** Service trang Lịch thi & kết quả của thí sinh. */
+/**
+ * Hợp đồng service trang lịch thi và kết quả (MyExamsServlet).
+ * Join Profile → Candidate → ExamEnrollment → Exam + Payment qua RegistrantDAO; trả RegistrantMyExamRow gồm nguyện vọng ngày thi và ca chính thức (SBD, điểm).
+ */
 public interface RegistrantMyExamsService {
 
     /** Tải toàn bộ ca thi (nguyện vọng + chính thức) của user. */

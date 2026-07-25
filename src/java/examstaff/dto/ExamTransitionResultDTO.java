@@ -5,18 +5,18 @@ package examstaff.dto;
  *
  * Vai trò trong luồng examstaff:
  * Báo cho Presentation biết kỳ mới là gì, có cần xóa cache thí sinh / state thủ tục trên session không,
- * và có persist lựa chọn vào session hay không. Thường được bọc trong {@link ServiceResult}{@code ExamSelectServlet}.
+ * và có persist lựa chọn vào session hay không. Thường được bọc trong ServiceResultExamSelectServlet.
  *
  * Ai tạo:
- * {@code ExamStaffSelectionServiceImpl} — {@code syncExamSelection}, {@code preparePageTransition},
- * {@code processSelection}.
+ * ExamStaffSelectionServiceImpl — syncExamSelection, preparePageTransition,
+ * processSelection.
  *
  * Ai tiêu thụ:
- * {@code ExamStaffPageSupport} (áp dụng cờ clear cache/procedure khi đổi kỳ);
- * {@code ExamSelectServlet} qua {@code ServiceResult<ExamTransitionResultDTO>}.
+ * ExamStaffPageSupport (áp dụng cờ clear cache/procedure khi đổi kỳ);
+ * ExamSelectServlet qua ServiceResult<ExamTransitionResultDTO>.
  *
  * Trang / JSP:
- * Không bind DTO lên JSP; điều khiển session rồi PRG redirect tới {@code /examstaff/select-exam}
+ * Không bind DTO lên JSP; điều khiển session rồi PRG redirect tới /examstaff/select-exam
  * hoặc trang staff đích.
  */
 public class ExamTransitionResultDTO {
@@ -40,7 +40,7 @@ public class ExamTransitionResultDTO {
         this.success = success;
     }
 
-    /** ExamId hiệu lực sau resolve (thường trùng {@link #getNewExamId()} khi thành công). */
+    /** ExamId hiệu lực sau resolve (thường trùng getNewExamId() khi thành công). */
     public int getExamId() {
         return examId;
     }
@@ -70,7 +70,7 @@ public class ExamTransitionResultDTO {
         this.previousExamId = previousExamId;
     }
 
-    /** Thông báo lỗi nghiệp vụ khi {@link #isSuccess()} = false (hiển thị flash). */
+    /** Thông báo lỗi nghiệp vụ khi isSuccess() = false (hiển thị flash). */
     public String getErrorMessage() {
         return errorMessage;
     }

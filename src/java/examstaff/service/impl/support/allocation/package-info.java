@@ -16,11 +16,11 @@
  * </pre>
  *
  * Stage URL ↔ ý nghĩa:
- * - {@code /examstaff/allocation} — overview (có thể auto-allocate)
- * - {@code ...-waiting} — chưa vào LT/TH
- * - {@code ...-theory} / {@code ...-practical} — đã/đang phân phòng LT hoặc sân TH
- * - {@code ...-results-pass|fail|suspended} — lọc theo kết quả
- * <p>Phụ thuộc subdomain {@code support.assign} để biết phòng/sân nào đã có giám khảo
+ * - /examstaff/allocation — overview (có thể auto-allocate)
+ * - ...-waiting — chưa vào LT/TH
+ * - ...-theory / ...-practical — đã/đang phân phòng LT hoặc sân TH
+ * - ...-results-pass|fail|suspended — lọc theo kết quả
+ * <p>Phụ thuộc subdomain support.assign để biết phòng/sân nào đã có giám khảo
  * trước khi gán thí sinh.
  */
 package examstaff.service.impl.support.allocation;

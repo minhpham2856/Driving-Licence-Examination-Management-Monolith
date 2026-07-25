@@ -26,14 +26,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Implementation {@link DocumentService}: xuất báo cáo kỳ thi ra Excel (Apache POI).
+ * Implementation DocumentService: xuất báo cáo kỳ thi ra Excel (Apache POI).
  *
  * Cách xuất báo cáo:
- * - <b>Input</b> — {@link ExamSummaryDTO}, danh sách {@link ExamRegistrationDTO},
- *       {@link ExamReportStatsDTO} đã tính sẵn từ view layer
- * - <b>Output</b> — workbook {@code .xlsx} ghi trực tiếp xuống {@link OutputStream}
+ * - <b>Input</b> — ExamSummaryDTO, danh sách ExamRegistrationDTO,
+ *       ExamReportStatsDTO đã tính sẵn từ view layer
+ * - <b>Output</b> — workbook .xlsx ghi trực tiếp xuống OutputStream
  *       (servlet set header download)
- * - <b>Phí</b> — tra cứu bổ sung qua {@link ProcedureFeeQueryServiceImpl} khi cần
+ * - <b>Phí</b> — tra cứu bổ sung qua ProcedureFeeQueryServiceImpl khi cần
  *       chi tiết thanh toán trên sheet
  */
 public class DocumentServiceImpl implements DocumentService {
