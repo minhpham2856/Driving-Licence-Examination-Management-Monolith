@@ -8,14 +8,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
  * Trang cài đặt tài khoản — {@code GET/POST /registrant/settings} → {@code settings.jsp}.
  * <p>
  * GET: {@link RegistrantSettingsService#applySettingsView} gắn {@code userEmail}, tóm tắt hồ sơ/CCCD và số ca đang đăng ký.
- * POST theo {@code formId}: {@code password} đổi mật khẩu; {@code deactivate} vô hiệu hóa tài khoản rồi redirect {@code /login}.
+ * POST {@code formId=password}: đổi mật khẩu. Thí sinh không được vô hiệu hóa tài khoản (chỉ Ban quản lý).
  * Lỗi ghi {@code error} và forward lại JSP; thành công redirect {@code ?success=1}. Không xử lý Payment/SePay.
  */
 @WebServlet("/registrant/settings")
@@ -53,18 +52,6 @@ public class SettingsServlet extends HttpServlet {
                     request.getParameter("newPassword"),
                     request.getParameter("confirmPassword"),
                     request.getSession());
-        } else if ("deactivate".equals(formId)) {
-            error = settingsService.deactivateAccount(user,
-                    request.getParameter("confirmDeactivate") != null,
-                    request.getSession());
-            if (error == null) {
-                HttpSession session = request.getSession(false);
-                if (session != null) {
-                    session.invalidate();
-                }
-                response.sendRedirect(request.getContextPath() + "/login");
-                return;
-            }
         } else {
             error = "Yêu cầu không hợp lệ.";
         }
