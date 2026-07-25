@@ -39,7 +39,8 @@ CREATE TABLE [User] (
     Email NVARCHAR(255) NOT NULL UNIQUE,
     PasswordHash NVARCHAR(255) NOT NULL,
     RoleId INT NOT NULL REFERENCES [Role](RoleId),
-    IsActive BIT NOT NULL DEFAULT 1
+    IsActive BIT NOT NULL DEFAULT 1,
+    MustChangePassword BIT NOT NULL DEFAULT 0
 );
 GO
 
