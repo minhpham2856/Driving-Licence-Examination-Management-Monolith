@@ -3,10 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * DTO một ngày thi dự kiến ({@code ExamDates}) trên wizard đăng ký ({@code register-exam.jsp}).
- * <p>
- * {@code id}/{@code sessionId} = ExamDateId; form POST vẫn dùng tham số {@code sessionSelect}.
- * Gồm tên đợt, hạng, địa điểm và số chỗ còn trống.
+ * DTO một ngày thi dự kiến (ExamDates) trên wizard đăng ký (register-exam.jsp).
+ * id/sessionId = ExamDateId; form POST vẫn dùng tham số sessionSelect. Gồm tên đợt, hạng, địa điểm và số chỗ còn trống.
  */
 public class RegistrantExamSessionOption {
 

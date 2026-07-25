@@ -2,9 +2,7 @@ package registrant.dto;
 
 /**
  * DTO trạng thái một loại tài liệu đính kèm hồ sơ thí sinh.
- * <p>
- * Map từ bảng {@code Document}: loại ({@code Portrait}, {@code IdFront}, …), URL lưu trữ,
- * nhãn/class trạng thái duyệt, ghi chú marker và metadata hiển thị file (tên, dung lượng).
+ * Map từ bảng Document: loại (Portrait, IdFront, …), URL lưu trữ, nhãn/class trạng thái duyệt, ghi chú marker và metadata hiển thị file (tên, dung lượng).
  */
 public class RegistrantDocumentView {
 

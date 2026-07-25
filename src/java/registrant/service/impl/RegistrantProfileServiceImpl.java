@@ -22,11 +22,8 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 /**
- * Triển khai {@link registrant.service.RegistrantProfileService} — trang {@code profile.jsp}.
- * <p>
- * Nạp {@code Profile} + {@link registrant.dto.RegistrantDocumentSummary} lên request;
- * validate và ghi INSERT/UPDATE bảng {@code Profile}; khóa CCCD khi hồ sơ đã Approved;
- * ghi audit qua {@link registrant.util.RegistrantAuditHelper} sau cập nhật thành công.
+ * Triển khai RegistrantProfileService — trang profile.jsp.
+ * Nạp Profile + RegistrantDocumentSummary lên request; validate và ghi INSERT/UPDATE bảng Profile; khóa CCCD khi hồ sơ đã Approved; ghi audit qua RegistrantAuditHelper sau cập nhật thành công.
  */
 public class RegistrantProfileServiceImpl implements RegistrantProfileService {
 

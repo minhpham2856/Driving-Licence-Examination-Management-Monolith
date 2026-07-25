@@ -30,12 +30,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Upload hồ sơ (Cloudinary / storage):
- * <ul>
- *   <li>4 loại bắt buộc → bảng Document; Notes marker #PENDING# / #APPROVED#</li>
- *   <li>Gửi duyệt → ExamRegistration Draft/Rejected → Pending (+ #PROFILE_DOC#)</li>
- *   <li>Other / xin hạng sau Approved — ER #SUPPLEMENT_DOC# / #LICENCE_DOC#</li>
- * </ul>
+ * Upload hồ sơ (Cloudinary / storage): 4 loại bắt buộc → bảng Document (Notes marker #PENDING# / #APPROVED#);
+ * gửi duyệt → ExamRegistration Draft/Rejected → Pending (+ #PROFILE_DOC#);
+ * Other / xin hạng sau Approved — ER #SUPPLEMENT_DOC# / #LICENCE_DOC#.
  * Không liên quan thu phí SePay.
  */
 public class RegistrantUploadServiceImpl implements RegistrantUploadService {
