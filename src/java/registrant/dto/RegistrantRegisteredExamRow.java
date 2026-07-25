@@ -3,8 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * Dòng dữ liệu hiển thị bảng "Đợt thi đã đăng ký" trên dashboard thí sinh.
- * Map trực tiếp sang EL trong dashboard.jsp: examName, examCode, licenceClass, ...
+ * DTO dòng bảng "Đợt thi đã đăng ký" trên dashboard thí sinh (dashboard.jsp).
+ * Map trực tiếp sang EL: examName, examCode, licenceClass, ngày thi, địa điểm, badge trạng thái. id = CandidateId — dùng điều hướng sang chi tiết ca trên my-exams.
  */
 public class RegistrantRegisteredExamRow {
 
@@ -13,7 +13,7 @@ public class RegistrantRegisteredExamRow {
     private String examName;
     private String examCode;
     private String licenceClass;
-    /** Mô tả đầy đủ hạng GPLX - nạp từ {@link util.registrant.RegistrantExamSupport#licenceClassDescription}. */
+    /** Mô tả đầy đủ hạng GPLX — nạp từ RegistrantExamSupport.licenceClassDescription. */
     private String licenceClassDescription;
     private Date examDate;
     private String location;

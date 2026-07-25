@@ -12,8 +12,8 @@ import java.util.List;
  * dùng khi refresh queue / chuẩn bị call / select-exam.
  *
  * Ai tạo / tiêu thụ:
- * {@code CandidateQueueServiceImpl} → page refresh, select-exam, call prep
- * ({@code ExamStaffPageSupport}, {@code CandidateCallPageServiceImpl}, …).
+ * CandidateQueueServiceImpl → page refresh, select-exam, call prep
+ * (ExamStaffPageSupport, CandidateCallPageServiceImpl, …).
  */
 public class CandidateQueueSnapshotDTO {
 

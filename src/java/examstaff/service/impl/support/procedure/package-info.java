@@ -2,7 +2,7 @@
  * Support subdomain thủ tục hồ sơ / thu lệ phí / ảnh chân dung tại bàn.
  * <p>
  * Điều phối bước thủ tục (hồ sơ → ảnh → thanh toán). Consolidator
- * {@code ProcedureService} ủy quyền xuống đây; presentation không gọi DAO trực tiếp.
+ * ProcedureService ủy quyền xuống đây; presentation không gọi DAO trực tiếp.
  *
  * Luồng end-to-end:
  * <pre>
@@ -19,9 +19,9 @@
  * </pre>
  *
  * Thành phần chính:
- * - {@link examstaff.service.impl.support.procedure.ProcedureWorkflowServiceImpl} — tìm/chuẩn bị hồ sơ, ảnh, confirm pay, reset
- * - {@link examstaff.service.impl.support.procedure.ProcedurePaymentServiceImpl} — preview phí + ghi Payment CASH
- * - {@link examstaff.service.impl.support.procedure.ProcedureFeeQueryServiceImpl} — đọc Fee/Payment dùng chung report
- * - {@link examstaff.service.impl.support.procedure.ProcedureStepHelper} — suy bước 1–3 và thông báo lỗi UI
+ * - examstaff.service.impl.support.procedure.ProcedureWorkflowServiceImpl — tìm/chuẩn bị hồ sơ, ảnh, confirm pay, reset
+ * - examstaff.service.impl.support.procedure.ProcedurePaymentServiceImpl — preview phí + ghi Payment CASH
+ * - examstaff.service.impl.support.procedure.ProcedureFeeQueryServiceImpl — đọc Fee/Payment dùng chung report
+ * - examstaff.service.impl.support.procedure.ProcedureStepHelper — suy bước 1–3 và thông báo lỗi UI
  */
 package examstaff.service.impl.support.procedure;

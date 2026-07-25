@@ -7,10 +7,10 @@ import examstaff.dto.ExamRegistrationDTO;
  * View-model hồ sơ thí sinh (dossier) trên màn ExamStaff.
  *
  * Vai trò:
- * Gói profile {@link ExamRegistrationDTO}, tóm tắt kỳ, lệ phí và tiêu đề hiển thị cho trang dossier.
+ * Gói profile ExamRegistrationDTO, tóm tắt kỳ, lệ phí và tiêu đề hiển thị cho trang dossier.
  *
  * Ai tạo / tiêu thụ:
- * {@code CandidateDossierServiceImpl} → {@code CandidateDossierServlet} → {@code candidate-dossier.jsp}.
+ * CandidateDossierServiceImpl → CandidateDossierServlet → candidate-dossier.jsp.
  */
 public class CandidateDossierViewDTO {
 
@@ -31,7 +31,7 @@ public class CandidateDossierViewDTO {
         this.profile = profile;
     }
 
-    /** Tóm tắt kỳ thi của enrollment (getter tên {@code exam} cho JSP). */
+    /** Tóm tắt kỳ thi của enrollment (getter tên exam cho JSP). */
     public ExamSummaryDTO getExam() {
         return examSummary;
     }

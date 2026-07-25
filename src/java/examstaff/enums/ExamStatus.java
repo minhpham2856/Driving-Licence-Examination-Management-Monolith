@@ -3,26 +3,26 @@ package examstaff.enums;
 import java.util.Locale;
 
 /**
- * Enum trạng thái vòng đời kỳ thi ({@code Exam}) — chuẩn hóa chuỗi tiếng Việt trên UI/CSDL
- * và alias tiếng Anh legacy ({@code scheduled}, {@code inProgress}, …).
+ * Enum trạng thái vòng đời kỳ thi (Exam) — chuẩn hóa chuỗi tiếng Việt trên UI/CSDL
+ * và alias tiếng Anh legacy (scheduled, inProgress, …).
  *
  * Vai trò trong luồng examstaff:
  * Quyết định staff được phép start/pause/end ca, đổi hồ sơ thí sinh hay không.
- * {@link #normalize} là điểm vào duy nhất: blank → {@link #CHUA_DIEN_RA}; khớp displayName;
+ * normalize là điểm vào duy nhất: blank → CHUA_DIEN_RA; khớp displayName;
  * rồi map alias EN; không khớp → mặc định an toàn.
- * {@link #isLockedForStaffMutation} khóa mutation khi kỳ {@link #HOAN_TAT} hoặc {@link #DA_HUY}.
+ * isLockedForStaffMutation khóa mutation khi kỳ HOAN_TAT hoặc DA_HUY.
  *
  * Chuỗi trạng thái:
- * - {@link #CHUA_DIEN_RA} — chưa tới giờ / chưa mở ca.
- * - {@link #MO} — đã mở, chưa bắt đầu (alias: scheduled, open).
- * - {@link #DANG_DIEN_RA} — ca đang chạy (alias: inProgress).
- * - {@link #TAM_DUNG} — tạm dừng (alias: paused).
- * - {@link #HOAN_TAT}, {@link #DA_HUY} — kết thúc hoặc hủy; khóa thao tác staff.
+ * - CHUA_DIEN_RA — chưa tới giờ / chưa mở ca.
+ * - MO — đã mở, chưa bắt đầu (alias: scheduled, open).
+ * - DANG_DIEN_RA — ca đang chạy (alias: inProgress).
+ * - TAM_DUNG — tạm dừng (alias: paused).
+ * - HOAN_TAT, DA_HUY — kết thúc hoặc hủy; khóa thao tác staff.
  *
  * Ai sử dụng:
- * {@code ExamControlServiceImpl}, {@code ExamStaffPageBinder}, {@code ProcedureWorkflowServiceImpl},
- * {@code CandidateCallServlet}, {@code AllocationPassRules}, {@code DocumentServiceImpl} —
- * kiểm tra {@link #canStart}, {@link #canEnd}, {@link #isInProgress}, {@link #isLockedForStaffMutation}.
+ * ExamControlServiceImpl, ExamStaffPageBinder, ProcedureWorkflowServiceImpl,
+ * CandidateCallServlet, AllocationPassRules, DocumentServiceImpl —
+ * kiểm tra canStart, canEnd, isInProgress, isLockedForStaffMutation.
  */
 public enum ExamStatus {
     /** Kỳ thi chưa tới giờ / chưa mở. */
@@ -58,9 +58,9 @@ public enum ExamStatus {
     }
 
     /**
-     * So khớp chuỗi trạng thái với {@link #displayName} (không phân biệt hoa thường).
+     * So khớp chuỗi trạng thái với displayName (không phân biệt hoa thường).
      * @param value chuỗi từ DB/UI
-     * @return {@code true} nếu khớp hằng này
+     * @return true nếu khớp hằng này
      */
     public boolean matches(String value) {
         if (value == null || value.isBlank()) {
@@ -70,7 +70,7 @@ public enum ExamStatus {
     }
 
     /**
-     * Chuẩn hóa chuỗi trạng thái (VI/EN) về enum; mặc định {@link #CHUA_DIEN_RA}.
+     * Chuẩn hóa chuỗi trạng thái (VI/EN) về enum; mặc định CHUA_DIEN_RA.
      * <p>
      * Luồng: blank → CHUA_DIEN_RA; khớp displayName; rồi map alias EN/VI không dấu;
      * không khớp → CHUA_DIEN_RA.
@@ -101,9 +101,9 @@ public enum ExamStatus {
     }
 
     /**
-     * Có thể bắt đầu ca khi trạng thái là {@link #CHUA_DIEN_RA} hoặc {@link #MO}.
+     * Có thể bắt đầu ca khi trạng thái là CHUA_DIEN_RA hoặc MO.
      * @param status chuỗi trạng thái kỳ thi
-     * @return {@code true} nếu được phép start
+     * @return true nếu được phép start
      */
     public static boolean canStart(String status) {
         ExamStatus normalized = normalize(status);
@@ -113,7 +113,7 @@ public enum ExamStatus {
     /**
      * Kiểm tra kỳ đang diễn ra.
      * @param status chuỗi trạng thái
-     * @return {@code true} nếu {@link #DANG_DIEN_RA}
+     * @return true nếu DANG_DIEN_RA
      */
     public static boolean isInProgress(String status) {
         return normalize(status) == DANG_DIEN_RA;
@@ -122,7 +122,7 @@ public enum ExamStatus {
     /**
      * Kiểm tra kỳ đang tạm dừng.
      * @param status chuỗi trạng thái
-     * @return {@code true} nếu {@link #TAM_DUNG}
+     * @return true nếu TAM_DUNG
      */
     public static boolean isPaused(String status) {
         return normalize(status) == TAM_DUNG;
@@ -131,7 +131,7 @@ public enum ExamStatus {
     /**
      * Có thể kết thúc ca khi đang diễn ra hoặc đang tạm dừng.
      * @param status chuỗi trạng thái
-     * @return {@code true} nếu được phép end
+     * @return true nếu được phép end
      */
     public static boolean canEnd(String status) {
         ExamStatus normalized = normalize(status);
@@ -139,9 +139,9 @@ public enum ExamStatus {
     }
 
     /**
-     * Kỳ đã hoàn tất ({@link #HOAN_TAT}).
+     * Kỳ đã hoàn tất (HOAN_TAT).
      * @param status chuỗi trạng thái
-     * @return {@code true} nếu đã hoàn tất
+     * @return true nếu đã hoàn tất
      */
     public static boolean isCompleted(String status) {
         return normalize(status) == HOAN_TAT;
@@ -149,9 +149,9 @@ public enum ExamStatus {
 
     /**
      * Khóa thao tác staff đổi hồ sơ / đình chỉ / hoàn tác khi kỳ đã đóng
-     * ({@link #HOAN_TAT} hoặc {@link #DA_HUY}).
+     * (HOAN_TAT hoặc DA_HUY).
      * @param status chuỗi trạng thái
-     * @return {@code true} nếu không cho staff mutation
+     * @return true nếu không cho staff mutation
      */
     public static boolean isLockedForStaffMutation(String status) {
         ExamStatus normalized = normalize(status);

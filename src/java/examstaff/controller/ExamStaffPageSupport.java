@@ -15,21 +15,21 @@ import java.util.List;
 
 /**
  * Thin Presentation: chuẩn bị trang exam staff + chọn kỳ (HTTP ↔ ViewService ↔ binder).
- * Thay {@code ExamStaffPageFacade} / {@code ExamStaffSelectionFacade}.
+ * Thay ExamStaffPageFacade / ExamStaffSelectionFacade.
  *
  * Vai trò:
  * Điểm vào chuẩn bị ngữ cảnh trang exam staff: xử lý transition đổi kỳ từ URL,
- * gọi {@link ExamStaffViewService#preparePageContext}, persist selection, bind picker và publish queue.
- * Cung cấp helper {@code ensureExamId}, {@code resolveExamId}, {@code applyExamIdFromRequest}.
+ * gọi ExamStaffViewService.preparePageContext, persist selection, bind picker và publish queue.
+ * Cung cấp helper ensureExamId, resolveExamId, applyExamIdFromRequest.
  *
  * Luồng sử dụng:
- * - Servlet gọi {@code prepareExamStaffPage(request, session, webRoot, loadCandidates, view)}
+ * - Servlet gọi prepareExamStaffPage(request, session, webRoot, loadCandidates, view)
  * - Nếu URL có examId → transition + clear cache/procedure theo cờ service
- * - Trả {@link ExamStaffPageContext} (examId, candidates, picker) cho servlet tiếp tục bind/action
+ * - Trả ExamStaffPageContext (examId, candidates, picker) cho servlet tiếp tục bind/action
  *
  * Ai gọi:
- * Hầu hết trang exam staff: {@link DashboardServlet}, {@link CandidateCallServlet},
- * {@link ProcedureServlet}, {@link ReportServlet}, {@link AllocationServlet}, {@link ExaminerAllocationServlet}.
+ * Hầu hết trang exam staff: DashboardServlet, CandidateCallServlet,
+ * ProcedureServlet, ReportServlet, AllocationServlet, ExaminerAllocationServlet.
  */
 public final class ExamStaffPageSupport {
 
@@ -61,7 +61,7 @@ public final class ExamStaffPageSupport {
      * Chuẩn bị ngữ cảnh trang exam staff cho servlet.
      * <p>
      * Luồng: UTF-8 → (nếu có examId URL) xử lý transition đổi kỳ → build command →
-     * {@code preparePageContext} → persist selection → bind picker → publish queue.
+     * preparePageContext → persist selection → bind picker → publish queue.
      * @param request        request HTTP
      * @param session        session staff
      * @param webRoot        real path web root (ảnh/hồ sơ)
@@ -146,7 +146,7 @@ public final class ExamStaffPageSupport {
 
     /**
      * Áp examId từ URL: resolve trong allExams rồi remember vào session.
-     * Nếu không có examId URL → ủy quyền {@link #resolveExamId}.
+     * Nếu không có examId URL → ủy quyền resolveExamId.
      * @return examId đã resolve; 0 nếu không hợp lệ
      */
     public static int applyExamIdFromRequest(HttpServletRequest request, HttpSession session,
@@ -164,7 +164,7 @@ public final class ExamStaffPageSupport {
         return resolvedExamId;
     }
 
-    /** Overload {@link #applyExamIdFromRequest} với view mặc định. */
+    /** Overload applyExamIdFromRequest với view mặc định. */
     public static int applyExamIdFromRequest(HttpServletRequest request, HttpSession session,
             List<ExamSummaryDTO> allExams) {
         return applyExamIdFromRequest(request, session, allExams, VIEW);
@@ -181,7 +181,7 @@ public final class ExamStaffPageSupport {
                 buildSelectionInput(request, session, allExams, defaultId));
     }
 
-    /** Overload {@link #resolveExamId} với view mặc định. */
+    /** Overload resolveExamId với view mặc định. */
     public static int resolveExamId(HttpServletRequest request, HttpSession session,
             List<ExamSummaryDTO> allExams, int defaultId) {
         return resolveExamId(request, session, allExams, defaultId, VIEW);
@@ -196,7 +196,7 @@ public final class ExamStaffPageSupport {
 
     /**
      * Đảm bảo có examId hợp lệ: resolve + persist selected/primary.
-     * @return examId &gt; 0 hoặc 0
+     * @return examId > 0 hoặc 0
      */
     public static int ensureExamId(HttpServletRequest request, HttpSession session,
             List<ExamSummaryDTO> allExams, ExamStaffViewService view) {
@@ -210,7 +210,7 @@ public final class ExamStaffPageSupport {
         return examId;
     }
 
-    /** Overload {@link #ensureExamId} với view mặc định. */
+    /** Overload ensureExamId với view mặc định. */
     public static int ensureExamId(HttpServletRequest request, HttpSession session,
             List<ExamSummaryDTO> allExams) {
         return ensureExamId(request, session, allExams, VIEW);
@@ -232,13 +232,13 @@ public final class ExamStaffPageSupport {
                 state.getExamId() > 0 ? state.getExamId() : examId);
     }
 
-    /** Overload {@link #syncExamSelection} với view mặc định. */
+    /** Overload syncExamSelection với view mặc định. */
     public static void syncExamSelection(HttpSession session, List<ExamSummaryDTO> allExams, int examId) {
         syncExamSelection(session, allExams, examId, VIEW);
     }
 
     /**
-     * Bind sidebar picker nếu request chưa có {@code examOptions}
+     * Bind sidebar picker nếu request chưa có examOptions
      * (tránh ghi đè khi trang đã prepare đầy đủ).
      */
     public static void bindSidebarIfNeeded(HttpServletRequest request, HttpSession session,
@@ -259,7 +259,7 @@ public final class ExamStaffPageSupport {
         }
     }
 
-    /** Overload {@link #bindSidebarIfNeeded} với view mặc định. */
+    /** Overload bindSidebarIfNeeded với view mặc định. */
     public static void bindSidebarIfNeeded(HttpServletRequest request, HttpSession session) {
         bindSidebarIfNeeded(request, session, VIEW);
     }
@@ -273,7 +273,7 @@ public final class ExamStaffPageSupport {
         return (view != null ? view : VIEW).findExamById(examId, allExams);
     }
 
-    /** Overload {@link #findExamById} với view mặc định. */
+    /** Overload findExamById với view mặc định. */
     public static ExamSummaryDTO findExamById(List<ExamSummaryDTO> allExams, int examId) {
         return findExamById(allExams, examId, VIEW);
     }
@@ -287,7 +287,7 @@ public final class ExamStaffPageSupport {
         return (view != null ? view : VIEW).representativeExam(allExams, examId);
     }
 
-    /** Overload {@link #representativeExam} với view mặc định. */
+    /** Overload representativeExam với view mặc định. */
     public static ExamSummaryDTO representativeExam(List<ExamSummaryDTO> allExams, int examId) {
         return representativeExam(allExams, examId, VIEW);
     }
@@ -301,7 +301,7 @@ public final class ExamStaffPageSupport {
         return (view != null ? view : VIEW).resolvePrimaryExamId(allExams, examId);
     }
 
-    /** Overload {@link #resolvePrimaryExamId} với view mặc định. */
+    /** Overload resolvePrimaryExamId với view mặc định. */
     public static int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
         return resolvePrimaryExamId(allExams, examId, VIEW);
     }
@@ -324,7 +324,7 @@ public final class ExamStaffPageSupport {
         return null;
     }
 
-    /** Overload {@link #resolveExamFromRequest} với view mặc định. */
+    /** Overload resolveExamFromRequest với view mặc định. */
     public static ExamSummaryDTO resolveExamFromRequest(HttpServletRequest request, HttpSession httpSession,
             List<ExamSummaryDTO> allExams) {
         return resolveExamFromRequest(request, httpSession, allExams, VIEW);

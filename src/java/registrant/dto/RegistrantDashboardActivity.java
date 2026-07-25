@@ -1,7 +1,8 @@
 package registrant.dto;
 
 /**
- * Một mục trên timeline "Hoạt động gần đây" của dashboard thí sinh.
+ * DTO một mục trên timeline "Hoạt động gần đây" của dashboard thí sinh.
+ * Gồm icon/màu, tiêu đề, mô tả và nhãn thời gian hiển thị; occurredAt dùng nội bộ để sắp xếp. Sinh bởi RegistrantExamSupport và RegistrantDashboardServiceImpl.
  */
 public class RegistrantDashboardActivity {
 

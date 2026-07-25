@@ -5,16 +5,16 @@ package examstaff.util;
  * trước khi query hoặc so khớp bộ lọc.
  *
  * Vai trò trong luồng examstaff:
- * {@link AuditServlet} và {@code StaffAuditPageServiceImpl} nhận {@code filterDate} từ query string;
+ * AuditServlet và StaffAuditPageServiceImpl nhận filterDate từ query string;
  * helper trim và coi null thành chuỗi rỗng để tránh NPE và key cache không nhất quán
- * (ví dụ {@code " 2026-07-21 "} vs {@code "2026-07-21"}).
+ * (ví dụ " 2026-07-21 " vs "2026-07-21").
  *
  * Cách hoạt động:
- * {@link #normalizeFilterKey} — null → {@code ""}; còn lại {@code trim()}.
- * Lớp {@code final} với constructor private; chỉ static API.
+ * normalizeFilterKey — null → ""; còn lại trim().
+ * Lớp final với constructor private; chỉ static API.
  *
  * Ai gọi:
- * {@code StaffAuditPageServiceImpl}, {@code AuditServlet}, {@code AuditLogDAOImpl} —
+ * StaffAuditPageServiceImpl, AuditServlet, AuditLogDAOImpl —
  * mọi nơi bind hoặc đọc tham số ngày lọc nhật ký audit.
  */
 public final class AuditFilterHelper {

@@ -37,18 +37,18 @@ import java.util.List;
  *
  * Vai trò:
  * Wizard 3 bước tại bàn tiếp nhận: xác nhận lý lịch, chụp/lưu ảnh, thu phí (SePay/cash).
- * Đồng bộ {@link examstaff.dao.CallBoardDAO}, session {@code callingSbd}, queue và audit.
- * Render {@code candidatecall.jsp} ở chế độ desk (không phải trang gọi số riêng).
+ * Đồng bộ examstaff.dao.CallBoardDAO, session callingSbd, queue và audit.
+ * Render candidatecall.jsp ở chế độ desk (không phải trang gọi số riêng).
  *
  * Luồng GET:
- * - {@code action=startShift} → {@link ExamStaffShiftSupport} → redirect candidatecall
- * - Prepare page + resolve SBD → {@code findProfile} / {@code prepareProfileForDesk}
+ * - action=startShift → ExamStaffShiftSupport → redirect candidatecall
+ * - Prepare page + resolve SBD → findProfile / prepareProfileForDesk
  * - Phân nhánh action: next/reset/save/photo/payment/SePay finalize
- * - Bind step/fees/board → {@code forwardDeskView} (candidatecall.jsp deskMode)
+ * - Bind step/fees/board → forwardDeskView (candidatecall.jsp deskMode)
  *
  * Ai gọi:
- * Redirect từ {@link CandidateCallServlet} ({@code view=desk}); sidebar exam staff;
- * link sau gọi số với {@code ?sbd=}.
+ * Redirect từ CandidateCallServlet (view=desk); sidebar exam staff;
+ * link sau gọi số với ?sbd=.
  */
 @WebServlet("/examstaff/procedure")
 public class ProcedureServlet extends HttpServlet {
@@ -62,7 +62,7 @@ public class ProcedureServlet extends HttpServlet {
     /**
      * GET: startShift | prepare desk | xử lý action (next/reset/save/photo/payment) | forward desk view.
      * <p>
-     * Luồng: resolve SBD → find/prepare profile → phân nhánh action → bind step/fees → {@link #forwardDeskView}.
+     * Luồng: resolve SBD → find/prepare profile → phân nhánh action → bind step/fees → forwardDeskView.
      * @throws ServletException lỗi forward
      * @throws IOException      lỗi redirect / JSON
      */
@@ -311,7 +311,7 @@ public class ProcedureServlet extends HttpServlet {
 
     /**
      * Mở cổng SePay: tạo form signed + HTML auto-submit.
-     * Thành công → ghi session {@code sePayAwaitingSbd} để desk poll/Kiểm tra biết đang chờ IPN.
+     * Thành công → ghi session sePayAwaitingSbd để desk poll/Kiểm tra biết đang chờ IPN.
      * Lỗi nghiệp vụ → JSON 400 cho JS hiển thị message.
      */
     private void processSePayCheckout(HttpServletRequest request, HttpServletResponse response,
@@ -342,7 +342,7 @@ public class ProcedureServlet extends HttpServlet {
     /**
      * Nút “Kiểm tra đã thanh toán” / poll JS.
      * Không gọi SePay API — chỉ xem DB đã có Payment (do IPN ghi) chưa rồi finalize thủ tục.
-     * Trả JSON: {@code paid=true/false} + message chờ nếu chưa có IPN.
+     * Trả JSON: paid=true/false + message chờ nếu chưa có IPN.
      */
     private void processSePayCheck(HttpServletRequest request, HttpServletResponse response,
             HttpSession session, ExamRegistrationDTO profile, String sbdParam,
@@ -416,7 +416,7 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     /**
-     * Parse ngày sinh từ {@code dd/MM/yyyy} hoặc {@code yyyy-MM-dd}.
+     * Parse ngày sinh từ dd/MM/yyyy hoặc yyyy-MM-dd.
      * @return java.sql.Date hoặc null nếu trống
      */
     private static Date parseDateOfBirth(String dobStr) {
@@ -626,7 +626,7 @@ public class ProcedureServlet extends HttpServlet {
     }
 
     /**
-     * SBD từ param {@code sbd}; fallback {@code callingSbd} session.
+     * SBD từ param sbd; fallback callingSbd session.
      * @return SBD hoặc null
      */
     private String resolveSbdParam(HttpServletRequest request, HttpSession session) {
@@ -656,7 +656,7 @@ public class ProcedureServlet extends HttpServlet {
         return sbdChanged;
     }
 
-    /** Alias {@link #resolveSbdParam} (nhánh POST saveCapturedPhoto). */
+    /** Alias resolveSbdParam (nhánh POST saveCapturedPhoto). */
     private String resolveSbd(HttpServletRequest request, HttpSession session) {
         return resolveSbdParam(request, session);
     }
@@ -811,7 +811,7 @@ public class ProcedureServlet extends HttpServlet {
         staffCall.syncBoard(dao, boardExamId, callingSbd, qList, shiftEnded);
     }
 
-    /** true nếu session có {@code shiftEnded=true}. */
+    /** true nếu session có shiftEnded=true. */
     private static boolean isShiftEnded(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
     }

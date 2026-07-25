@@ -1,7 +1,8 @@
 package registrant.dto;
 
 /**
- * Kết quả so khớp ExamRegistration.RegistrationStatus với trạng thái tài liệu.
+ * DTO kết quả so khớp ExamRegistration.RegistrationStatus với trạng thái tài liệu thực tế.
+ * Báo aligned/updated, marker document có cập nhật hay không và thông báo nội bộ/UI khi RegistrantProfileSupport tự sửa lệch trạng thái.
  */
 public class ProfileRegistrationSyncResult {
 

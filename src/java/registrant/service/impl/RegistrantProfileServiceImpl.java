@@ -21,7 +21,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
-/** Nạp và cập nhật hồ sơ cá nhân thí sinh từ bảng Profile + User. */
+/**
+ * Triển khai RegistrantProfileService — trang profile.jsp.
+ * Nạp Profile + RegistrantDocumentSummary lên request; validate và ghi INSERT/UPDATE bảng Profile; khóa CCCD khi hồ sơ đã Approved; ghi audit qua RegistrantAuditHelper sau cập nhật thành công.
+ */
 public class RegistrantProfileServiceImpl implements RegistrantProfileService {
 
     private final ProfileDAO profiledao = new ProfileDAOImpl();

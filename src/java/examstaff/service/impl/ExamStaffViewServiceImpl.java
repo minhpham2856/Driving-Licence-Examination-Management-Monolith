@@ -34,19 +34,19 @@ import examstaff.service.impl.support.assign.ExaminerAllocationServiceImpl;
 import examstaff.service.impl.support.audit.StaffAuditQueryServiceImpl;
 
 /**
- * Implementation {@link ExamStaffViewService}: consolidator đọc/view cho màn hình staff.
+ * Implementation ExamStaffViewService: consolidator đọc/view cho màn hình staff.
  *
  * Ủy quyền support services:
- * - <b>Trang / chọn kỳ</b> — {@link ExamStaffPageServiceImpl},
- *       {@link ExamStaffSelectionServiceImpl}
- * - <b>Dashboard / phân phòng view</b> — {@link ExamStaffDashboardServiceImpl},
- *       {@link AllocationStageViewServiceImpl}
- * - <b>Thí sinh / báo cáo</b> — {@link CandidateDossierServiceImpl},
- *       {@link CandidatePhotoServiceImpl}, {@link ExamReportStatsServiceImpl},
- *       {@link ExamReportProcedureStatusServiceImpl}
- * - <b>Audit page (read)</b> — {@link StaffAuditPageServiceImpl}
- * Thao tác mutate gọi số và ghi audit đi qua {@link StaffCallServiceImpl},
- * {@link AuditServiceImpl} — không qua consolidator này.
+ * - <b>Trang / chọn kỳ</b> — ExamStaffPageServiceImpl,
+ *       ExamStaffSelectionServiceImpl
+ * - <b>Dashboard / phân phòng view</b> — ExamStaffDashboardServiceImpl,
+ *       AllocationStageViewServiceImpl
+ * - <b>Thí sinh / báo cáo</b> — CandidateDossierServiceImpl,
+ *       CandidatePhotoServiceImpl, ExamReportStatsServiceImpl,
+ *       ExamReportProcedureStatusServiceImpl
+ * - <b>Audit page (read)</b> — StaffAuditPageServiceImpl
+ * Thao tác mutate gọi số và ghi audit đi qua StaffCallServiceImpl,
+ * AuditServiceImpl — không qua consolidator này.
  */
 public class ExamStaffViewServiceImpl implements ExamStaffViewService {
 
@@ -113,7 +113,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#listAllExams}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.listAllExams.
      * @return danh sách kỳ thi
      */
     @Override
@@ -122,10 +122,10 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#findExamById}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.findExamById.
      * @param examId   mã kỳ thi
      * @param allExams danh sách kỳ
-     * @return kỳ thi hoặc {@code null}
+     * @return kỳ thi hoặc null
      */
     @Override
     public ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams) {
@@ -133,7 +133,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#representativeExam}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.representativeExam.
      * @param allExams danh sách kỳ
      * @param examId   mã kỳ ưu tiên
      * @return kỳ đại diện
@@ -144,7 +144,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#resolvePrimaryExamId}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.resolvePrimaryExamId.
      * @param allExams danh sách kỳ
      * @param examId   mã kỳ
      * @return mã kỳ chính
@@ -155,7 +155,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#resolveDefaultExamId}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.resolveDefaultExamId.
      * @param allExams danh sách kỳ
      * @return mã kỳ mặc định
      */
@@ -165,7 +165,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#buildPickerView}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.buildPickerView.
      * @param allExams  danh sách kỳ
      * @param examId    mã kỳ hiện tại
      * @param urlExamId mã trên URL
@@ -177,7 +177,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffPageServiceImpl#preparePageContext}.
+     * Ủy quyền sang ExamStaffPageServiceImpl.preparePageContext.
      * @param input lệnh trang
      * @return context trang
      */
@@ -187,7 +187,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#preparePageTransition}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.preparePageTransition.
      * @param input lệnh trang
      * @return kết quả transition
      */
@@ -197,7 +197,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#resolveExamId}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.resolveExamId.
      * @param input lệnh trang
      * @return mã kỳ thi
      */
@@ -207,7 +207,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#ensureExamId}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.ensureExamId.
      * @param input lệnh trang
      * @return mã kỳ đã đảm bảo
      */
@@ -217,7 +217,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#resolveExamFromUrl}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.resolveExamFromUrl.
      * @param urlExamId mã trên URL
      * @param allExams  danh sách kỳ
      * @return mã kỳ hợp lệ
@@ -228,7 +228,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#syncExamSelection}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.syncExamSelection.
      * @param examId        mã kỳ mới
      * @param currentExamId mã kỳ hiện tại
      * @param allExams      danh sách kỳ
@@ -241,7 +241,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#resolveActiveExamId}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.resolveActiveExamId.
      * @param urlExamId           mã trên URL
      * @param selectedExamId      mã đã chọn
      * @param runtimeActiveExamId mã active runtime
@@ -253,9 +253,9 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffSelectionServiceImpl#processSelection}.
+     * Ủy quyền sang ExamStaffSelectionServiceImpl.processSelection.
      * @param request lệnh trang
-     * @return {@link ServiceResult} kèm transition
+     * @return ServiceResult kèm transition
      */
     @Override
     public ServiceResult<ExamTransitionResultDTO> processSelection(ExamStaffPageCommand request) {
@@ -263,7 +263,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamStaffDashboardServiceImpl#buildView}.
+     * Ủy quyền sang ExamStaffDashboardServiceImpl.buildView.
      * @param allExams danh sách kỳ
      * @param examId   mã kỳ
      * @return DTO dashboard
@@ -274,7 +274,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link AllocationStageViewServiceImpl#buildView}.
+     * Ủy quyền sang AllocationStageViewServiceImpl.buildView.
      * @param candidates   danh sách thí sinh
      * @param stage        giai đoạn
      * @param resultFilter lọc kết quả
@@ -294,7 +294,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateDossierServiceImpl#loadDossier}.
+     * Ủy quyền sang CandidateDossierServiceImpl.loadDossier.
      * @param examId mã kỳ thi
      * @param sbd    số báo danh
      * @return DTO dossier
@@ -305,7 +305,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidatePhotoServiceImpl#resolvePhoto}.
+     * Ủy quyền sang CandidatePhotoServiceImpl.resolvePhoto.
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
      * @param sbd            số báo danh
@@ -317,9 +317,9 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidatePhotoServiceImpl#resolveCapturedPhoto}.
+     * Ủy quyền sang CandidatePhotoServiceImpl.resolveCapturedPhoto.
      * @param reg hồ sơ thí sinh
-     * @return {@code true} nếu có ảnh hợp lệ
+     * @return true nếu có ảnh hợp lệ
      */
     @Override
     public boolean resolveCapturedPhoto(ExamRegistrationDTO reg) {
@@ -327,7 +327,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamReportStatsServiceImpl#computeStats}.
+     * Ủy quyền sang ExamReportStatsServiceImpl.computeStats.
      * @param candidates danh sách thí sinh
      * @param examId     mã kỳ thi
      * @return thống kê
@@ -338,7 +338,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link ExamReportProcedureStatusServiceImpl#analyze}.
+     * Ủy quyền sang ExamReportProcedureStatusServiceImpl.analyze.
      * @param candidates danh sách thí sinh
      * @return trạng thái thủ tục
      */
@@ -348,7 +348,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditPageServiceImpl#buildPage}.
+     * Ủy quyền sang StaffAuditPageServiceImpl.buildPage.
      * @param userId               mã nhân viên
      * @param filterDate           ngày lọc
      * @param page                 trang
@@ -363,7 +363,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#refreshQueue}.
+     * Ủy quyền sang CandidateQueueServiceImpl.refreshQueue.
      * @param input lệnh trang
      * @return snapshot hàng đợi
      */
@@ -373,7 +373,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#buildSnapshot}.
+     * Ủy quyền sang CandidateQueueServiceImpl.buildSnapshot.
      * @param queue          hàng đợi
      * @param examId         mã kỳ thi
      * @param fallbackExamId mã kỳ dự phòng
@@ -386,7 +386,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveSyncedCallingSbd}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveSyncedCallingSbd.
      * @param httpCallingSbd SBD từ request
      * @param callBoard      trạng thái bảng gọi
      * @param queue          hàng đợi
@@ -399,7 +399,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#listSuspendedInExam}.
+     * Ủy quyền sang CandidateQueueServiceImpl.listSuspendedInExam.
      * @param queue hàng đợi
      * @return danh sách đình chỉ
      */
@@ -409,10 +409,10 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveCallingCandidate}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveCallingCandidate.
      * @param callingSbd SBD đang gọi
      * @param queue      hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     @Override
     public ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue) {
@@ -420,7 +420,7 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#resolveNextCallingSbd}.
+     * Ủy quyền sang CandidateQueueServiceImpl.resolveNextCallingSbd.
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD vừa xử lý
      * @return SBD tiếp theo
@@ -431,10 +431,10 @@ public class ExamStaffViewServiceImpl implements ExamStaffViewService {
     }
 
     /**
-     * Ủy quyền sang {@link CandidateQueueServiceImpl#moveCallableCandidateToFront}.
+     * Ủy quyền sang CandidateQueueServiceImpl.moveCallableCandidateToFront.
      * @param queue hàng đợi (mutate)
      * @param sbd   số báo danh
-     * @return {@code true} nếu đã chuyển
+     * @return true nếu đã chuyển
      */
     @Override
     public boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd) {

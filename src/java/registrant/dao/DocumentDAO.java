@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Truy cập bảng Document cho luồng thí sinh upload hồ sơ.
+ * Truy cập bảng Document cho luồng upload hồ sơ thí sinh.
+ * CRUD theo ProfileId + DocumentType; trạng thái duyệt lưu trong Notes (marker #PENDING#, #APPROVED#, #LICENCE#). Dùng bởi upload, profile và track-profile.
  */
 public interface DocumentDAO {
 
@@ -34,8 +35,8 @@ public interface DocumentDAO {
     boolean requestApproval(int profileId, String requestNote);
 
     /**
-     * Đồng bộ {@code Document.Notes} với trạng thái {@code ExamRegistration} bổ sung
-     * (sửa lệch khi chỉ cập nhật ER bằng SQL hoặc tệp legacy thiếu {@code #SUPPLEMENT_ER#}).
+     * Đồng bộ Document.Notes với trạng thái ExamRegistration bổ sung
+     * (sửa lệch khi chỉ cập nhật ER bằng SQL hoặc tệp legacy thiếu #SUPPLEMENT_ER#).
      */
     int reconcileOtherDocumentsWithSupplementEr(int profileId, Map<Integer, String> supplementErStatuses);
 

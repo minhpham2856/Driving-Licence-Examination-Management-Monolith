@@ -8,7 +8,7 @@ import admin.model.RoleOption;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import shared.util.PasswordUtil;
+import auth.util.PasswordUtil;
 
 public class AccountManageDAOImpl extends DBContext implements AccountManageDAO {
 

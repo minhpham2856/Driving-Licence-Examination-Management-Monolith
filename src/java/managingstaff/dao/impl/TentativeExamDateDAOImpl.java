@@ -12,6 +12,7 @@ import java.util.List;
 import managingstaff.dao.TentativeExamDateDAO;
 import managingstaff.dto.TentativeExamDateDTO;
 import shared.dbconnection.DBContext;
+import shared.util.TentativeExamDatePolicy;
 
 public class TentativeExamDateDAOImpl extends DBContext implements TentativeExamDateDAO {
 
@@ -24,7 +25,10 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                END RegisteredCount,
                COALESCE(ed.Status,'Open') Status,ed.CancelReason,ed.CancelledAt,
                COALESCE(ed.CancelledBy,0) CancelledBy,
-               COALESCE(ed.CancelledRegistrationCount,0) CancelledRegistrationCount
+               COALESCE(ed.CancelledRegistrationCount,0) CancelledRegistrationCount,
+               COALESCE(ed.PoliceStatus,'NOT_SENT') PoliceStatus,
+               (SELECT COUNT(*) FROM OfficialExamCandidate o
+                WHERE o.ExamDateId=ed.ExamDateId) OfficialCandidateCount
         FROM ExamDates ed JOIN Licence l ON l.LicenceId=ed.LicenceId
         """;
 
@@ -49,6 +53,10 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
     public int create(Date date, int licenceId) {
         if (date == null || date.toLocalDate().isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("Ngày dự kiến không được ở trong quá khứ.");
+        }
+        if (date.toLocalDate().isBefore(TentativeExamDatePolicy.earliestCreatableDate(LocalDate.now()))) {
+            throw new IllegalArgumentException(
+                    "Ngày dự kiến phải cách hôm nay hơn 07 ngày làm việc để có thời gian đăng ký.");
         }
         // Một ngày chỉ được mở một đợt dự kiến, không phụ thuộc hạng GPLX.
         String duplicate = "SELECT 1 FROM ExamDates WHERE CAST(ExamDate AS date)=?";
@@ -121,10 +129,12 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
             if ("Cancelled".equalsIgnoreCase(status)) {
                 throw new IllegalArgumentException("Ngày thi dự kiến này đã được hủy trước đó.");
             }
-            LocalDate deadline = examDate.toLocalDate().minusDays(7);
-            if (LocalDate.now().isAfter(deadline)) {
+            if (!"Open".equalsIgnoreCase(status)) {
+                throw new IllegalArgumentException("Ngày thi dự kiến đã khóa nên không thể hủy.");
+            }
+            if (TentativeExamDatePolicy.shouldBeLocked(examDate.toLocalDate(), LocalDate.now())) {
                 throw new IllegalArgumentException(
-                        "Chỉ được hủy trước ngày thi dự kiến ít nhất 7 ngày.");
+                        "Ngày thi dự kiến đã đến mốc khóa trước 07 ngày làm việc nên không thể hủy.");
             }
             int affected;
             try (PreparedStatement count = connection.prepareStatement(
@@ -165,6 +175,113 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
         } finally {
             try { connection.setAutoCommit(previousAutoCommit); } catch (SQLException ignored) { }
         }
+    }
+
+    @Override
+    public List<Integer> lockDueDates() {
+        List<Integer> dueIds = new ArrayList<>();
+        List<Integer> lockedIds = new ArrayList<>();
+        String select = "SELECT ExamDateId,ExamDate FROM ExamDates "
+                + "WHERE COALESCE(Status,'Open')='Open'";
+        String update = "UPDATE ExamDates SET Status='Locked' "
+                + "WHERE ExamDateId=? AND COALESCE(Status,'Open')='Open'";
+        try (PreparedStatement find = getConnection().prepareStatement(select);
+             ResultSet rs = find.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt("ExamDateId");
+                Date date = rs.getDate("ExamDate");
+                if (date != null && TentativeExamDatePolicy.shouldBeLocked(date.toLocalDate(), LocalDate.now())) {
+                    dueIds.add(id);
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không thể tìm ngày thi dự kiến cần khóa: " + e.getMessage(), e);
+        }
+        try (PreparedStatement lock = getConnection().prepareStatement(update)) {
+            for (Integer id : dueIds) {
+                    lock.setInt(1, id);
+                    if (lock.executeUpdate() == 1) {
+                        lockedIds.add(id);
+                    }
+            }
+            return lockedIds;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không thể tự động khóa ngày thi dự kiến: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public int submitToPolice(int id) {
+        Connection connection = getConnection();
+        if (connection == null) {
+            throw new IllegalStateException("Không thể kết nối cơ sở dữ liệu.");
+        }
+        boolean previousAutoCommit = true;
+        try {
+            previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+            String status;
+            String policeStatus;
+            Date examDate;
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT ExamDate,COALESCE(Status,'Open') Status,COALESCE(PoliceStatus,'NOT_SENT') PoliceStatus "
+                    + "FROM ExamDates WITH (UPDLOCK,HOLDLOCK) WHERE ExamDateId=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) throw new IllegalArgumentException("Không tìm thấy ngày thi dự kiến.");
+                    examDate = rs.getDate("ExamDate");
+                    status = rs.getString("Status");
+                    policeStatus = rs.getString("PoliceStatus");
+                }
+            }
+            if (!"Open".equalsIgnoreCase(status) && !"Locked".equalsIgnoreCase(status)) {
+                throw new IllegalArgumentException("Ngày thi dự kiến đã hủy nên không thể gửi CSGT.");
+            }
+            if (examDate == null || examDate.toLocalDate().isBefore(LocalDate.now())) {
+                throw new IllegalArgumentException("Ngày thi dự kiến đã qua nên không thể gửi CSGT.");
+            }
+            if (!"NOT_SENT".equalsIgnoreCase(policeStatus)) {
+                throw new IllegalArgumentException("Danh sách này đã được gửi CSGT trước đó.");
+            }
+            int count;
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "SELECT COUNT(*) FROM RegistrationDates WHERE ExamDateId=? AND IsActive=1")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) { count = rs.next() ? rs.getInt(1) : 0; }
+            }
+            if (count == 0) {
+                throw new IllegalArgumentException("Ngày dự kiến chưa có thí sinh nên không thể gửi CSGT.");
+            }
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "UPDATE RegistrationDates SET PoliceStatus=N'PENDING',PoliceReason=NULL "
+                    + "WHERE ExamDateId=? AND IsActive=1")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            }
+            try (PreparedStatement ps = connection.prepareStatement(
+                    "UPDATE ExamDates SET Status=N'Locked',PoliceStatus=N'PENDING' "
+                    + "WHERE ExamDateId=? AND PoliceStatus=N'NOT_SENT' AND Status IN(N'Open',N'Locked')")) {
+                ps.setInt(1, id);
+                if (ps.executeUpdate() != 1) throw new SQLException("Không cập nhật được trạng thái gửi CSGT.");
+            }
+            connection.commit();
+            return count;
+        } catch (IllegalArgumentException ex) {
+            rollback(connection);
+            throw ex;
+        } catch (SQLException ex) {
+            rollback(connection);
+            throw new IllegalStateException("Không thể gửi danh sách tới CSGT: " + ex.getMessage(), ex);
+        } finally {
+            try { connection.setAutoCommit(previousAutoCommit); } catch (SQLException ignored) { }
+        }
+    }
+
+    @Override
+    public List<TentativeExamDateDTO> findPoliceCompletedUnlinked() {
+        return query(SELECT + " WHERE ed.PoliceStatus=N'COMPLETED' "
+                + "AND ed.Status<>N'Cancelled' AND NOT EXISTS(SELECT 1 FROM Exam e WHERE e.SourceExamDateId=ed.ExamDateId) "
+                + "ORDER BY ed.ExamDate,ed.ExamDateId", List.of());
     }
 
     private static String dateFilter(String tab) {
@@ -235,6 +352,8 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                     x.setCancelledAt(rs.getTimestamp(8));
                     x.setCancelledBy(rs.getInt(9));
                     x.setCancelledRegistrationCount(rs.getInt(10));
+                    x.setPoliceStatus(rs.getString(11));
+                    x.setOfficialCandidateCount(rs.getInt(12));
                     out.add(x);
                 }
             }

@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Tiện ích tài liệu hồ sơ — markers Notes (#PROFILE_DOC#, #SUPPLEMENT_DOC#, #SUPPLEMENT_ER#id#, #PENDING#/#APPROVED#/#LICENCE#) cho workflow chính và bổ sung. */
+/**
+ * Tiện ích workflow tài liệu hồ sơ thí sinh — marker Notes và validate upload.
+ * Hằng số #PROFILE_DOC#, #SUPPLEMENT_DOC#, #LICENCE_DOC#, #SUPPLEMENT_ER#id# trên ExamRegistration/Document; giới hạn 5MB và loại bắt buộc Portrait/IdFront/IdBack/HealthCertificate/Other.
+ */
 public final class RegistrantDocumentHelper {
 
     // --- Workflow markers trên ExamRegistration / Document.Notes ---
@@ -19,7 +22,7 @@ public final class RegistrantDocumentHelper {
     public static final String MARK_SUPPLEMENT_DOC = "#SUPPLEMENT_DOC#";
     /** ER xin duyệt thêm hạng (tái sử dụng 4 giấy đã duyệt). */
     public static final String MARK_LICENCE_DOC = "#LICENCE_DOC#";
-    /** Prefix gắn Document.Notes với ExamRegistrationId bổ sung: {@code #SUPPLEMENT_ER#42#}. */
+    /** Prefix gắn Document.Notes với ExamRegistrationId bổ sung: #SUPPLEMENT_ER#42#. */
     public static final String MARK_SUPPLEMENT_ER_PREFIX = "#SUPPLEMENT_ER#";
 
     // --- Upload validation ---
@@ -56,7 +59,7 @@ public final class RegistrantDocumentHelper {
         return MARK_LICENCE_DOC + " " + body;
     }
 
-    /** Mã hóa: #SUPPLEMENT_ER#<examRegistrationId># */
+    /** Mã hóa: #SUPPLEMENT_ER# + examRegistrationId + # */
     public static String encodeSupplementErMarker(int examRegistrationId) {
         if (examRegistrationId <= 0) {
             return "";

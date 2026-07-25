@@ -31,18 +31,18 @@ import java.util.List;
  *
  * Vai trò:
  * Điều phối gọi số thí sinh trong ca: gọi tiếp, tạm dừng, vắng, resume ca,
- * đồng bộ {@link examstaff.dao.CallBoardDAO} in-memory và session {@code callingSbd}.
- * Shortcut {@code view=desk} mở bàn thủ tục ({@link ProcedureServlet}).
+ * đồng bộ examstaff.dao.CallBoardDAO in-memory và session callingSbd.
+ * Shortcut view=desk mở bàn thủ tục (ProcedureServlet).
  *
  * Luồng GET:
- * - {@code view=desk} → redirect {@code procedure?sbd=…}
- * - {@code ExamStaffPageSupport.prepareExamStaffPage} → build {@code CandidateCallPageCommand}
- * - {@code StaffCallService.preparePage}: resume/redirect hoặc side-effects + board op
- * - Bind queue/alert → forward {@code candidatecall.jsp} hoặc {@code candidate-suspended.jsp}
+ * - view=desk → redirect procedure?sbd=…
+ * - ExamStaffPageSupport.prepareExamStaffPage → build CandidateCallPageCommand
+ * - StaffCallService.preparePage: resume/redirect hoặc side-effects + board op
+ * - Bind queue/alert → forward candidatecall.jsp hoặc candidate-suspended.jsp
  *
  * Ai gọi:
- * Sidebar exam staff; nút gọi số trên dashboard; redirect từ {@link ProcedureServlet}
- * sau {@code startShift}; TV/desk mở thủ tục qua {@code view=desk}.
+ * Sidebar exam staff; nút gọi số trên dashboard; redirect từ ProcedureServlet
+ * sau startShift; TV/desk mở thủ tục qua view=desk.
  */
 @WebServlet("/examstaff/candidatecall")
 public class CandidateCallServlet extends HttpServlet {
@@ -115,7 +115,7 @@ public class CandidateCallServlet extends HttpServlet {
 
     /**
      * Build command gọi số từ request/session/pageCtx + board state.
-     * @return command cho {@link StaffCallService#preparePage}
+     * @return command cho StaffCallService.preparePage
      */
     private CandidateCallPageCommand buildCommand(HttpServletRequest request, HttpSession session,
             ExamStaffPageContext pageCtx, String webRoot) {
@@ -314,7 +314,7 @@ public class CandidateCallServlet extends HttpServlet {
     }
 
     /**
-     * Bind alert vắng/undo theo {@link CandidateCallActionResultDTO.AlertType}.
+     * Bind alert vắng/undo theo CandidateCallActionResultDTO.AlertType.
      */
     private static void bindActionAlert(HttpServletRequest request, CandidateCallPageViewDTO view) {
         if (view.getAlertType() == CandidateCallActionResultDTO.AlertType.NONE
@@ -337,12 +337,12 @@ public class CandidateCallServlet extends HttpServlet {
         doGet(request, response);
     }
 
-    /** true nếu session có {@code shiftEnded=true}. */
+    /** true nếu session có shiftEnded=true. */
     private static boolean isShiftEnded(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftEnded"));
     }
 
-    /** true nếu session có {@code shiftPaused=true}. */
+    /** true nếu session có shiftPaused=true. */
     private static boolean isShiftPaused(HttpSession session) {
         return session != null && "true".equals(session.getAttribute("shiftPaused"));
     }

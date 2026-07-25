@@ -18,18 +18,18 @@ import java.util.Set;
 /**
  * Lớp bàn làm việc phân công sát hạch viên — dựng view và xử lý gán/gỡ từ servlet.
  * <p>
- * <b>Không</b> gọi DAO trực tiếp; ủy quyền {@link ExaminerAllocationServiceImpl} cho load/lưu slot.
- * Trả {@link examstaff.dto.ExaminerAllocationActionResultDTO} kèm thông báo UI và chuỗi audit.
+ * <b>Không</b> gọi DAO trực tiếp; ủy quyền ExaminerAllocationServiceImpl cho load/lưu slot.
+ * Trả examstaff.dto.ExaminerAllocationActionResultDTO kèm thông báo UI và chuỗi audit.
  *
  * Luồng build view:
- * - Gom các phiên cùng ngày qua {@code ExamStaffExamRules.examsForExam}
- * - Tải slot phân công từng phiên → {@code dayAssignments} + tập {@code busyIds}
- * - Tách {@code allExaminers} thành available / busy theo {@code busyIds}
- * - Dựng {@code areaAssignOptions}: khu LT/TH gắn kỳ, lọc {@link ExaminerAssignmentRules#isAssignableExamArea}
+ * - Gom các phiên cùng ngày qua ExamStaffExamRules.examsForExam
+ * - Tải slot phân công từng phiên → dayAssignments + tập busyIds
+ * - Tách allExaminers thành available / busy theo busyIds
+ * - Dựng areaAssignOptions: khu LT/TH gắn kỳ, lọc ExaminerAssignmentRules.isAssignableExamArea
  *
  * Thao tác gán / gỡ:
- * - {@link #assignExaminer} — validate kỳ + khu + SHV; chỉ LT/TH; lưu slot; audit {@code ASSIGN Examiner}
- * - {@link #removeExaminer} — parse khóa {@code examId:areaId:examinerUserId}; audit {@code REMOVE Examiner}
+ * - assignExaminer — validate kỳ + khu + SHV; chỉ LT/TH; lưu slot; audit ASSIGN Examiner
+ * - removeExaminer — parse khóa examId:areaId:examinerUserId; audit REMOVE Examiner
  */
 public class ExaminerAllocationDeskServiceImpl {
 
@@ -213,9 +213,9 @@ public class ExaminerAllocationDeskServiceImpl {
     }
 
     /**
-     * Tìm slot theo khóa {@code examId:areaId:examinerUserId}.
+     * Tìm slot theo khóa examId:areaId:examinerUserId.
      * @param slotKey khóa slot
-     * @return slot khớp, hoặc {@code null}
+     * @return slot khớp, hoặc null
      */
     private ExaminerSlotDTO findSlotByKey(String slotKey) {
         // validate format
@@ -302,7 +302,7 @@ public class ExaminerAllocationDeskServiceImpl {
     /**
      * Chuỗi trống thành dấu gạch ngang.
      * @param value chuỗi nguồn
-     * @return giá trị trim hoặc {@code "-"}
+     * @return giá trị trim hoặc "-"
      */
     private static String blankToDash(String value) {
         return value == null || value.isBlank() ? "-" : value.trim();

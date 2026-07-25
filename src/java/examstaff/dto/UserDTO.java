@@ -6,11 +6,11 @@ import shared.model.Profile;
  * DTO người dùng rút gọn cho ExamStaff (chủ yếu sát hạch viên / picker phân công).
  *
  * Vai trò:
- * Mang userId, username và {@link Profile} hiển thị trên {@code examiner-allocation.jsp};
+ * Mang userId, username và Profile hiển thị trên examiner-allocation.jsp;
  * không chứa nghiệp vụ phân quyền.
  *
  * Ai tạo / tiêu thụ:
- * {@code ExaminerAssignmentDAOImpl} → {@link ExaminerAllocationViewDTO} / slot picker.
+ * ExaminerAssignmentDAOImpl → ExaminerAllocationViewDTO / slot picker.
  */
 public class UserDTO {
     private int userId;
@@ -43,12 +43,12 @@ public class UserDTO {
         this.userId = userId;
     }
 
-    /** Alias {@code userId} cho JSP / legacy ({@code id}). */
+    /** Alias userId cho JSP / legacy (id). */
     public int getId() {
         return userId;
     }
 
-    /** Gán id (alias setter cho {@code userId}). */
+    /** Gán id (alias setter cho userId). */
     public void setId(int id) {
         this.userId = id;
     }

@@ -12,10 +12,10 @@ import java.util.List;
  * Facade xuất tài liệu / báo cáo kỳ thi ra file cho nhân viên kỳ thi.
  *
  * Phạm vi hiện tại:
- * - <b>Excel</b> — {@code exportExamReport} xuất báo cáo tổng hợp kỳ thi
- *       (thí sinh, thống kê, vi phạm, phí) ra {@link OutputStream}
- * Dữ liệu đầu vào ({@link ExamSummaryDTO}, {@link ExamRegistrationDTO},
- * {@link ExamReportStatsDTO}) do {@link ExamStaffViewService} / servlet chuẩn bị sẵn.
+ * - <b>Excel</b> — exportExamReport xuất báo cáo tổng hợp kỳ thi
+ *       (thí sinh, thống kê, vi phạm, phí) ra OutputStream
+ * Dữ liệu đầu vào (ExamSummaryDTO, ExamRegistrationDTO,
+ * ExamReportStatsDTO) do ExamStaffViewService / servlet chuẩn bị sẵn.
  */
 public interface DocumentService {
 

@@ -18,14 +18,14 @@ import java.util.Locale;
 import shared.enums.ErrorType;
 
 /**
- * Implementation {@link ExamControlService}: điều khiển vòng đời kỳ thi qua {@link ExamDAO}.
+ * Implementation ExamControlService: điều khiển vòng đời kỳ thi qua ExamDAO.
  *
  * Luồng start / pause / resume / end:
- * - <b>startExam</b> — validate lịch ({@link ExamScheduleRules}), đếm SHV phân công
- *       ({@link ExaminerAssignmentRules}), cập nhật trạng thái kỳ qua {@link ExamDAO}
+ * - <b>startExam</b> — validate lịch (ExamScheduleRules), đếm SHV phân công
+ *       (ExaminerAssignmentRules), cập nhật trạng thái kỳ qua ExamDAO
  * - <b>pauseExam / resumeExam</b> — toggle cờ tạm dừng; giữ nguyên hàng đợi gọi số
  * - <b>endExam</b> — đóng kỳ; SHV không thể đăng nhập kỳ này nữa
- * Hằng {@link #CTX_ACTIVE_EXAM_ID} dùng để đồng bộ session servlet với kỳ đang active.
+ * Hằng CTX_ACTIVE_EXAM_ID dùng để đồng bộ session servlet với kỳ đang active.
  */
 public class ExamControlServiceImpl implements ExamControlService {
 
@@ -70,7 +70,7 @@ public class ExamControlServiceImpl implements ExamControlService {
     }
 
     /**
-     * Tạo {@link ServiceResult} thất bại validation với message.
+     * Tạo ServiceResult thất bại validation với message.
      * @param message thông báo lỗi
      * @param <T>     kiểu data
      * @return kết quả fail

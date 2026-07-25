@@ -14,14 +14,14 @@
  * </pre>
  *
  * Vai trò từng lớp:
- * - {@link examstaff.service.impl.support.audit.StaffAuditQueryServiceImpl} — truy vấn DAO thuần;
+ * - examstaff.service.impl.support.audit.StaffAuditQueryServiceImpl — truy vấn DAO thuần;
  *       đếm, phân trang, KPI thủ tục theo nhân viên/ngày
- * - {@link examstaff.service.impl.support.audit.StaffAuditPageServiceImpl} — ghép view trang audit:
- *       clamp page, {@code PageSlice}, gắn nhãn {@code ExamStaffLabels}
- * - {@link examstaff.service.impl.support.audit.StaffAuditLogServiceImpl} — insert audit khi staff
- *       thao tác (assign, thủ tục, …); map entity qua {@code AuditLogHelper}
- * - {@link examstaff.service.impl.support.audit.StaffAuditExportServiceImpl} — xuất Excel
+ * - examstaff.service.impl.support.audit.StaffAuditPageServiceImpl — ghép view trang audit:
+ *       clamp page, PageSlice, gắn nhãn ExamStaffLabels
+ * - examstaff.service.impl.support.audit.StaffAuditLogServiceImpl — insert audit khi staff
+ *       thao tác (assign, thủ tục, …); map entity qua AuditLogHelper
+ * - examstaff.service.impl.support.audit.StaffAuditExportServiceImpl — xuất Excel
  *       sheet Tổng quan + Chi tiết nhật ký (Apache POI)
- * <p>Không gọi trực tiếp từ servlet — luôn qua {@code AuditServiceImpl}.
+ * <p>Không gọi trực tiếp từ servlet — luôn qua AuditServiceImpl.
  */
 package examstaff.service.impl.support.audit;

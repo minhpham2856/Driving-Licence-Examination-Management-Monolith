@@ -3,7 +3,10 @@ package registrant.util;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Map mã loại tài liệu UI (registrant) ↔ {@code DocumentType.Type} trong DLEM_DB_2. */
+/**
+ * Ánh xạ mã loại tài liệu UI (registrant) ↔ DocumentType.Type trong DLEM_DB_2.
+ * Bốn loại bắt buộc (Portrait, IdFront, IdBack, HealthCertificate) + Other; dùng bởi DocumentDAOImpl và JSP upload.
+ */
 public final class RegistrantDocumentTypeMapping {
 
     private static final Map<String, String> UI_TO_DB = new LinkedHashMap<>();

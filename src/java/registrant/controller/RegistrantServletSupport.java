@@ -9,7 +9,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-/** Helper servlet cổng thí sinh: copy model, flash message, build redirect URL. */
+/**
+ * Tiện ích dùng chung cho servlet cổng thí sinh (không chứa nghiệp vụ DB).
+ * Hỗ trợ copy model Map → request attribute, forward JSP, đọc/xóa flash session, parse tham số số nguyên dương và ghép URL redirect (PRG sau POST).
+ * Các service impl gọi lớp này thay vì lặp mã servlet.
+ */
 public final class RegistrantServletSupport {
 
     private RegistrantServletSupport() {

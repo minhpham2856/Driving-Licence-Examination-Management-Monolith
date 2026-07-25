@@ -8,10 +8,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Chuẩn hóa tham chiếu DocumentUrl (Cloudinary / legacy local) thành URL xem được trên trình duyệt. */
+/**
+ * Resolver URL xem tài liệu hồ sơ — chuyển giá trị Document.DocumentUrl lưu trong DB thành link trình duyệt.
+ * Hỗ trợ ref Cloudinary (cloudinary:…), file legacy /uploads/registrant/* và seed demo Cloudinary; gọi từ JSP upload/profile và RegistrantDocumentViewServlet.
+ */
 public final class DocumentUrlResolver {
 
     private static final Logger LOG = Logger.getLogger(DocumentUrlResolver.class.getName());
+
+    /** Seed cũ dùng URL demo không tồn tại trên Cloudinary → thay placeholder xem được. */
+    private static final String SEED_DEMO_HOST = "res.cloudinary.com/demo/";
 
     private DocumentUrlResolver() {
     }
@@ -28,10 +34,13 @@ public final class DocumentUrlResolver {
         }
     }
 
-    /** Đổi ref Cloudinary/local thành URL signed hoặc /uploads/…. */
+    /** Đổi ref Cloudinary/local/seed-demo thành URL xem được trên browser. */
     public static String resolveViewUrl(String storedRef, HttpServletRequest request) {
         if (storedRef == null || storedRef.isBlank()) {
             return storedRef;
+        }
+        if (isDeadSeedDemoUrl(storedRef)) {
+            return placeholderForSeedDemo(storedRef);
         }
         if (storedRef.startsWith("http://") || storedRef.startsWith("https://")) {
             return storedRef;
@@ -48,6 +57,29 @@ public final class DocumentUrlResolver {
             return RegistrantUploadStorage.normalizePublicUrl(request, storedRef);
         }
         return storedRef;
+    }
+
+    private static boolean isDeadSeedDemoUrl(String url) {
+        String lower = url.toLowerCase();
+        return lower.contains(SEED_DEMO_HOST)
+                && (lower.contains("/registrant/") || lower.contains("_demo"));
+    }
+
+    private static String placeholderForSeedDemo(String url) {
+        String lower = url.toLowerCase();
+        if (lower.contains("portrait")) {
+            return "https://placehold.co/300x400/png?text=Anh+chan+dung+3x4";
+        }
+        if (lower.contains("cccd_front") || lower.contains("idfront") || lower.contains("id_front")) {
+            return "https://placehold.co/600x380/png?text=CCCD+mat+truoc";
+        }
+        if (lower.contains("cccd_back") || lower.contains("idback") || lower.contains("id_back")) {
+            return "https://placehold.co/600x380/png?text=CCCD+mat+sau";
+        }
+        if (lower.contains("health")) {
+            return "https://placehold.co/600x800/png?text=Giay+kham+SK";
+        }
+        return "https://placehold.co/600x400/png?text=Tai+lieu+demo";
     }
 
     /** Xóa tệp trên Cloudinary hoặc local theo tham chiếu đã lưu. */

@@ -12,23 +12,23 @@ import java.util.Set;
 
 /**
  * Utility thuần quản lý lưu/đọc ảnh thí sinh trên đĩa data runtime — không phụ thuộc webRoot.
- * Đồng bộ {@code PhotoImageUrl} trên CSDL với file thật dưới {@code candidate-photos/}.
+ * Đồng bộ PhotoImageUrl trên CSDL với file thật dưới candidate-photos/.
  *
  * Vai trò trong luồng examstaff:
- * Bàn thủ tục chụp ảnh ({@code ProcedureWorkflowServiceImpl}) ghi bytes qua {@link #writePhotoFile};
- * path lưu DB dạng {@link #STORED_PHOTO_PREFIX}{@code fileName} qua {@link #toWebPhotoPath}.
- * Servlet ảnh và hàng đợi gọi {@link #findPhotoFile} / {@link #normalizePhotoUrl} để phục vụ JSP/TV.
+ * Bàn thủ tục chụp ảnh (ProcedureWorkflowServiceImpl) ghi bytes qua writePhotoFile;
+ * path lưu DB dạng STORED_PHOTO_PREFIXfileName qua toWebPhotoPath.
+ * Servlet ảnh và hàng đợi gọi findPhotoFile / normalizePhotoUrl để phục vụ JSP/TV.
  *
  * Thư mục và cách hoạt động:
- * Thứ tự ưu tiên {@link #photoDir()}: {@code -Ddlem.photos.dir} →
- * {@code $catalina.base/dlem-data/candidate-photos} → {@code $user.home/.dlem/candidate-photos}.
- * URL {@code http(s)} giữ nguyên; local → resolve absolute path nếu file tồn tại.
- * {@link #normalizeQueue} mutate {@code photoUrl} trên list {@code ExamRegistrationDTO} tại chỗ.
+ * Thứ tự ưu tiên photoDir(): -Ddlem.photos.dir →
+ * $catalina.base/dlem-data/candidate-photos → $user.home/.dlem/candidate-photos.
+ * URL http(s) giữ nguyên; local → resolve absolute path nếu file tồn tại.
+ * normalizeQueue mutate photoUrl trên list ExamRegistrationDTO tại chỗ.
  *
  * Ai gọi:
- * {@code ProcedureWorkflowServiceImpl}, {@code CandidatePhotoServiceImpl},
- * {@code CandidatePhotoServlet}, {@code CandidateQueueQueryServiceImpl},
- * {@code DocumentServiceImpl} — chụp, hiển thị và validate ảnh thí sinh.
+ * ProcedureWorkflowServiceImpl, CandidatePhotoServiceImpl,
+ * CandidatePhotoServlet, CandidateQueueQueryServiceImpl,
+ * DocumentServiceImpl — chụp, hiển thị và validate ảnh thí sinh.
  */
 public final class CandidatePhotoFiles {
 
@@ -55,7 +55,7 @@ public final class CandidatePhotoFiles {
     }
 
     /**
-     * Chuẩn hóa {@code photoUrl} trên hàng đợi (mutate tại chỗ).
+     * Chuẩn hóa photoUrl trên hàng đợi (mutate tại chỗ).
      * @param queue danh sách đăng ký (null/rỗng → no-op)
      */
     public static void normalizeQueue(List<ExamRegistrationDTO> queue) {
@@ -74,7 +74,7 @@ public final class CandidatePhotoFiles {
     }
 
     /**
-     * Chuẩn hóa tham chiếu ảnh: {@code http(s)} giữ nguyên; local → absolute path nếu tìm thấy file.
+     * Chuẩn hóa tham chiếu ảnh: http(s) giữ nguyên; local → absolute path nếu tìm thấy file.
      * @param photoUrl tham chiếu DB / URL
      * @return absolute path nếu tìm thấy; ngược lại chuỗi trim / null
      */
@@ -96,7 +96,7 @@ public final class CandidatePhotoFiles {
     /**
      * Basename từ URL/path ảnh.
      * @param photoUrl URL hoặc path
-     * @return tên file, hoặc {@code null} nếu blank
+     * @return tên file, hoặc null nếu blank
      */
     public static String extractFileName(String photoUrl) {
         if (photoUrl == null || photoUrl.isBlank()) {
@@ -129,10 +129,10 @@ public final class CandidatePhotoFiles {
     }
 
     /**
-     * Tham chiếu lưu {@code Candidate.PhotoImageUrl}: {@code candidate-photos/{fileName}}.
-     * Hàng cũ {@code assets/imgs/candidates/...} vẫn đọc được nhờ {@link #extractFileName}.
-     * @param fileName basename, ví dụ {@code 001_captured.jpg}
-     * @return {@code candidate-photos/} + fileName
+     * Tham chiếu lưu Candidate.PhotoImageUrl: candidate-photos/{fileName}.
+     * Hàng cũ assets/imgs/candidates/... vẫn đọc được nhờ extractFileName.
+     * @param fileName basename, ví dụ 001_captured.jpg
+     * @return candidate-photos/ + fileName
      */
     public static String toWebPhotoPath(String fileName) {
         if (fileName == null || fileName.isBlank()) {
@@ -143,9 +143,9 @@ public final class CandidatePhotoFiles {
     }
 
     /**
-     * Tìm file theo basename trong {@link #photoSearchDirs()}.
+     * Tìm file theo basename trong photoSearchDirs().
      * @param photoUrl tham chiếu DB / path
-     * @return file hợp lệ hoặc {@code null}
+     * @return file hợp lệ hoặc null
      */
     public static File findPhotoFile(String photoUrl) {
         String fileName = extractFileName(photoUrl);
@@ -161,7 +161,7 @@ public final class CandidatePhotoFiles {
         return null;
     }
 
-    /** Thư mục quét: {@code dlem.photos.dir} (nếu có) rồi {@link #photoDir()}. */
+    /** Thư mục quét: dlem.photos.dir (nếu có) rồi photoDir(). */
     private static List<File> photoSearchDirs() {
         Set<File> dirs = new LinkedHashSet<>();
         String configured = System.getProperty("dlem.photos.dir");

@@ -3,15 +3,15 @@ package examstaff.dto;
 import java.sql.Timestamp;
 
 /**
- * DTO nhật ký audit cho trang staff (BLL → JSP {@code audit.jsp}).
+ * DTO nhật ký audit cho trang staff (BLL → JSP audit.jsp).
  *
  * Vai trò:
  * Giữ giá trị thô từ DB (table/action/old/new/details) và nhãn tiếng Việt đã chuẩn hóa
- * ({@code entityLabelVi}, {@code actionLabelVi}, {@code displayDetails}) cho hiển thị.
+ * (entityLabelVi, actionLabelVi, displayDetails) cho hiển thị.
  *
  * Ai tạo / tiêu thụ:
- * {@code AuditLogDAOImpl} → {@link StaffAuditPageViewDTO} / {@code StaffAuditPageServiceImpl}
- * → {@code AuditServlet}.
+ * AuditLogDAOImpl → StaffAuditPageViewDTO / StaffAuditPageServiceImpl
+ * → AuditServlet.
  */
 public class AuditDTO {
 

@@ -13,7 +13,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-/** Timeline track-profile 5 bước (Tiếp nhận→Duyệt→Bổ sung→Dã duyệt→SBD); resolveProgressIndex từ RegistrationStatus + docs + SBD. */
+/**
+ * Builder timeline 5 bước trên trang track-profile: Tiếp nhận → Duyệt → Bổ sung → Đã duyệt → Cấp SBD.
+ * resolveProgressIndex suy ra bước hiện tại từ RegistrationStatus, tài liệu và SBD; dùng bởi RegistrantTrackProfileServiceImpl.
+ */
 public final class RegistrantProfileProgressBuilder {
 
     private static final String[] STEP_KEYS = {

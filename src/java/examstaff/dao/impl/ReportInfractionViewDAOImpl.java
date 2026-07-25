@@ -12,18 +12,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Triển khai JDBC của {@link ReportInfractionViewDAO} — thống kê lỗi trừ điểm thực hành.
+/** Triển khai JDBC của ReportInfractionViewDAO — thống kê lỗi trừ điểm thực hành.
  *
  * Luồng query:
- * {@code DeductionRecord} → {@code ScoreDeduction} (lý do) → {@code ExamScore} → {@code ExamSection}
- * → chỉ section <b>thực hành</b> ({@link Db2ExamSchemaSql#PRACTICAL_SECTION_TYPES}) → enrollment theo {@code examId}.
- * Gom {@code SUM(OccurrenceCount)} theo lý do, {@code TOP (?)} cho biểu đồ report.
+ * DeductionRecord → ScoreDeduction (lý do) → ExamScore → ExamSection
+ * → chỉ section <b>thực hành</b> (Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES) → enrollment theo examId.
+ * Gom SUM(OccurrenceCount) theo lý do, TOP (?) cho biểu đồ report.
  */
 public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
     /**
-     * SQL gom top lý do trừ điểm thực hành theo {@code OccurrenceCount}.
-     * Lọc {@code SectionType} bằng {@link Db2ExamSchemaSql#PRACTICAL_SECTION_TYPES}.
+     * SQL gom top lý do trừ điểm thực hành theo OccurrenceCount.
+     * Lọc SectionType bằng Db2ExamSchemaSql.PRACTICAL_SECTION_TYPES.
      */
     private static final String TOP_INFRACTIONS_SQL = """
             SELECT TOP (?)
@@ -45,11 +45,11 @@ public class ReportInfractionViewDAOImpl implements ReportInfractionViewDAO {
 
     /**
      * Lấy top lỗi trừ điểm của phần thực hành trong kỳ thi.
-     * Truy vấn {@code DeductionRecord} JOIN {@code ScoreDeduction}, {@code ExamScore},
-     * {@code ExamSection}, {@code ExamResult}, {@code ExamEnrollment} theo {@code examId}.
+     * Truy vấn DeductionRecord JOIN ScoreDeduction, ExamScore,
+     * ExamSection, ExamResult, ExamEnrollment theo examId.
      * @param examId mã kỳ thi
      * @param limit  số dòng tối đa (mặc định 3 nếu &le; 0)
-     * @return danh sách map gồm {@code reason}, {@code count}, {@code percentage}
+     * @return danh sách map gồm reason, count, percentage
      */
     @Override
     public List<Map<String, Object>> findTopInfractions(int examId, int limit) {

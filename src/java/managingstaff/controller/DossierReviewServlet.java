@@ -4,9 +4,7 @@ import managingstaff.dao.DossierDAO;
 import managingstaff.dao.impl.DossierDAOImpl;
 import managingstaff.dto.DossierDTO;
 import auth.dto.UserDTO;
-import managingstaff.service.DossierPdfService;
 import managingstaff.service.EmailService;
-import managingstaff.service.impl.AwtDossierPdfService;
 import managingstaff.service.impl.EmailServiceImpl;
 import managingstaff.util.AuditLogHelper;
 import managingstaff.util.SessionUtil;
@@ -16,20 +14,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
 @WebServlet("/manager/dossiers")
 public class DossierReviewServlet extends HttpServlet {
 
-    private static final String APPROVED_PDF_DOCUMENT_TYPE = "APPROVED_DOSSIER_PDF";
     private static final int PAGE_SIZE = 15;
     private final DossierDAO dossierDAO = new DossierDAOImpl();
     private final EmailService emailService = new EmailServiceImpl();
-    private final DossierPdfService pdfService = new AwtDossierPdfService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -75,7 +67,7 @@ public class DossierReviewServlet extends HttpServlet {
         String decision = request.getParameter("decision");
         String reason = request.getParameter("reason");
         String reviewMessage = reason == null || reason.isBlank()
-                ? "Hồ sơ hợp lệ, đã tạo PDF và đang chờ xếp ngày thi"
+                ? "Hồ sơ hợp lệ và đang chờ xếp ngày thi"
                 : reason.trim();
         String status = switch (decision == null ? "" : decision) {
             case "approve" ->
@@ -128,27 +120,6 @@ public class DossierReviewServlet extends HttpServlet {
             return;
         }
 
-        byte[] approvalPdf = null;
-        String generatedPdfUrl = null;
-        String pdfFileName = "ho-so-da-duyet-" + registrationId + ".pdf";
-        if ("Approved".equals(status)) {
-            try {
-                String webRootValue = getServletContext().getRealPath("/");
-                if (webRootValue == null) {
-                    throw new IOException("Không xác định được thư mục web của ứng dụng.");
-                }
-                Path webRoot = Paths.get(webRootValue).toAbsolutePath().normalize();
-                approvalPdf = pdfService.generate(dossier, webRoot);
-                saveGeneratedPdf(webRoot, pdfFileName, approvalPdf);
-                generatedPdfUrl = "/uploads/generated-dossiers/" + pdfFileName;
-            } catch (Exception ex) {
-                request.getSession().setAttribute("reviewError",
-                        "Không thể tạo PDF hồ sơ nên chưa thực hiện duyệt: " + ex.getMessage());
-                response.sendRedirect(detailRedirect);
-                return;
-            }
-        }
-
         boolean updated = dossierDAO.updateStatus(registrationId, status,
                 reviewMessage, reviewer.getUserId());
         if (!updated) {
@@ -163,13 +134,10 @@ public class DossierReviewServlet extends HttpServlet {
                     "[Lái Vui] Hồ sơ sát hạch bị từ chối",
                     rejectionEmailHtml(dossier, reviewMessage));
         } else if ("Approved".equals(status)) {
-            emailSent = emailService.sendHtmlEmailWithAttachment(
+            emailSent = emailService.sendHtmlEmail(
                     dossier.getUser().getEmail(),
                     "[Lái Vui] Hồ sơ sát hạch đã được duyệt",
-                    approvalEmailHtml(dossier),
-                    approvalPdf,
-                    pdfFileName,
-                    "application/pdf");
+                    approvalEmailHtml(dossier));
         }
 
         if (!emailSent) {
@@ -182,48 +150,14 @@ public class DossierReviewServlet extends HttpServlet {
             return;
         }
 
-        if ("Approved".equals(status) && !dossierDAO.saveDocument(
-                dossier.getProfile().getId(), APPROVED_PDF_DOCUMENT_TYPE, generatedPdfUrl)) {
-            request.getSession().setAttribute("reviewError",
-                    "Hồ sơ đã được duyệt và email đã gửi, nhưng chưa lưu được đường dẫn PDF vào hồ sơ.");
-            response.sendRedirect(request.getContextPath() + "/manager/dossier-detail?registrationId=" + registrationId);
-            return;
-        }
-
         AuditLogHelper.persist(request.getSession(), "REVIEW Dossier",
                 status + " hồ sơ #" + registrationId, registrationId);
         String successMessage = "Approved".equals(status)
-                ? "Đã duyệt hồ sơ, tạo PDF và gửi email xác nhận đến "
+                ? "Đã duyệt hồ sơ và gửi email xác nhận đến "
                 : "Đã từ chối hồ sơ và gửi email kèm lý do đến ";
         request.getSession().setAttribute("reviewSuccess",
                 successMessage + dossier.getUser().getEmail() + ".");
         response.sendRedirect(listRedirect);
-    }
-
-    private void saveGeneratedPdf(Path runtimeWebRoot, String fileName, byte[] pdf) throws IOException {
-        Path runtimeDirectory = runtimeWebRoot.resolve("uploads/generated-dossiers").normalize();
-        if (!runtimeDirectory.startsWith(runtimeWebRoot)) {
-            throw new IOException("Đường dẫn lưu PDF không hợp lệ.");
-        }
-        Files.createDirectories(runtimeDirectory);
-        Path runtimeFile = runtimeDirectory.resolve(fileName).normalize();
-        Files.write(runtimeFile, pdf);
-
-        Path buildDir = runtimeWebRoot.getParent();
-        if (buildDir == null || !"build".equalsIgnoreCase(buildDir.getFileName().toString())) {
-            return;
-        }
-        Path projectRoot = buildDir.getParent();
-        if (projectRoot == null) {
-            return;
-        }
-        Path sourceWebRoot = projectRoot.resolve("web").toAbsolutePath().normalize();
-        Path sourceDirectory = sourceWebRoot.resolve("uploads/generated-dossiers").normalize();
-        if (!sourceDirectory.startsWith(sourceWebRoot)) {
-            return;
-        }
-        Files.createDirectories(sourceDirectory);
-        Files.copy(runtimeFile, sourceDirectory.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
     }
 
     private static String rejectionEmailHtml(DossierDTO dossier, String reason) {
@@ -245,9 +179,8 @@ public class DossierReviewServlet extends HttpServlet {
                 + "<p>Hồ sơ đăng ký sát hạch, mã hồ sơ <strong>#" + dossier.getRegistrationId()
                 + "</strong> đã được nộp đầy đủ và duyệt hợp lệ cho hạng GPLX <strong>"
                 + html(dossier.getLicenceDisplayClass()) + "</strong>.</p>"
-                + "<p>File PDF hồ sơ đã duyệt được đính kèm email này. Vui lòng kiểm tra thông tin và "
-                + "ký vào phần chữ ký khi trung tâm yêu cầu.</p>"
-                + "<p>Hồ sơ hiện đang chờ xếp ngày thi. Thời gian và địa điểm sát hạch sẽ được thông báo sau.</p>"
+                + "<p>Hồ sơ điện tử đã được trung tâm duyệt và hiện đang chờ xếp ngày thi. "
+                + "Thời gian sát hạch sẽ được thông báo sau.</p>"
                 + "<p>Trân trọng,<br>Trung tâm sát hạch Lái Vui</p></div>";
     }
 

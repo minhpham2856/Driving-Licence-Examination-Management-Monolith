@@ -9,7 +9,10 @@ import registrant.util.RegistrantProfileSupport;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Xây danh sách "Việc cần làm" theo trạng thái hồ sơ và đăng ký thi. */
+/**
+ * Builder panel "Việc cần làm" trên dashboard thí sinh — tầng util, gọi từ RegistrantDashboardServiceImpl.
+ * Sinh tối đa 4 RegistrantDashboardActionItem theo trạng thái hồ sơ (ProfileRegistrationStatus), tài liệu, số ca đăng ký và ca sắp tới.
+ */
 public final class RegistrantDashboardActionItemsBuilder {
 
     private static final int MAX_ITEMS = 4;

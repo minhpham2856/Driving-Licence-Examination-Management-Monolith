@@ -18,21 +18,21 @@ import java.util.Map;
 /**
  * Làm mới, lọc, sắp xếp và resolve SBD đang gọi trên hàng đợi thí sinh.
  * <p>
- * Kết hợp {@link CandidateQueueQueryServiceImpl} (đọc DB) với
- * {@link CallQueueRules} (quy tắc thuần). Dùng bởi trang gọi, workflow và thủ tục.
+ * Kết hợp CandidateQueueQueryServiceImpl (đọc DB) với
+ * CallQueueRules (quy tắc thuần). Dùng bởi trang gọi, workflow và thủ tục.
  *
  * Refresh và snapshot:
- * - {@link #refreshQueue} — resolve examId, load DB, normalize ảnh, apply pass rules, reorder session
- * - {@link #buildSnapshot} — {@code fullQueue}, {@code activeQueue}, {@code procedureDone}
+ * - refreshQueue — resolve examId, load DB, normalize ảnh, apply pass rules, reorder session
+ * - buildSnapshot — fullQueue, activeQueue, procedureDone
  *
  * Thao tác hàng đợi gọi:
- * - {@link #filterPendingForCall} / {@link #resolveNextCallingSbd} — pending và SBD kế
- * - {@link #moveCallableCandidateToBottom} / {@link #moveCallableCandidateToFront} — reorder in-place
- * - {@link #advanceCallingIfDone} — tự promote khi thí sinh đang gọi xong thủ tục
+ * - filterPendingForCall / resolveNextCallingSbd — pending và SBD kế
+ * - moveCallableCandidateToBottom / moveCallableCandidateToFront — reorder in-place
+ * - advanceCallingIfDone — tự promote khi thí sinh đang gọi xong thủ tục
  *
  * Quan hệ CallBoard:
- * Thứ tự {@code callQueueOrder} từ session được áp trước khi sync
- * {@link CallBoardRules}; {@code activeQueue} là nguồn promote calling.
+ * Thứ tự callQueueOrder từ session được áp trước khi sync
+ * CallBoardRules; activeQueue là nguồn promote calling.
  */
 public class CandidateQueueServiceImpl {
 
@@ -142,7 +142,7 @@ public class CandidateQueueServiceImpl {
     }
 
     /**
-     * Thí sinh còn trong hàng đợi gọi được (ủy quyền {@link CallQueueRules}).
+     * Thí sinh còn trong hàng đợi gọi được (ủy quyền CallQueueRules).
      * @param candidate hồ sơ đăng ký
      * @return true nếu còn gọi được
      */
@@ -161,7 +161,7 @@ public class CandidateQueueServiceImpl {
     }
 
     /**
-     * SBD tiếp theo sau {@code afterSbd} trong hàng chờ gọi (wrap về đầu nếu cần).
+     * SBD tiếp theo sau afterSbd trong hàng chờ gọi (wrap về đầu nếu cần).
      * @param queue    hàng đợi nguồn
      * @param afterSbd SBD mốc (null/blank = lấy pending đầu)
      * @return SBD kế tiếp hoặc null
@@ -362,7 +362,7 @@ public class CandidateQueueServiceImpl {
     }
 
     /**
-     * Tìm {@link ExamSummaryDTO} theo id trong list hoặc DAO.
+     * Tìm ExamSummaryDTO theo id trong list hoặc DAO.
      * @param examId   mã kỳ thi
      * @param allExams danh sách đã load sẵn (có thể null)
      * @return kỳ thi khớp, hoặc null
@@ -386,7 +386,7 @@ public class CandidateQueueServiceImpl {
      * @param orderExamId kỳ thi của order đã lưu
      * @param examId      kỳ thi đang resolve
      * @param qList       hàng đợi gốc
-     * @return hàng đã reorder hoặc {@code qList} nếu không áp dụng
+     * @return hàng đã reorder hoặc qList nếu không áp dụng
      */
     private List<ExamRegistrationDTO> applyCallQueueOrder(List<String> order, Integer orderExamId,
             int examId, List<ExamRegistrationDTO> qList) {

@@ -11,18 +11,18 @@ import java.util.List;
  *
  * Vai trò trong luồng examstaff:
  *
- * Sau khi {@code CandidateCallPageServiceImpl} xử lý {@link CandidateCallPageCommand}, DTO này mang:
+ * Sau khi CandidateCallPageServiceImpl xử lý CandidateCallPageCommand, DTO này mang:
  * các list hàng chờ (full / active / suspended), SBD đang gọi, cờ ca, và các chỉ thị side-effect
  * (release desk, sync board, persist queue order, clear SBD vừa thanh toán thủ tục, alert UI).
  *
  * Ai tạo:
- * {@code CandidateCallPageServiceImpl} (qua facade {@code StaffCallServiceImpl#preparePage}).
+ * CandidateCallPageServiceImpl (qua facade StaffCallServiceImpl#preparePage).
  *
  * Ai tiêu thụ:
- * {@code CandidateCallServlet} — {@code applyCallSideEffects}, {@code applyBoardOp}, {@code bindActionAlert}.
+ * CandidateCallServlet — applyCallSideEffects, applyBoardOp, bindActionAlert.
  *
  * Trang / JSP:
- * {@code candidatecall.jsp}, {@code candidate-suspended.jsp} (attributes lấy từ view + session sau bind).
+ * candidatecall.jsp, candidate-suspended.jsp (attributes lấy từ view + session sau bind).
  */
 public class CandidateCallPageViewDTO {
 
@@ -204,7 +204,7 @@ public class CandidateCallPageViewDTO {
         return alertType;
     }
 
-    /** Gán loại alert (null → {@code NONE}). */
+    /** Gán loại alert (null → NONE). */
     public void setAlertType(CandidateCallActionResultDTO.AlertType alertType) {
         this.alertType = alertType != null ? alertType : CandidateCallActionResultDTO.AlertType.NONE;
     }

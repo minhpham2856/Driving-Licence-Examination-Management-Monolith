@@ -16,18 +16,18 @@ import java.util.Locale;
 /**
  * Dựng view hồ sơ thí sinh cho trang dossier — phí, hạng GPLX, ảnh và nhãn hiển thị.
  * <p>
- * Orchestrate {@link CandidateQueueQueryServiceImpl}, {@link ExamStaffExamQueryServiceImpl},
- * {@link ProcedureFeeQueryServiceImpl} và {@link CandidatePhotoServiceImpl}; không gọi servlet.
+ * Orchestrate CandidateQueueQueryServiceImpl, ExamStaffExamQueryServiceImpl,
+ * ProcedureFeeQueryServiceImpl và CandidatePhotoServiceImpl; không gọi servlet.
  *
  * Luồng loadDossier:
- * - Validate SBD; tìm {@link ExamRegistrationDTO} theo kỳ + SBD
- * - Chuẩn hoá đường dẫn ảnh ({@link CandidatePhotoServiceImpl#normalizePhotoPaths})
- * - Resolve phí thủ tục ({@code ProcedureFeeQueryServiceImpl})
- * - Chuẩn hóa mã hạng qua {@code LicenseClassRules}; gắn nhãn {@code ExamStaffLabels}
- * - Đóng gói {@link examstaff.dto.CandidateDossierViewDTO}
+ * - Validate SBD; tìm ExamRegistrationDTO theo kỳ + SBD
+ * - Chuẩn hoá đường dẫn ảnh (CandidatePhotoServiceImpl.normalizePhotoPaths)
+ * - Resolve phí thủ tục (ProcedureFeeQueryServiceImpl)
+ * - Chuẩn hóa mã hạng qua LicenseClassRules; gắn nhãn ExamStaffLabels
+ * - Đóng gói examstaff.dto.CandidateDossierViewDTO
  *
  * Điểm gọi:
- * {@code CandidateDossierServlet} qua {@code ExamStaffViewServiceImpl}.
+ * CandidateDossierServlet qua ExamStaffViewServiceImpl.
  */
 public class CandidateDossierServiceImpl {
 

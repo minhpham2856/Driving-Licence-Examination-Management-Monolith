@@ -11,17 +11,17 @@ import java.util.Locale;
  * theo múi giờ Việt Nam. Pure helper, không HTTP.
  *
  * Vai trò trong luồng examstaff:
- * Staff chỉ được bắt đầu ca khi đã tới/qua {@code scheduledStart} trên lịch kỳ thi.
- * {@link ExamControlServiceImpl} dùng {@link #canStartNow} / {@link #isBeforeScheduledStart};
- * thông báo lỗi UI dùng {@link #formatScheduledStart} (HH:mm ngày dd/MM/yyyy).
+ * Staff chỉ được bắt đầu ca khi đã tới/qua scheduledStart trên lịch kỳ thi.
+ * ExamControlServiceImpl dùng canStartNow / isBeforeScheduledStart;
+ * thông báo lỗi UI dùng formatScheduledStart (HH:mm ngày dd/MM/yyyy).
  *
  * Cách hoạt động:
- * - {@link #isBeforeScheduledStart} — {@code scheduledStart == null} → false; so {@code Instant.now()}.
- * - {@link #canStartNow} — phủ định {@link #isBeforeScheduledStart}.
- * - {@link #formatScheduledStart} — zone {@code Asia/Ho_Chi_Minh}, pattern tiếng Việt.
+ * - isBeforeScheduledStart — scheduledStart == null → false; so Instant.now().
+ * - canStartNow — phủ định isBeforeScheduledStart.
+ * - formatScheduledStart — zone Asia/Ho_Chi_Minh, pattern tiếng Việt.
  *
  * Ai gọi:
- * {@code ExamControlServiceImpl}, {@code ExamStaffPageBinder} — start/pause/end ca và message lịch thi trên UI.
+ * ExamControlServiceImpl, ExamStaffPageBinder — start/pause/end ca và message lịch thi trên UI.
  */
 public final class ExamScheduleRules {
 
@@ -35,7 +35,7 @@ public final class ExamScheduleRules {
     /**
      * Kiểm tra thời điểm hiện tại còn trước giờ bắt đầu lịch thi.
      * @param scheduledStart giờ bắt đầu theo lịch (có thể null)
-     * @return {@code true} nếu chưa tới giờ bắt đầu; {@code false} nếu null hoặc đã tới/qua
+     * @return true nếu chưa tới giờ bắt đầu; false nếu null hoặc đã tới/qua
      */
     public static boolean isBeforeScheduledStart(Timestamp scheduledStart) {
         // Validate: thiếu lịch → không coi là “trước giờ”
@@ -49,7 +49,7 @@ public final class ExamScheduleRules {
     /**
      * Kỳ thi có thể bắt đầu ngay (đã tới hoặc qua giờ lịch).
      * @param scheduledStart giờ bắt đầu theo lịch
-     * @return {@code true} nếu được phép bắt đầu
+     * @return true nếu được phép bắt đầu
      */
     public static boolean canStartNow(Timestamp scheduledStart) {
         return !isBeforeScheduledStart(scheduledStart);

@@ -1,14 +1,10 @@
 package payment.util.sepay;
 
 /**
- * Mã hóa đơn SePay — gắn Candidate / Enrollment để IPN biết ghi Payment cho ai.
- * <ul>
- *   <li><b>Mới (desk CHK):</b> {@code DLEM-{prefix}-{candidateId}-{enrollmentId}-{timestamp}}
- *       ví dụ {@code DLEM-CHK-42-1001-1710000000000}</li>
- *   <li><b>Cũ (không enrollment):</b> {@code DLEM-{prefix}-{candidateId}-{timestamp}}</li>
- * </ul>
- * Parse: {@code parts[0]=DLEM}, {@code parts[1]=prefix}, {@code parts[2]=candidateId},
- * {@code parts[3]=enrollmentId} (chỉ khi length ≥ 5).
+ * Tiện ích sinh và parse mã hóa đơn SePay (order_invoice_number) gắn thí sinh/đăng ký thi.
+ * Dùng ở bước checkout (sinh DLEM-CHK-{candidateId}-{enrollmentId}-{timestamp})
+ * và bước IPN (parse CandidateId/ExamEnrollmentId để ghi bảng Payment).
+ * Format cũ không enrollment vẫn hỗ trợ parse parts[2] là CandidateId.
  */
 public final class SePayInvoice {
 

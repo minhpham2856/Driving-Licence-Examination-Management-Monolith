@@ -14,7 +14,8 @@ import java.util.Locale;
 import java.util.TreeSet;
 
 /**
- * Bộ lọc danh sách dùng chung cho dashboard và my-exams.
+ * Bộ lọc danh sách dùng chung cho dashboard và my-exams — tầng util, gọi RegistrantFilterSupport.
+ * Lọc RegistrantMyExamRow và RegistrantRegisteredExamRow theo từ khóa, trạng thái, hạng GPLX và khoảng ngày; sinh hoạt động gần đây trên dashboard.
  */
 public final class RegistrantListFilter {
 

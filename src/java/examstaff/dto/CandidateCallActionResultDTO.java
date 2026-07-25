@@ -9,10 +9,10 @@ import java.util.List;
  *
  * Vai trò:
  * Cập nhật hàng chờ, SBD đang gọi, cờ ca và loại cảnh báo UI sau call/absent/undo…
- * Thường được merge vào {@link CandidateCallPageViewDTO} bởi {@code CandidateCallPageServiceImpl}.
+ * Thường được merge vào CandidateCallPageViewDTO bởi CandidateCallPageServiceImpl.
  *
  * Ai tạo / tiêu thụ:
- * {@code CandidateCallWorkflowServiceImpl} → page service → alert trên {@code candidatecall.jsp}.
+ * CandidateCallWorkflowServiceImpl → page service → alert trên candidatecall.jsp.
  */
 public class CandidateCallActionResultDTO {
 
@@ -155,7 +155,7 @@ public class CandidateCallActionResultDTO {
         this.promoteAfterSbd = promoteAfterSbd;
     }
 
-    /** Loại cảnh báo UI (mặc định {@link AlertType#NONE}). */
+    /** Loại cảnh báo UI (mặc định AlertType.NONE). */
     public AlertType getAlertType() {
         return alertType;
     }

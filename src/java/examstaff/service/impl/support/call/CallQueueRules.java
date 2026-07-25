@@ -8,26 +8,26 @@ import java.util.List;
 /**
  * Luật nghiệp vụ thuần (pure) cho hàng đợi gọi thí sinh.
  * <p>
- * <b>Không</b> gọi DAO / SQL / HTTP — chỉ nhận {@link ExamRegistrationDTO} list + tham số,
- * trả kết quả lọc / resolve SBD / reorder. {@link CallBoardRules} và
- * {@link CandidateQueueServiceImpl} ủy quyền các thao tác hàng đợi xuống đây.
+ * <b>Không</b> gọi DAO / SQL / HTTP — chỉ nhận ExamRegistrationDTO list + tham số,
+ * trả kết quả lọc / resolve SBD / reorder. CallBoardRules và
+ * CandidateQueueServiceImpl ủy quyền các thao tác hàng đợi xuống đây.
  *
- * Điều kiện "còn gọi được" ({@link #isCallablePending}):
- * - Chưa đánh vắng ({@code absent})
- * - Chưa bị đình chỉ ({@code suspended})
- * - Chưa hoàn tất thủ tục ({@code procedureComplete})
+ * Điều kiện "còn gọi được" (isCallablePending):
+ * - Chưa đánh vắng (absent)
+ * - Chưa bị đình chỉ (suspended)
+ * - Chưa hoàn tất thủ tục (procedureComplete)
  *
  * Các thao tác chính:
- * - {@link #resolveNextCallingSbd} — SBD pending kế sau mốc (không wrap nếu đã hết hàng)
- * - {@link #applyQueueOrder} — sắp lại hàng theo thứ tự SBD lưu trên CallBoard/session
- * - {@link #listWaitingTop} — top N chờ cho Public Call waiting list
- * - {@link #extractSbdOrder} — trích thứ tự SBD để sync lên {@link examstaff.dto.CallBoardState}
- * - {@link #listSuspendedInExam} — lọc đình chỉ trong kỳ
+ * - resolveNextCallingSbd — SBD pending kế sau mốc (không wrap nếu đã hết hàng)
+ * - applyQueueOrder — sắp lại hàng theo thứ tự SBD lưu trên CallBoard/session
+ * - listWaitingTop — top N chờ cho Public Call waiting list
+ * - extractSbdOrder — trích thứ tự SBD để sync lên examstaff.dto.CallBoardState
+ * - listSuspendedInExam — lọc đình chỉ trong kỳ
  *
  * Quan hệ với CallBoard:
- * {@link CallBoardRules#syncBoard} dùng {@link #resolveNextCallingSbd} và {@link #extractSbdOrder}
- * để cache {@code nextSbd} + {@code queueOrderSbds}; nguồn thật vẫn là DB qua
- * {@link CandidateQueueQueryServiceImpl}.
+ * CallBoardRules.syncBoard dùng resolveNextCallingSbd và extractSbdOrder
+ * để cache nextSbd + queueOrderSbds; nguồn thật vẫn là DB qua
+ * CandidateQueueQueryServiceImpl.
  */
 public final class CallQueueRules {
 
@@ -67,7 +67,7 @@ public final class CallQueueRules {
     }
 
     /**
-     * Lấy SBD pending tiếp theo sau {@code afterSbd} (không wrap về đầu nếu đã hết hàng).
+     * Lấy SBD pending tiếp theo sau afterSbd (không wrap về đầu nếu đã hết hàng).
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD mốc (null = lấy người đầu pending)
      * @return SBD kế tiếp hoặc null
@@ -139,7 +139,7 @@ public final class CallQueueRules {
     }
 
     /**
-     * Lấy tối đa {@code limit} thí sinh pending đầu hàng (dùng Public Call waiting list).
+     * Lấy tối đa limit thí sinh pending đầu hàng (dùng Public Call waiting list).
      * @param queue hàng đợi
      * @param limit số phần tử tối đa
      * @return danh sách chờ (có thể rỗng)

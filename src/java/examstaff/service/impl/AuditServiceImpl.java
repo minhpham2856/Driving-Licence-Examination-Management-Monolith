@@ -14,13 +14,13 @@ import examstaff.service.impl.support.audit.StaffAuditExportServiceImpl;
 import examstaff.service.impl.support.audit.StaffAuditLogServiceImpl;
 
 /**
- * Implementation {@link AuditService}: facade nhật ký audit nhân viên kỳ thi.
+ * Implementation AuditService: facade nhật ký audit nhân viên kỳ thi.
  *
  * Ủy quyền support services:
- * - {@link StaffAuditPageServiceImpl} — {@code buildPage}
- * - {@link StaffAuditQueryServiceImpl} — đếm / liệt kê log, KPI thủ tục
- * - {@link StaffAuditExportServiceImpl} — {@code exportAuditLog}
- * - {@link StaffAuditLogServiceImpl} — {@code logAction}
+ * - StaffAuditPageServiceImpl — buildPage
+ * - StaffAuditQueryServiceImpl — đếm / liệt kê log, KPI thủ tục
+ * - StaffAuditExportServiceImpl — exportAuditLog
+ * - StaffAuditLogServiceImpl — logAction
  * Constructor mặc định tự wiring; constructor inject dùng cho unit test / composition root.
  */
 public class AuditServiceImpl implements AuditService {
@@ -54,7 +54,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditPageServiceImpl#buildPage}.
+     * Ủy quyền sang StaffAuditPageServiceImpl.buildPage.
      * @param userId               mã nhân viên
      * @param filterDate           ngày lọc
      * @param pageNum              trang
@@ -69,7 +69,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditQueryServiceImpl#countLogsByUserAndDate}.
+     * Ủy quyền sang StaffAuditQueryServiceImpl.countLogsByUserAndDate.
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return số bản ghi
@@ -80,7 +80,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditQueryServiceImpl#listLogsByUserAndDatePaginated}.
+     * Ủy quyền sang StaffAuditQueryServiceImpl.listLogsByUserAndDatePaginated.
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @param page       trang
@@ -93,7 +93,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditQueryServiceImpl#listLogsByUserAndDate}.
+     * Ủy quyền sang StaffAuditQueryServiceImpl.listLogsByUserAndDate.
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return danh sách log
@@ -104,7 +104,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditQueryServiceImpl#getStaffProcedureKpi}.
+     * Ủy quyền sang StaffAuditQueryServiceImpl.getStaffProcedureKpi.
      * @param userId     mã nhân viên
      * @param filterDate ngày lọc
      * @return KPI thủ tục
@@ -115,7 +115,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditExportServiceImpl#exportAuditLog}.
+     * Ủy quyền sang StaffAuditExportServiceImpl.exportAuditLog.
      * @param out                 luồng ghi
      * @param logs                danh sách log
      * @param completedProcedures số thủ tục hoàn tất
@@ -131,7 +131,7 @@ public class AuditServiceImpl implements AuditService {
     }
 
     /**
-     * Ủy quyền sang {@link StaffAuditLogServiceImpl#logAction} kèm recordId.
+     * Ủy quyền sang StaffAuditLogServiceImpl.logAction kèm recordId.
      * @param userId   mã nhân viên
      * @param action   hành động
      * @param details  chi tiết

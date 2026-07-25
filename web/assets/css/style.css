@@ -46,7 +46,7 @@ p {
 }
 
 /* ========================================================
-   TopNavBar — Figma node 1:1221 (public header)
+   TopNavBar - Figma node 1:1221 (public header)
    ======================================================== */
 .top-nav-bar {
     width: 100%;
@@ -62,10 +62,10 @@ p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    max-width: 1280px;
+    max-width: none;
     width: 100%;
-    margin: 0 auto;
-    padding: 16px 32px;
+    margin: 0;
+    padding: 16px 28px;
     min-height: 86px;
     box-sizing: border-box;
 }
@@ -205,7 +205,7 @@ p {
 }
 
 /* ========================================================
-   SideNavBar — Figma node 4:4 (exam sidebar)
+   SideNavBar - Figma node 4:4 (exam sidebar)
    ======================================================== */
 .side-nav-bar {
     width: 260px;
@@ -443,7 +443,7 @@ p {
 }
 
 /* ========================================================
-   Operation/Audit Log Page — light admin theme dashboard
+   Operation/Audit Log Page - light admin theme dashboard
    ======================================================== */
 .breadcrumbs {
     display: flex;
@@ -2146,6 +2146,168 @@ p {
     display: flex;
     flex-direction: column;
 }
+
+/* Managing Staff dossier review: document list, preview and decision in one viewport. */
+.dossier-review-page .page-header {
+    margin-bottom: 1rem;
+}
+
+.dossier-review-grid {
+    grid-template-columns: minmax(410px, .95fr) minmax(500px, 1.3fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.dossier-review-grid .log-card {
+    margin-bottom: 1rem;
+}
+
+.dossier-document-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+    padding: 1rem;
+}
+
+.dossier-document-card {
+    align-items: flex-start;
+    min-height: 92px;
+    padding: .85rem;
+}
+
+.dossier-review-workspace {
+    gap: 0;
+}
+
+.dossier-review-workspace__card {
+    align-items: stretch;
+    padding: 1rem;
+}
+
+.dossier-preview-panel,
+.dossier-decision-panel {
+    min-width: 0;
+}
+
+.dossier-preview-panel h3,
+.dossier-decision-panel h3 {
+    margin: 0 0 .75rem;
+    color: #0f172a;
+}
+
+.dossier-preview-panel iframe {
+    display: block;
+    width: 100%;
+    height: min(66vh, 650px);
+    min-height: 440px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.dossier-preview-empty {
+    margin: 0;
+    color: #64748b;
+}
+
+.dossier-licence-summary {
+    padding: .75rem .85rem;
+    margin: 0 0 .75rem;
+}
+
+.dossier-licence-summary span {
+    display: block;
+    color: #64748b;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.dossier-licence-summary strong {
+    display: block;
+    margin-top: .25rem;
+    font-size: 1.1rem;
+}
+
+.dossier-review-warning {
+    margin: 0 0 .75rem;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.dossier-decision-form {
+    display: grid;
+    gap: .65rem;
+    width: 100%;
+}
+
+.dossier-decision-card__body {
+    padding: 1rem;
+}
+
+.dossier-decision-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .65rem;
+}
+
+.dossier-decision-option {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .75rem;
+    border: 1px solid #bbf7d0;
+    border-radius: 10px;
+    background: #f0fdf4;
+    cursor: pointer;
+}
+
+.dossier-decision-option--reject {
+    border-color: #fecaca;
+    background: #fff7f7;
+}
+
+.dossier-decision-option input {
+    margin-top: .2rem;
+}
+
+.dossier-decision-option span,
+.dossier-decision-option small {
+    display: block;
+}
+
+.dossier-decision-option small {
+    margin-top: .2rem;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.dossier-decision-form textarea {
+    height: 72px;
+    resize: vertical;
+}
+
+.dossier-decision-form .btn-filter {
+    width: 100%;
+    margin-top: .1rem;
+}
+
+@media (max-width: 1200px) {
+    .dossier-review-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .dossier-document-grid,
+    .dossier-decision-choices {
+        grid-template-columns: 1fr;
+    }
+
+    .dossier-preview-panel iframe {
+        height: 420px;
+        min-height: 0;
+    }
+}
 .profile-section-title {
     font-size: 1rem;
     font-weight: 700;
@@ -2316,7 +2478,7 @@ p {
 }
 
 /* ========================================================
-   Admin Dashboard Layout Styles — SC-070 to SC-077
+   Admin Dashboard Layout Styles - SC-070 to SC-077
    ======================================================== */
 .admin-grid {
     display: grid;
@@ -2412,7 +2574,7 @@ p {
 }
 
 /* ========================================================
-   Registrant Personal Dashboard — Node SC-030 to SC-035
+   Registrant Personal Dashboard - Node SC-030 to SC-035
    ======================================================== */
 
 /* ---- Welcome Banner ---- */
@@ -3659,7 +3821,7 @@ p {
     padding-right: 42px;
 }
 
-/* Input không icon — padding đều hai bên (modal / view không dùng p-input-icon) */
+/* Input không icon - padding đều hai bên (modal / view không dùng p-input-icon) */
 .p-input-field.p-input-field--no-icon {
     padding: 10px 14px;
 }
@@ -3726,6 +3888,11 @@ p {
     padding: 8px;
     box-sizing: border-box;
     display: block;
+}
+
+.profile-photo-img--portrait {
+    object-fit: cover;
+    padding: 0;
 }
 
 .profile-photo-meta {
@@ -4878,6 +5045,7 @@ p {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 16px;
     margin-bottom: 28px;
+    align-items: stretch;
 }
 
 .licence-radio {
@@ -4896,6 +5064,9 @@ p {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    height: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
     transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     box-shadow: 0 1px 2px rgba(0,0,0,0.01);
@@ -4941,6 +5112,9 @@ p {
     font-size: 11px;
     color: #64748b;
     line-height: 1.4;
+    /* Giữ chỗ ~2 dòng để card ngắn (VD: B1) không thấp hơn A1/A2 */
+    min-height: calc(1.4em * 2);
+    flex: 1 1 auto;
 }
 
 .licence-card__fee {
@@ -4952,11 +5126,22 @@ p {
 
 /* Exam Sessions Available List */
 .session-selector-list {
-.session-selector-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 28px;
+    min-height: 4.5rem;
+}
+
+.session-selector-list__empty {
+    margin: 0;
+    padding: 1.25rem 1.35rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 
 .session-radio {
@@ -5338,17 +5523,45 @@ p {
 /* Card Link Helper & Active State Selectors */
 .licence-card-link {
     text-decoration: none !important;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     color: inherit;
 }
 
 .licence-card-link--blocked {
     cursor: not-allowed;
+    pointer-events: none;
 }
 
 .licence-card-link--blocked .licence-card--restricted:hover {
     transform: none;
     box-shadow: none;
+}
+
+.licence-card--restricted {
+    opacity: 0.72;
+    border-style: dashed;
+    border-color: #cbd5e1 !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+}
+
+/* Restricted luôn đồng bộ — không giữ trạng thái selected/active */
+.licence-card--restricted.licence-card--active {
+    border-color: #cbd5e1 !important;
+    background: #f8fafc !important;
+    box-shadow: none !important;
+}
+
+.licence-card__hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #b45309;
+    text-align: center;
+    line-height: 1.3;
 }
 
 .licence-card--active {
@@ -7456,41 +7669,8 @@ p {
     color: #9a3412 !important;
 }
 
-.my-exams-cancel-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-width: 420px;
-}
-
-.my-exams-cancel-form__submit {
-    align-self: flex-start;
-    margin-top: 0.25rem;
-    padding: 0.5rem 1rem;
-    border: 1px solid #d97706;
-    border-radius: 8px;
-    background: #f59e0b;
-    color: #ffffff;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.my-exams-cancel-form__submit:hover {
-    background: #d97706;
-    border-color: #b45309;
-}
-
-.exam-details-card--cancel {
-    margin-top: 1rem;
-    border: 1px solid #fde68a;
-    background: #fffbeb;
-}
-
 /* ========================================================
-   Registrant Account Settings Toggles & Preferences (SC-629-1166)
+   Registrant settings — Gmail notices (read-only, no prefs DB)
    ======================================================== */
 .settings-gmail-intro {
     margin: 0 0 0.85rem;
@@ -7533,6 +7713,57 @@ p {
     background: #fffbeb;
     font-size: 0.8125rem;
     color: #92400e;
+}
+
+.settings-gmail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.settings-gmail-info__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.settings-gmail-info__badge {
+    flex: 0 0 auto;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 0.1rem;
+}
+
+.settings-gmail-info__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.settings-gmail-info__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.settings-gmail-info__desc {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #64748b;
 }
 
 .toggle-switch-container {
@@ -7773,7 +8004,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   audit.jsp — ExamStaff specific styles
+   audit.jsp - ExamStaff specific styles
    ======================================================== */
 
 .staff-profile-card {
@@ -7815,7 +8046,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   dashboard.jsp — ExamStaff specific styles
+   dashboard.jsp - ExamStaff specific styles
    ======================================================== */
 
 .progress-indicator-bar {
@@ -7974,7 +8205,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   upload.jsp — ExamStaff specific styles
+   upload.jsp - ExamStaff specific styles
    ======================================================== */
 
 .upload-dropzone-container {
@@ -8052,7 +8283,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   allocation.jsp — ExamStaff Pipeline (Horizontal Layout)
+   allocation.jsp - ExamStaff Pipeline (Horizontal Layout)
    ======================================================== */
 .pipeline-container {
     display: flex;
@@ -8276,7 +8507,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   candidatecall.jsp — ExamStaff specific styles
+   candidatecall.jsp - ExamStaff specific styles
    ======================================================== */
 .batch-btn-container {
     display: flex;
@@ -8408,7 +8639,7 @@ input:checked + .toggle-slider:before {
 }
 
 /* ========================================================
-   procedure.jsp — ExamStaff specific styles
+   procedure.jsp - ExamStaff specific styles
    ======================================================== */
 .procedure-steps-bar {
     display: flex;

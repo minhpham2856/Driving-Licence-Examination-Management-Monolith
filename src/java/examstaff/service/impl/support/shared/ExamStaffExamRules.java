@@ -7,22 +7,22 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Utility lọc, chọn và sắp xếp danh sách {@link ExamSummaryDTO} cho UI ExamStaff —
- * xử lý cặp field {@code id}/{@code examId} không đồng nhất từ DAO.
+ * Utility lọc, chọn và sắp xếp danh sách ExamSummaryDTO cho UI ExamStaff —
+ * xử lý cặp field id/examId không đồng nhất từ DAO.
  *
  * Vai trò trong luồng examstaff:
- * Sidebar chọn ca, bind session {@code loadedExamId} và lọc kỳ cùng ngày đều cần tìm/lọc
- * trên list đã load sẵn (tránh query lặp). {@link #sortExamDaysForSidebar} sắp ngày mới trước,
+ * Sidebar chọn ca, bind session loadedExamId và lọc kỳ cùng ngày đều cần tìm/lọc
+ * trên list đã load sẵn (tránh query lặp). sortExamDaysForSidebar sắp ngày mới trước,
  * rồi hạng GPLX, rồi id — thứ tự menu staff quen thuộc.
  *
  * API chính:
- * - {@link #examsForExam} — khớp {@code examId} hoặc {@code id}.
- * - {@link #findExamById}, {@link #resolvePrimaryExamId}, {@link #resolveDefaultExamId} — chọn id hợp lệ.
- * - {@link #sortExamDaysForSidebar} — copy + sort, không mutate list gốc.
+ * - examsForExam — khớp examId hoặc id.
+ * - findExamById, resolvePrimaryExamId, resolveDefaultExamId — chọn id hợp lệ.
+ * - sortExamDaysForSidebar — copy + sort, không mutate list gốc.
  *
  * Ai gọi:
- * {@code ExamStaffExamQueryServiceImpl}, {@code ExamStaffPageBinder}, {@code ExamStaffPageSupport},
- * {@code ExamStaffSelectionServiceImpl}, {@code ExamStaffDashboardServiceImpl}.
+ * ExamStaffExamQueryServiceImpl, ExamStaffPageBinder, ExamStaffPageSupport,
+ * ExamStaffSelectionServiceImpl, ExamStaffDashboardServiceImpl.
  */
 public final class ExamStaffExamRules {
 
@@ -30,7 +30,7 @@ public final class ExamStaffExamRules {
     }
 
     /**
-     * Lấy các bản ghi cùng {@code examId} (khớp id hoặc examId).
+     * Lấy các bản ghi cùng examId (khớp id hoặc examId).
      * @param allExams danh sách nguồn
      * @param examId   mã kỳ cần lọc
      * @return danh sách khớp (có thể rỗng)
@@ -51,10 +51,10 @@ public final class ExamStaffExamRules {
     }
 
     /**
-     * Chọn examId chính: giữ {@code examId} nếu &gt; 0, không thì id phần tử đầu.
+     * Chọn examId chính: giữ examId nếu > 0, không thì id phần tử đầu.
      * @param allExams danh sách kỳ
      * @param examId   id gợi ý
-     * @return examId hợp lệ hoặc {@code 0}
+     * @return examId hợp lệ hoặc 0
      */
     public static int resolvePrimaryExamId(List<ExamSummaryDTO> allExams, int examId) {
         if (examId > 0) {
@@ -68,10 +68,10 @@ public final class ExamStaffExamRules {
     }
 
     /**
-     * Tìm một kỳ theo id (khớp {@code id} hoặc {@code examId}).
+     * Tìm một kỳ theo id (khớp id hoặc examId).
      * @param allExams danh sách
      * @param examId   mã cần tìm
-     * @return DTO hoặc {@code null}
+     * @return DTO hoặc null
      */
     public static ExamSummaryDTO findExamById(List<ExamSummaryDTO> allExams, int examId) {
         if (allExams == null || examId <= 0) {
@@ -88,7 +88,7 @@ public final class ExamStaffExamRules {
     /**
      * ExamId mặc định = phần tử đầu danh sách.
      * @param allExams danh sách kỳ
-     * @return id hoặc {@code 0}
+     * @return id hoặc 0
      */
     public static int resolveDefaultExamId(List<ExamSummaryDTO> allExams) {
         if (allExams == null || allExams.isEmpty()) {

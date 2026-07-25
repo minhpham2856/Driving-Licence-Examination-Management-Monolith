@@ -23,22 +23,22 @@ import java.util.List;
  * Facade đọc / chuẩn bị view cho toàn bộ màn hình nhân viên kỳ thi (read-only).
  *
  * Các nhóm view:
- * - <b>Kỳ thi / picker</b> — {@code listAllExams}, {@code buildPickerView},
- *       {@code resolvePrimaryExamId}, {@code preparePageContext}
- * - <b>Dashboard / phân phòng</b> — {@code buildDashboardView},
- *       {@code buildAllocationStageView}, {@code preparePageTransition}
- * - <b>Thí sinh</b> — {@code loadDossier}, {@code resolvePhoto},
- *       {@code buildQueueSnapshot}, {@code refreshQueue}
- * - <b>Báo cáo / audit</b> — {@code computeReportStats}, {@code analyzeProcedureStatus},
- *       {@code buildAuditPage}
+ * - <b>Kỳ thi / picker</b> — listAllExams, buildPickerView,
+ *       resolvePrimaryExamId, preparePageContext
+ * - <b>Dashboard / phân phòng</b> — buildDashboardView,
+ *       buildAllocationStageView, preparePageTransition
+ * - <b>Thí sinh</b> — loadDossier, resolvePhoto,
+ *       buildQueueSnapshot, refreshQueue
+ * - <b>Báo cáo / audit</b> — computeReportStats, analyzeProcedureStatus,
+ *       buildAuditPage
  * Thao tác mutate (gọi số, ghi audit, phân phòng) đi qua facade chuyên biệt
- * ({@link StaffCallService}, {@link AuditService}, {@link AllocationService}, …).
+ * (StaffCallService, AuditService, AllocationService, …).
  */
 public interface ExamStaffViewService {
 
     /**
      * Danh sách tất cả kỳ thi tóm tắt.
-     * @return danh sách {@link ExamSummaryDTO}
+     * @return danh sách ExamSummaryDTO
      */
     List<ExamSummaryDTO> listAllExams();
 
@@ -46,7 +46,7 @@ public interface ExamStaffViewService {
      * Tìm kỳ thi theo mã trong danh sách đã load.
      * @param examId   mã kỳ thi
      * @param allExams danh sách kỳ
-     * @return kỳ thi hoặc {@code null}
+     * @return kỳ thi hoặc null
      */
     ExamSummaryDTO findExamById(int examId, List<ExamSummaryDTO> allExams);
 
@@ -139,7 +139,7 @@ public interface ExamStaffViewService {
     /**
      * Xử lý chọn kỳ thi từ form (validate + transition).
      * @param request lệnh trang
-     * @return {@link ServiceResult} kèm transition
+     * @return ServiceResult kèm transition
      */
     ServiceResult<ExamTransitionResultDTO> processSelection(ExamStaffPageCommand request);
 
@@ -160,7 +160,7 @@ public interface ExamStaffViewService {
      * @param page        trang
      * @param pageSize    kích thước trang
      * @param sortSpec    quy tắc sắp xếp
-     * @param areaFilterId lọc theo khu vực ({@code null} = tất cả)
+     * @param areaFilterId lọc theo khu vực (null = tất cả)
      * @return DTO stage view
      */
     AllocationStageViewDTO buildAllocationStageView(List<ExamRegistrationDTO> candidates, String stage,
@@ -187,7 +187,7 @@ public interface ExamStaffViewService {
     /**
      * Kiểm tra / gắn cờ ảnh thủ tục đã chụp hợp lệ trên hồ sơ.
      * @param reg hồ sơ thí sinh
-     * @return {@code true} nếu có ảnh hợp lệ
+     * @return true nếu có ảnh hợp lệ
      */
     boolean resolveCapturedPhoto(ExamRegistrationDTO reg);
 
@@ -255,15 +255,15 @@ public interface ExamStaffViewService {
      * Resolve thí sinh đang được gọi theo SBD.
      * @param callingSbd số báo danh đang gọi
      * @param queue      hàng đợi
-     * @return hồ sơ hoặc {@code null}
+     * @return hồ sơ hoặc null
      */
     ExamRegistrationDTO resolveCallingCandidate(String callingSbd, List<ExamRegistrationDTO> queue);
 
     /**
-     * SBD tiếp theo có thể gọi sau {@code afterSbd}.
+     * SBD tiếp theo có thể gọi sau afterSbd.
      * @param fullQueue hàng đợi đầy đủ
      * @param afterSbd  SBD vừa xử lý
-     * @return SBD tiếp theo hoặc {@code null}
+     * @return SBD tiếp theo hoặc null
      */
     String resolveNextCallingSbd(List<ExamRegistrationDTO> fullQueue, String afterSbd);
 
@@ -271,7 +271,7 @@ public interface ExamStaffViewService {
      * Đưa thí sinh có thể gọi lên đầu hàng đợi (mutate list).
      * @param queue hàng đợi (mutate)
      * @param sbd   số báo danh
-     * @return {@code true} nếu đã chuyển
+     * @return true nếu đã chuyển
      */
     boolean moveCallableCandidateToFront(List<ExamRegistrationDTO> queue, String sbd);
 }

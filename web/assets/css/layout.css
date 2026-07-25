@@ -502,6 +502,16 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
     border-left-color: #0052cc;
 }
 
+/* Registrant: luôn hiện submenu Hồ sơ */
+.side-nav-bar--registrant .side-nav-bar__submenu,
+.side-nav-bar--registrant .side-nav-bar__menu-group.is-open .side-nav-bar__submenu {
+    display: flex !important;
+}
+
+.side-nav-bar--registrant .side-nav-bar__link.is-active + .side-nav-bar__submenu {
+    border-left-color: #0052cc;
+}
+
 .side-nav-bar__submenu-link {
     display: flex;
     align-items: center;

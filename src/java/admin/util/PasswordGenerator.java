@@ -11,6 +11,16 @@ public final class PasswordGenerator {
     private static final String SPECIAL = "@#$%*";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    private static final String DIGITS_ALL = "0123456789";
+
+    /** Sinh mật khẩu tạm gồm toàn chữ số (dùng gửi qua email). Mặc định 6 số. */
+    public static String generateNumeric(int length) {
+        if (length < 1) length = 6;
+        StringBuilder sb = new StringBuilder(length);
+        for (int i = 0; i < length; i++) sb.append(DIGITS_ALL.charAt(RANDOM.nextInt(DIGITS_ALL.length())));
+        return sb.toString();
+    }
+
     public static String generate() { return generate(10); }
     public static String generate(int length) {
         if (length < 8) length = 8;

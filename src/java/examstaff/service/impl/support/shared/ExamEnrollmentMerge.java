@@ -9,23 +9,23 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Utility gộp nhiều dòng enrollment cùng thí sinh ({@code candidateId}) thành một
- * {@link ExamRegistrationDTO} hiển thị — xử lý trùng lặp từ JOIN nhiều ca/phần thi.
+ * Utility gộp nhiều dòng enrollment cùng thí sinh (candidateId) thành một
+ * ExamRegistrationDTO hiển thị — xử lý trùng lặp từ JOIN nhiều ca/phần thi.
  *
  * Vai trò trong luồng examstaff:
  * Query JDBC đôi khi trả nhiều row/enrollment cho cùng thí sinh (nhiều ExamEnrollment, điểm LT/TH riêng).
- * Trước khi bind dashboard, hàng đợi gọi hoặc public snapshot, BLL gọi {@link #deduplicateByCandidate}
+ * Trước khi bind dashboard, hàng đợi gọi hoặc public snapshot, BLL gọi deduplicateByCandidate
  * để staff chỉ thấy một hàng hợp nhất với cờ/điểm/ảnh/khu vực “đầy đủ” nhất.
  *
  * Cách hoạt động:
- * - {@link #deduplicateByCandidate} — {@code LinkedHashMap} theo {@code id}; merge trùng;
- *       sort theo {@code candidateNo}.
- * - {@code merge} — chọn primary theo {@code rowPriority} (thanh toán, ảnh, điểm, phòng, trừ vắng/đình chỉ);
- *       OR cờ trạng thái; gộp điểm với ưu tiên failed &gt; passed &gt; none.
+ * - deduplicateByCandidate — LinkedHashMap theo id; merge trùng;
+ *       sort theo candidateNo.
+ * - merge — chọn primary theo rowPriority (thanh toán, ảnh, điểm, phòng, trừ vắng/đình chỉ);
+ *       OR cờ trạng thái; gộp điểm với ưu tiên failed > passed > none.
  *
  * Ai gọi:
- * {@code ExamRegistrationDAOImpl}, {@code CandidateQueueServiceImpl}, {@code StaffCallServiceImpl},
- * {@code PublicCallSnapshotSupport}, {@code ExamStaffDashboardServiceImpl} — mọi list thí sinh từ DAO view.
+ * ExamRegistrationDAOImpl, CandidateQueueServiceImpl, StaffCallServiceImpl,
+ * PublicCallSnapshotSupport, ExamStaffDashboardServiceImpl — mọi list thí sinh từ DAO view.
  */
 public final class ExamEnrollmentMerge {
 
@@ -167,7 +167,7 @@ public final class ExamEnrollmentMerge {
      * Gộp điểm + cờ đạt của một phần (LT hoặc TH).
      * @param primary   bản ghi đích (mutate)
      * @param secondary bản ghi nguồn
-     * @param theory    {@code true} = lý thuyết, {@code false} = thực hành
+     * @param theory    true = lý thuyết, false = thực hành
      */
     private static void mergeScoreField(ExamRegistrationDTO primary, ExamRegistrationDTO secondary, boolean theory) {
         String p = theory ? primary.getTheoryPassed() : primary.getPracticalPassed();
@@ -187,7 +187,7 @@ public final class ExamEnrollmentMerge {
     }
 
     /**
-     * Ưu tiên failed &gt; passed &gt; none khi gộp cờ đạt.
+     * Ưu tiên failed > passed > none khi gộp cờ đạt.
      * @param a trạng thái A
      * @param b trạng thái B
      * @return trạng thái đã gộp
@@ -205,9 +205,9 @@ public final class ExamEnrollmentMerge {
     }
 
     /**
-     * null/blank → {@code none}, còn lại lower-case.
+     * null/blank → none, còn lại lower-case.
      * @param v chuỗi gốc
-     * @return {@code none} hoặc chuỗi đã trim/lower
+     * @return none hoặc chuỗi đã trim/lower
      */
     private static String nullToNone(String v) {
         return v == null || v.isBlank() ? "none" : v.trim().toLowerCase(Locale.ROOT);

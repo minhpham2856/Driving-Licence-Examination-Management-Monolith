@@ -21,6 +21,7 @@ import java.io.IOException;
     "/examstaff/change-password",
     "/examiner/change-password",
     "/managingstaff/change-password",
+    "/police/change-password",
     "/admin/change-password"
 })
 public class ChangePasswordServlet extends HttpServlet {
