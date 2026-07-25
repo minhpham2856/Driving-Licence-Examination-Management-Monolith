@@ -7,8 +7,8 @@ import jakarta.servlet.http.HttpSession;
 /**
  * Hợp đồng service trang cài đặt tài khoản ({@code SettingsServlet}).
  * <p>
- * Hiển thị tóm tắt hồ sơ, đổi mật khẩu/email trên bảng {@code User},
- * vô hiệu hóa tài khoản ({@code IsActive=0}) và invalidate session.
+ * Hiển thị tóm tắt hồ sơ và đổi mật khẩu trên bảng {@code User}.
+ * Không cho thí sinh tự vô hiệu hóa tài khoản — quyền thuộc Ban quản lý.
  * Không xử lý thanh toán hay SePay.
  */
 public interface RegistrantSettingsService {
@@ -18,7 +18,4 @@ public interface RegistrantSettingsService {
     /** @return null nếu thành công. */
     String changePassword(UserDTO user, String currentPassword, String newPassword,
             String confirmPassword, HttpSession session);
-
-    /** @return null nếu thành công. */
-    String deactivateAccount(UserDTO user, boolean confirmed, HttpSession session);
 }
