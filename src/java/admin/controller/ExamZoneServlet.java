@@ -1,7 +1,9 @@
 package admin.controller;
 
 import admin.dao.ExamZoneDAO;
+import admin.dao.UsageGuardDAO;
 import admin.dao.impl.ExamZoneDAOImpl;
+import admin.dao.impl.UsageGuardDAOImpl;
 import admin.model.ZoneView;
 import admin.util.AdminAuditLog;
 import admin.util.Sanitize;
@@ -19,6 +21,7 @@ import java.io.IOException;
 public class ExamZoneServlet extends HttpServlet {
 
     private final ExamZoneDAO dao = new ExamZoneDAOImpl();
+    private final UsageGuardDAO guard = new UsageGuardDAOImpl();
     private static final String LIST_VIEW = "/views/admin/exam-area.jsp";
 
     @Override
@@ -41,10 +44,16 @@ public class ExamZoneServlet extends HttpServlet {
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             ZoneView z = dao.findById(id);
+            String blocker = guard.zoneBlocker(id);
+            if (blocker != null) {
+                SessionUtil.flash(req, "danger", blocker);
+                resp.sendRedirect(ctx + "/admin/exam-area");
+                return;
+            }
             boolean ok = id > 0 && dao.delete(id);
             if (ok) { AdminAuditLog.persist(req.getSession(), "DELETE", "Xóa khu vực thi: " + (z != null ? z.getZoneName() : id), id);
                 SessionUtil.flash(req, "success", "Đã xóa khu vực thi."); }
-            else SessionUtil.flash(req, "danger", "Không thể xóa (khu vực đang chứa phòng/sân thi). Hãy khóa thay vì xóa.");
+            else SessionUtil.flash(req, "danger", "Xóa khu vực thi thất bại.");
             resp.sendRedirect(ctx + "/admin/exam-area");
             return;
         }
@@ -57,6 +66,11 @@ public class ExamZoneServlet extends HttpServlet {
 
         String error = Validator.name("Tên khu vực", name, 3, 100);
         if (error == null) error = Validator.name("Địa điểm", location, 3, 255);
+        // Không cho khóa (vô hiệu hóa) khu vực đang được nơi khác sử dụng
+        if (error == null && isEdit && !active) {
+            ZoneView current = dao.findById(id);
+            if (current != null && current.isActive()) error = guard.zoneBlocker(id);
+        }
 
         if (error != null) {
             SessionUtil.flash(req, "danger", error);

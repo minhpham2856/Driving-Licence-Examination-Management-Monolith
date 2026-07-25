@@ -31,9 +31,7 @@ import java.util.Map;
 
 /**
  * Dashboard cá nhân: gom stats + ca thi + hoạt động + CTA.
- * <p>
- * {@code totalFee} lấy từ {@link PaymentDAO#sumCompletedPaymentsByUserId} —
- * không phải API SePay; chỉ cộng các dòng {@code Payment} đã hoàn tất (tiền mặt/SePay desk).
+ * totalFee lấy từ PaymentDAO.sumCompletedPaymentsByUserId — không phải API SePay; chỉ cộng các dòng Payment đã hoàn tất (tiền mặt/SePay desk).
  */
 public class RegistrantDashboardServiceImpl implements RegistrantDashboardService {
 

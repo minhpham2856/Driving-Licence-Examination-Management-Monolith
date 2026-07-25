@@ -9,10 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Resolver URL xem tài liệu hồ sơ — chuyển giá trị {@code Document.DocumentUrl} lưu trong DB thành link trình duyệt.
- * <p>
- * Hỗ trợ ref Cloudinary ({@code cloudinary:…}), file legacy {@code /uploads/registrant/*}
- * và seed demo Cloudinary; gọi từ JSP upload/profile và {@link registrant.controller.RegistrantDocumentViewServlet}.
+ * Resolver URL xem tài liệu hồ sơ — chuyển giá trị Document.DocumentUrl lưu trong DB thành link trình duyệt.
+ * Hỗ trợ ref Cloudinary (cloudinary:…), file legacy /uploads/registrant/* và seed demo Cloudinary; gọi từ JSP upload/profile và RegistrantDocumentViewServlet.
  */
 public final class DocumentUrlResolver {
 

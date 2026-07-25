@@ -6,9 +6,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * DTO snapshot hồ sơ thí sinh — gom {@code Profile}, danh sách tài liệu và kết quả đồng bộ trạng thái.
- * <p>
- * Dùng chung giữa upload, register-exam và profile qua {@link registrant.util.RegistrantProfileSupport#loadContext}.
+ * DTO snapshot hồ sơ thí sinh — gom Profile, danh sách tài liệu và kết quả đồng bộ trạng thái.
+ * Dùng chung giữa upload, register-exam và profile qua RegistrantProfileSupport.loadContext.
  */
 public final class RegistrantProfileContext {
 

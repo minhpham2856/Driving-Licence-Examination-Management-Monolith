@@ -21,10 +21,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Triển khai {@link registrant.dao.DocumentDAO} — truy vấn SQL bảng {@code Document} + {@code DocumentType}.
- * <p>
- * Map loại UI ↔ DB qua {@link registrant.util.RegistrantDocumentTypeMapping};
- * marker trạng thái duyệt trong {@code Notes}: {@code #PENDING#}, {@code #APPROVED#}, {@code #LICENCE#}.
+ * Triển khai DocumentDAO — truy vấn SQL bảng Document + DocumentType.
+ * Map loại UI ↔ DB qua RegistrantDocumentTypeMapping; marker trạng thái duyệt trong Notes: #PENDING#, #APPROVED#, #LICENCE#.
  */
 public class DocumentDAOImpl extends DBContext implements DocumentDAO {
 
@@ -388,7 +386,7 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
         return body;
     }
 
-    /** Mã hóa #LICENCE#<mã hạng># để gắn Notes. */
+    /** Mã hóa #LICENCE# + mã hạng + # để gắn Notes. */
     public static String encodeLicenceMarker(String uiLicenceCode) {
         if (uiLicenceCode == null || uiLicenceCode.isBlank()) {
             return "";
