@@ -16,10 +16,8 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 
 /**
- * Parse tham số bộ lọc HTTP và dựng danh sách {@link registrant.dto.RegistrantFilterOption} theo từng trang.
- * <p>
- * Hỗ trợ dashboard (đợt thi đã đăng ký), my-exams, register-exam (ExamDates) và track-profile;
- * state nội bộ {@code ExamListFilterState}, {@code SessionListFilterState}.
+ * Parse tham số bộ lọc HTTP và dựng danh sách RegistrantFilterOption theo từng trang.
+ * Hỗ trợ dashboard (đợt thi đã đăng ký), my-exams, register-exam (ExamDates) và track-profile; state nội bộ ExamListFilterState, SessionListFilterState.
  */
 public final class RegistrantFilterSupport {
 

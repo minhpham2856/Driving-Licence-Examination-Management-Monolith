@@ -9,9 +9,7 @@ import java.nio.file.Paths;
 
 /**
  * Lưu file upload legacy ngoài thư mục WAR — phục vụ dữ liệu cũ trước khi migrate Cloudinary.
- * <p>
- * Thư mục {@code catalina.base/dlem-uploads/registrant}; URL công khai {@code /uploads/registrant/*}
- * qua {@link registrant.controller.RegistrantUploadFileServlet}. Hồ sơ mới dùng {@link CloudinaryDocumentStorage}.
+ * Thư mục catalina.base/dlem-uploads/registrant; URL công khai /uploads/registrant/* qua RegistrantUploadFileServlet. Hồ sơ mới dùng CloudinaryDocumentStorage.
  */
 public final class RegistrantUploadStorage {
 

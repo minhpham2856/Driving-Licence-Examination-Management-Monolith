@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Facade audit cổng thí sinh: ghi log thao tác và map bản ghi {@code Audit} sang {@link registrant.dto.RegistrantTrackingLog}.
- * <p>
- * Bao bọc {@link RegistrantAuditLogHelper} với message tiếng Việt cho upload, gửi duyệt, xóa tài liệu, cập nhật profile;
- * {@link #toTrackingLogs} dùng trên trang track-profile.
+ * Facade audit cổng thí sinh: ghi log thao tác và map bản ghi Audit sang RegistrantTrackingLog.
+ * Bao bọc RegistrantAuditLogHelper với message tiếng Việt cho upload, gửi duyệt, xóa tài liệu, cập nhật profile; toTrackingLogs dùng trên trang track-profile.
  */
 public final class RegistrantAuditHelper {
 

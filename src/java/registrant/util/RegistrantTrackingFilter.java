@@ -16,9 +16,7 @@ import java.util.Set;
 
 /**
  * Parse và áp dụng bộ lọc nhật ký track-profile trên danh sách hợp nhất Audit + sự kiện tài liệu.
- * <p>
- * Hỗ trợ tìm kiếm, lọc theo {@link RegistrantTrackingCategories}, trạng thái, khoảng ngày và phân trang;
- * state nội bộ {@code TrackingFilterState} gắn lên request bởi {@code RegistrantTrackProfileServiceImpl}.
+ * Hỗ trợ tìm kiếm, lọc theo RegistrantTrackingCategories, trạng thái, khoảng ngày và phân trang; state nội bộ TrackingFilterState gắn lên request bởi RegistrantTrackProfileServiceImpl.
  */
 public final class RegistrantTrackingFilter {
 

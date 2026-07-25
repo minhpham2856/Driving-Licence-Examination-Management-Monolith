@@ -11,11 +11,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Trang tổng quan cổng thí sinh — {@code GET /registrant/dashboard} → {@code dashboard.jsp}.
- * <p>
- * Luồng: {@link RegistrantAuth#requireRegistrant} → {@link RegistrantDashboardService#buildDashboardModel}
- * → {@code copyToRequest} → forward JSP. Service gom stats hồ sơ/ca thi, {@code totalFee} (Payment đã hoàn tất),
- * {@code registeredExamList}, hoạt động gần đây, ca sắp tới và panel việc cần làm.
+ * Trang tổng quan cổng thí sinh — GET /registrant/dashboard, forward dashboard.jsp.
+ * Luồng: RegistrantAuth.requireRegistrant → RegistrantDashboardService.buildDashboardModel → copyToRequest → forward JSP.
+ * Service gom stats hồ sơ/ca thi, totalFee (Payment đã hoàn tất), registeredExamList, hoạt động gần đây, ca sắp tới và panel việc cần làm.
  * Thí sinh chỉ đọc tiền đã thu tại bàn thủ tục — không checkout SePay từ đây.
  */
 @WebServlet("/registrant/dashboard")

@@ -9,10 +9,8 @@ import java.sql.Timestamp;
 import shared.Attributes;
 
 /**
- * Lớp tiện ích ghi audit log cho cổng thí sinh — tầng util gọi {@link registrant.dao.AuditLogDAO}.
- * <p>
- * Lấy {@code UserId} từ session, persist vào bảng {@code Audit} với {@code EntityName}, {@code Action},
- * {@code Details} và {@code NewValue}. Được gọi từ {@link registrant.util.RegistrantAuditHelper} và các service.
+ * Lớp tiện ích ghi audit log cho cổng thí sinh — tầng util gọi AuditLogDAO.
+ * Lấy UserId từ session, persist vào bảng Audit với EntityName, Action, Details và NewValue. Được gọi từ RegistrantAuditHelper và các service.
  */
 public final class RegistrantAuditLogHelper {
 
