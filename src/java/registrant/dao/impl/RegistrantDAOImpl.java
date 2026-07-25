@@ -35,45 +35,16 @@ import java.util.logging.Logger;
 
 /**
  * DAO cổng thí sinh: hạng GPLX, đợt thi mở, đăng ký ExamRegistration, dashboard/tracking.
- * <p>
- * <b>Cách tìm:</b> Ctrl+F {@code REGION:} hoặc dùng <b>LOC index</b> bên dưới
- * (số dòng gần đúng — cập nhật lại khi sửa lớn). Cùng thứ tự {@link registrant.dao.RegistrantDAO}.
- * <p>
- * <b>LOC index (Impl):</b>
- * <ul>
- *   <li><b>~L121</b> Hạng GPLX —
- *       {@code listOpenLicenceOptions} ~L125;
- *       {@code resolveLicenceIdByUiCode} ~L153;
- *       {@code resolveLatestLicenceClassByProfileId} ~L175</li>
- *   <li><b>~L220</b> ExamDates / nguyện vọng —
- *       {@code listOpenExamSessionsByLicenceCode} ~L224;
- *       {@code findExamSessionByCode} ~L258;
- *       {@code registerPreferredExamDate} ~L296;
- *       {@code hasActivePreferredExamDate} ~L331</li>
- *   <li><b>~L486</b> Danh sách đăng ký thi —
- *       {@code listRegisteredExamsByUserId} ~L488;
- *       {@code listRegisteredExamsByProfileId} ~L498;
- *       {@code listActiveExamRegistrationsByProfileId} ~L625</li>
- *   <li><b>~L656</b> Dashboard —
- *       {@code loadDashboardStats} ~L658;
- *       {@code findUpcomingExamByUserId} ~L708;
- *       {@code findUpcomingExamByProfileId} ~L716;
- *       {@code listRecentActivities} ~L776;
- *       {@code daysUntil} ~L807</li>
- *   <li><b>~L823</b> My-exams —
- *       {@code listMyExamsByUserId} ~L831;
- *       {@code findMyExamByCandidateId} ~L951</li>
- *   <li><b>~L999</b> Hồ sơ tài liệu —
- *       {@code findProfileDocumentRegistrationStatus} ~L1003;
- *       {@code listApprovedDocumentLicenceCodes} ~L1031;
- *       {@code hasOpenSupplementPending} ~L1099;
- *       {@code insertSupplementDocumentRegistration} ~L1132;
- *       {@code insertLicenceDocumentRegistration} ~L1167;
- *       {@code mapSupplementRegistrationStatuses} ~L1205;
- *       {@code syncProfileDocumentRegistration} ~L1237</li>
- *   <li><b>~L1346</b> Track-profile — {@code buildProfileTrackingLogs} ~L1348</li>
- *   <li><b>~L1371</b> Helpers mapper; activity ~L1506; tracking ~L1623</li>
- * </ul>
+ * Cách tìm: Ctrl+F REGION: hoặc dùng LOC index bên dưới (số dòng gần đúng — cập nhật lại khi sửa lớn). Cùng thứ tự RegistrantDAO.
+ * LOC index Impl:
+ * Hạng GPLX ~L121 — listOpenLicenceOptions ~L125; resolveLicenceIdByUiCode ~L153; resolveLatestLicenceClassByProfileId ~L175
+ * ExamDates / nguyện vọng ~L220 — listOpenExamSessionsByLicenceCode ~L224; findExamSessionByCode ~L258; registerPreferredExamDate ~L296; hasActivePreferredExamDate ~L331
+ * Danh sách đăng ký thi ~L486 — listRegisteredExamsByUserId ~L488; listRegisteredExamsByProfileId ~L498; listActiveExamRegistrationsByProfileId ~L625
+ * Dashboard ~L656 — loadDashboardStats ~L658; findUpcomingExamByUserId ~L708; findUpcomingExamByProfileId ~L716; listRecentActivities ~L776; daysUntil ~L807
+ * My-exams ~L823 — listMyExamsByUserId ~L831; findMyExamByCandidateId ~L951
+ * Hồ sơ tài liệu ~L999 — findProfileDocumentRegistrationStatus ~L1003; listApprovedDocumentLicenceCodes ~L1031; hasOpenSupplementPending ~L1099; insertSupplementDocumentRegistration ~L1132; insertLicenceDocumentRegistration ~L1167; mapSupplementRegistrationStatuses ~L1205; syncProfileDocumentRegistration ~L1237
+ * Track-profile ~L1346 — buildProfileTrackingLogs ~L1348
+ * Helpers mapper ~L1371; activity ~L1506; tracking ~L1623
  */
 public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     private static final Logger LOG = Logger.getLogger(RegistrantDAOImpl.class.getName());
@@ -284,13 +255,11 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     /**
      * Ghi nhận ngày thi mong muốn của thí sinh (portal).
-     * <p>
      * Đọc: ExamDates khớp Licence + còn mở; ExamRegistration Approved theo profile+licence.
-     * Ghi: INSERT/MERGE {@code RegistrationDates} IsActive=1.
+     * Ghi: INSERT/MERGE RegistrationDates IsActive=1.
      * Mỗi profile+hạng chỉ một nguyện vọng active — không deactivate/đổi ngày đã chọn.
      * Không tạo Candidate / ExamEnrollment / Payment.
-     *
-     * @return {@code null} nếu OK; ngược lại message lỗi tiếng Việt
+     * Trả về null nếu OK; ngược lại message lỗi tiếng Việt.
      */
     @Override
     public String registerPreferredExamDate(int profileId, int examDateId, int licenceId) {

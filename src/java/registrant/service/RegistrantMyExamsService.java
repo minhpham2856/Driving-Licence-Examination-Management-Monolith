@@ -6,10 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
- * Hợp đồng service trang lịch thi và kết quả ({@code MyExamsServlet}).
- * <p>
- * Join Profile → Candidate → ExamEnrollment → Exam + Payment qua {@code RegistrantDAO};
- * trả {@link registrant.dto.RegistrantMyExamRow} gồm nguyện vọng ngày thi và ca chính thức (SBD, điểm).
+ * Hợp đồng service trang lịch thi và kết quả (MyExamsServlet).
+ * Join Profile → Candidate → ExamEnrollment → Exam + Payment qua RegistrantDAO; trả RegistrantMyExamRow gồm nguyện vọng ngày thi và ca chính thức (SBD, điểm).
  */
 public interface RegistrantMyExamsService {
 

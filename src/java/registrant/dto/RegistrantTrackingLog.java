@@ -3,10 +3,8 @@ package registrant.dto;
 import java.util.Date;
 
 /**
- * DTO một dòng nhật ký xử lý hồ sơ trên trang theo dõi tiến trình ({@code track-profile.jsp}).
- * <p>
- * Hợp nhất từ bảng {@code Audit} và sự kiện upload tài liệu; {@code category} phục vụ bộ lọc
- * qua {@link registrant.util.RegistrantTrackingCategories}.
+ * DTO một dòng nhật ký xử lý hồ sơ trên trang theo dõi tiến trình (track-profile.jsp).
+ * Hợp nhất từ bảng Audit và sự kiện upload tài liệu; category phục vụ bộ lọc qua RegistrantTrackingCategories.
  */
 public class RegistrantTrackingLog {
 
