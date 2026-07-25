@@ -1,7 +1,9 @@
 package admin.controller;
 
 import admin.dao.LicenceManageDAO;
+import admin.dao.UsageGuardDAO;
 import admin.dao.impl.LicenceManageDAOImpl;
+import admin.dao.impl.UsageGuardDAOImpl;
 import admin.model.LicenceView;
 import admin.util.AdminAuditLog;
 import admin.util.Sanitize;
@@ -19,6 +21,7 @@ import java.io.IOException;
 public class LicenceServlet extends HttpServlet {
 
     private final LicenceManageDAO dao = new LicenceManageDAOImpl();
+    private final UsageGuardDAO guard = new UsageGuardDAOImpl();
     private static final String LIST_VIEW = "/views/admin/licence-class.jsp";
 
     @Override
@@ -39,10 +42,16 @@ public class LicenceServlet extends HttpServlet {
         if ("delete".equals(action)) {
             int id = Sanitize.toInt(req.getParameter("id"), 0);
             LicenceView l = dao.findById(id);
+            String blocker = guard.licenceBlocker(id);
+            if (blocker != null) {
+                SessionUtil.flash(req, "danger", blocker);
+                resp.sendRedirect(ctx + "/admin/licence-class");
+                return;
+            }
             boolean ok = id > 0 && dao.delete(id);
             if (ok) { AdminAuditLog.persist(req.getSession(), "DELETE", "Xóa hạng GPLX: " + (l != null ? l.getLicenceClass() : id), id);
                 SessionUtil.flash(req, "success", "Đã xóa hạng GPLX."); }
-            else SessionUtil.flash(req, "danger", "Không thể xóa (hạng đang gắn với biểu phí/kỳ thi/câu hỏi).");
+            else SessionUtil.flash(req, "danger", "Xóa hạng GPLX thất bại.");
             resp.sendRedirect(ctx + "/admin/licence-class");
             return;
         }
