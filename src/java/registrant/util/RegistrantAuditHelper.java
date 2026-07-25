@@ -69,12 +69,6 @@ public final class RegistrantAuditHelper {
                 "Đổi mật khẩu tài khoản", "Đã đổi mật khẩu", userId);
     }
 
-    /** Ghi audit khi vô hiệu hoá tài khoản thí sinh. */
-    public static void logAccountDeactivate(HttpSession session, int userId) {
-        RegistrantAuditLogHelper.persistForEntity(session, "Profile", "UPDATE",
-                "Vô hiệu hoá tài khoản thí sinh", "Đã vô hiệu hoá", userId);
-    }
-
     /** Đổi danh sách AuditLog sang dòng theo dõi hồ sơ (timeline). */
     public static List<RegistrantTrackingLog> toTrackingLogs(List<AuditLogEntry> auditLogs) {
         if (auditLogs == null || auditLogs.isEmpty()) {
