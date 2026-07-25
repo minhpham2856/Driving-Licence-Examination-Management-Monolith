@@ -29,9 +29,6 @@
     <c:if test="${not empty param.presentDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã điểm danh SBD ${param.presentDone}.</p>
     </c:if>
-    <c:if test="${not empty param.undoPresent}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tác điểm danh SBD ${param.undoPresent}.</p>
-    </c:if>
     <c:if test="${not empty param.maintenanceDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã chuyển thiết bị ${param.maintenanceDone} sang bảo trì.</p>
     </c:if>
@@ -43,7 +40,10 @@
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã thao tác thí sinh SBD ${param.sbd} vào nhập điểm.</p> 
     </c:if>
     <c:if test="${not empty param.completeDone}">
-        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn tất phần thi SBD ${param.completeDone}.</p>
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hoàn thành phần thi SBD ${param.completeDone}.</p>
+    </c:if>
+    <c:if test="${not empty param.undoPresent}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã hủy điểm danh SBD ${param.undoPresent}.</p>
     </c:if>
     <c:if test="${not empty param.wrongInfoDone}">
         <p class="examiner-flash-bar examiner-flash-bar--success">Đã chuyển SBD ${param.wrongInfoDone} về phòng thủ tục (sai thông tin).</p>
@@ -76,7 +76,16 @@
         <p class="examiner-flash-bar examiner-flash-bar--error">Không gỡ được đình chỉ<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
     </c:if>
     <c:if test="${param.error eq 'undoPresentFailed'}">
-        <p class="examiner-flash-bar examiner-flash-bar--error">Không hoàn tác được điểm danh<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không thể hủy điểm danh vì thí sinh đang thi, chờ ký hoặc đã hoàn thành phần thi<c:if test="${not empty param.sbd}"> (SBD ${param.sbd})</c:if>.</p>
+    </c:if>
+    <c:if test="${param.scoreSaved eq '1'}">
+        <p class="examiner-flash-bar examiner-flash-bar--success">Đã lưu điểm thực hành thành công.</p>
+    </c:if>
+    <c:if test="${param.error eq 'scoreFailed'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Không lưu được điểm thực hành<c:if test="${not empty param.sbd}"> SBD ${param.sbd}</c:if>.</p>
+    </c:if>
+    <c:if test="${param.error eq 'passwordIncorrect'}">
+        <p class="examiner-flash-bar examiner-flash-bar--error">Mật khẩu xác nhận không đúng.</p>
     </c:if>
     <c:if test="${param.error eq 'noSbd'}">
         <p class="examiner-flash-bar examiner-flash-bar--error">Không tìm thấy thí sinh.</p>

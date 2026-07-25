@@ -128,7 +128,7 @@
                                             </div>
                                             <button type="submit" form="practicalScoreForm" class="examiner-btn examiner-btn--primary score-entry-save-button">
                                                 <span class="material-symbols-outlined">save</span>
-                                                Nhập điểm
+                                                Lưu điểm
                                             </button>
                                         </div>
                                     </section>
@@ -157,8 +157,7 @@
                                                 <span class="material-symbols-outlined">gavel</span>
                                                 Đình chỉ
                                             </a>
-                                            <c:choose>
-                                                <c:when test="${candidate.awaitingSignature}">
+                                            <c:if test="${candidate.awaitingSignature}">
                                                     <form method="post" action="${pageUrl}" target="examinerPrintTab"
                                                           onsubmit="window.open('', 'examinerPrintTab'); setTimeout(function () { window.location.reload(); }, 800);">
                                                         <input type="hidden" name="action" value="printResult">
@@ -168,27 +167,18 @@
                                                             In biên bản
                                                         </button>
                                                     </form>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--disabled">In biên bản</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                                </c:if>
 
-                                            <c:choose>
-                                                <c:when test="${candidate.completeEligible}">
+                                            <c:if test="${candidate.completeEligible}">
                                                     <form method="post" action="${pageUrl}">
                                                         <input type="hidden" name="action" value="completeSection">
                                                         <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
                                                         <button type="submit" class="examiner-btn examiner-btn--success">
                                                             <span class="material-symbols-outlined">done_all</span>
-                                                            Hoàn tất
+                                                            Hoàn thành
                                                         </button>
                                                     </form>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="examiner-btn examiner-btn--disabled">Hoàn tất</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                                </c:if>
                                         </div>
                                     </section>
 

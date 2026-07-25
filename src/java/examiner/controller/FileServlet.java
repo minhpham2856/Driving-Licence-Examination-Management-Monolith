@@ -266,7 +266,11 @@ public class FileServlet extends HttpServlet {
             return null;
         }
         Object raw = session.getAttribute(Attributes.Session.USER);
-        if (!(raw instanceof UserDTO user) || user.getUserId() <= 0) {
+        if (!(raw instanceof UserDTO)) {
+            return null;
+        }
+        UserDTO user = (UserDTO) raw;
+        if (user.getUserId() <= 0) {
             return null;
         }
         return user.getUserId();

@@ -9,8 +9,8 @@
 <c:if test="${empty activeSidebar}">
     <c:choose>
         <c:when test="${fn:contains(requestUri, 'dashboard')}"><c:set var="activeSidebar" value="dashboard" /></c:when>
-        <c:when test="${fn:contains(requestUri, 'action') or fn:contains(requestUri, 'score-entry')}"><c:set var="activeSidebar" value="action" /></c:when>
-        <c:when test="${fn:contains(requestUri, 'candidates') or fn:contains(requestUri, 'candidate-details') or fn:contains(requestUri, 'candidate-paper') or fn:contains(requestUri, 'violations') or fn:contains(requestUri, 'result-details')}"><c:set var="activeSidebar" value="details" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'candidates') or fn:contains(requestUri, 'candidate-details') or fn:contains(requestUri, 'candidate-paper')}"><c:set var="activeSidebar" value="details" /></c:when>
+        <c:when test="${fn:contains(requestUri, 'action') or fn:contains(requestUri, 'score-entry') or fn:contains(requestUri, 'violations') or fn:contains(requestUri, 'result-details')}"><c:set var="activeSidebar" value="action" /></c:when>
         <c:when test="${fn:contains(requestUri, 'devices')}"><c:set var="activeSidebar" value="devices" /></c:when>
         <c:when test="${fn:contains(requestUri, 'print-documents') or fn:contains(requestUri, 'export')}"><c:set var="activeSidebar" value="print-documents" /></c:when>
         <c:when test="${fn:contains(requestUri, 'audit')}"><c:set var="activeSidebar" value="audit" /></c:when>
@@ -43,7 +43,7 @@
         </a>
 
         <a href="${ctx}/examiner/candidates"
-           class="side-nav-bar__link${activeSidebar eq 'details' or activeSidebar eq 'candidates' or activeSidebar eq 'candidate-details' or activeSidebar eq 'violations' or activeSidebar eq 'result-details' ? ' is-active' : ''}">
+           class="side-nav-bar__link${activeSidebar eq 'details' or activeSidebar eq 'candidates' or activeSidebar eq 'candidate-details' ? ' is-active' : ''}">
             <span class="side-nav-bar__icon material-symbols-outlined">edit_document</span>
             <span class="side-nav-bar__label">Thông tin chi tiết</span>
         </a>

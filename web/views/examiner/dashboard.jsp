@@ -63,14 +63,14 @@
                     <div class="examiner-summary__grid">
                         <div class="examiner-summary__course">
                             <p class="examiner-summary__label">Kỳ thi</p>
-                            <p class="examiner-summary__value">${empty examSummary.examCode ? '—' : examSummary.examCode}</p>
+                            <p class="examiner-summary__value">${empty examSummary.examCode ? '' : examSummary.examCode}</p>
                             <div class="examiner-summary__meta-row">
                                 <p class="examiner-summary__label">Ngày thi</p>
-                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.examDate ? '—' : examSummary.examDate}</p>
+                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.examDate ? '' : examSummary.examDate}</p>
                             </div>
                             <div class="examiner-summary__meta-row">
                                 <p class="examiner-summary__label">Hạng GPLX</p>
-                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.licenceClass ? '—' : examSummary.licenceClass}</p>
+                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.licenceClass ? '' : examSummary.licenceClass}</p>
                             </div>
                         </div>
                         <div class="examiner-summary__stat examiner-summary__stat--total">

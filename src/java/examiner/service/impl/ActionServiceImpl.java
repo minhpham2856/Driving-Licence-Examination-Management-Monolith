@@ -331,6 +331,7 @@ public class ActionServiceImpl implements ActionService {
         if (enrollmentRecord == null) {
             return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
         }
+        Integer oldScore = enrollment.getPracticalScore();
         int examScoreId = ensurePracticalExamScore(enrollment.getCandidateId(), examId);
         if (examScoreId <= 0 || !examScoreDAO.updateScore(examScoreId, newScore)) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
@@ -342,7 +343,79 @@ public class ActionServiceImpl implements ActionService {
             String reasonText = buildReasonText(reasonCode, reasonDetail);
             auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
                     "Cập nhật điểm thực hành SBD " + enrollment.getCandidateNumber()
-                    + " thành " + newScore
+                    + " từ " + (oldScore != null ? oldScore : "?") + " thành " + newScore
+                    + (reasonText.isBlank() ? "" : " - Lý do: " + reasonText),
+                    enrollment.getCandidateId());
+        }
+        return ServiceResult.ok(null);
+    }
+
+    // Updates practical score from deduction occurrences after password-confirmed reason validation.
+    @Override
+    public ServiceResult<Void> updatePracticalScoreWithDeductions(int examId, int sbd,
+            Map<Integer, Integer> occurrences, User user, String password, String reasonCode,
+            String reasonDetail, Integer actionUserId, SectionType sectionType) {
+        if (occurrences == null || occurrences.isEmpty()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scorePayloadInvalid");
+        }
+        if (reasonCode == null || reasonCode.isBlank()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Vui lòng chọn lý do sửa điểm.");
+        }
+        if (!verifyPassword(user, password)) {
+            return ServiceResult.fail(ErrorType.PERMISSION_DENIED, "Mật khẩu xác nhận không đúng.");
+        }
+        SectionType targetSection = sectionType != null ? sectionType : SectionType.LAYOUT;
+        if (targetSection != SectionType.LAYOUT) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, targetSection);
+        if (enrollment == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
+        }
+        if (!isSectionRequired(enrollment, targetSection)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
+        }
+        ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
+        if (enrollmentRecord == null) {
+            return ServiceResult.fail(ErrorType.NOT_FOUND, "notFound");
+        }
+        Integer oldScore = enrollment.getPracticalScore();
+        int examScoreId = ensurePracticalExamScore(enrollment.getCandidateId(), examId);
+        if (examScoreId <= 0) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+        }
+        for (Map.Entry<Integer, Integer> item : occurrences.entrySet()) {
+            int deductionId = item.getKey();
+            int requested = item.getValue() != null ? item.getValue() : 0;
+            if (deductionId <= 0 || requested < 0 || requested > 100) {
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scorePayloadInvalid");
+            }
+            ScoreDeduction rule = scoreDeductionDAO.get(deductionId);
+            if (rule == null || rule.getExamSectionId() <= 0) {
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "deductionInvalid");
+            }
+            int current = deductionRecordDAO.getOccurrenceCount(examScoreId, deductionId);
+            if (current != requested && !applyDeductionDelta(examScoreId, deductionId, requested - current)) {
+                return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+            }
+        }
+        if (!examScoreDAO.recalculateFromDeductions(examScoreId)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+        }
+        if (!persistPracticalOutcome(examId, enrollmentRecord.getExamEnrollmentId(), false)) {
+            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "scoreUpdateFailed");
+        }
+        ExamScore saved = examScoreDAO.get(examScoreId);
+        Integer newScore = saved != null ? (int) Math.round(saved.getScore()) : null;
+        if (actionUserId != null) {
+            String reasonText = buildReasonText(reasonCode, reasonDetail);
+            auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.EXAM_SCORE,
+                    "Cập nhật điểm thực hành SBD " + enrollment.getCandidateNumber()
+                    + " từ " + (oldScore != null ? oldScore : "?")
+                    + " thành " + (newScore != null ? newScore : "?")
                     + (reasonText.isBlank() ? "" : " - Lý do: " + reasonText),
                     enrollment.getCandidateId());
         }

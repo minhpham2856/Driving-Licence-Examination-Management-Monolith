@@ -35,8 +35,8 @@ public class DashboardServlet extends HttpServlet {
         Integer examId = (Integer) request.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         SectionType sectionType = null;
         Object rawSection = request.getAttribute(Attributes.Examiner.EXAM_SECTION);
-        if (rawSection instanceof SectionType value) {
-            sectionType = value;
+        if (rawSection instanceof SectionType) {
+            sectionType = (SectionType) rawSection;
         } else if (session != null) {
             sectionType = ExaminerFilter.resolveSectionType(session);
         }

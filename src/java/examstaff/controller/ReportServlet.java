@@ -158,13 +158,18 @@ public class ReportServlet extends HttpServlet {
      */
     private String resolveExporterName(HttpSession session) {
         Object profileObj = session.getAttribute(Attributes.Session.USER_PROFILE);
-        if (profileObj instanceof Profile profile && profile.getFullName() != null) {
-            return profile.getFullName();
+        if (profileObj instanceof Profile) {
+            Profile profile = (Profile) profileObj;
+            if (profile.getFullName() != null) {
+                return profile.getFullName();
+            }
         }
         Object userObj = session.getAttribute(Attributes.Session.USER);
-        if (userObj instanceof UserDTO user && user.getProfile() != null
-                && user.getProfile().getFullName() != null) {
-            return user.getProfile().getFullName();
+        if (userObj instanceof UserDTO) {
+            UserDTO user = (UserDTO) userObj;
+            if (user.getProfile() != null && user.getProfile().getFullName() != null) {
+                return user.getProfile().getFullName();
+            }
         }
         return SessionUserHelper.resolveUsername(session);
     }

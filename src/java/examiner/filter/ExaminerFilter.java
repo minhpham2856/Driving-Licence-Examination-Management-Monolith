@@ -191,8 +191,8 @@ public class ExaminerFilter extends HttpFilter {
             return SectionType.LAYOUT;
         }
         Object raw = session.getAttribute(ATTR_EXAM_SECTION);
-        if (raw instanceof SectionType sectionType) {
-            return sectionType;
+        if (raw instanceof SectionType) {
+            return (SectionType) raw;
         }
         return SectionType.LAYOUT;
     }

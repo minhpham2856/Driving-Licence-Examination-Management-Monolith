@@ -2,6 +2,11 @@
 -- Database Schema
 -- Driving License Examination Management System
 -- DB: DLEM_DB_2
+-- Ghi chú merge police / managing staff + examiner / candidate:
+--   - ExamDates / RegistrationDates / OfficialExamCandidate: luồng CSGT
+--   - Exam.SourceExamDateId: phiên thi tạo từ ngày dự kiến
+--   - ExamEnrollment.ExamRegistrationId: nối registrant ↔ phiên thi
+--   - Giữ ExamPassword, CandidateViolation, CheckedIn*, ResultPrintedAt
 -- ============================================
 
 USE master;
@@ -89,21 +94,88 @@ GO
 CREATE TABLE ExamDates (
     ExamDateId INT PRIMARY KEY IDENTITY(1,1),
     ExamDate DATE NOT NULL,
-    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    [Status] NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_ExamDates_Status DEFAULT N'Open',
+    PoliceStatus NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_ExamDates_PoliceStatus DEFAULT N'NOT_SENT',
+    CancelReason NVARCHAR(500) NULL,
+    CancelledAt DATETIME2 NULL,
+    CancelledBy INT NULL REFERENCES [User](UserId),
+    CancelledRegistrationCount INT NULL,
+    CONSTRAINT CK_ExamDates_Status
+        CHECK ([Status] IN (N'Open', N'Locked', N'Cancelled')),
+    CONSTRAINT CK_ExamDates_PoliceStatus
+        CHECK (PoliceStatus IN (N'NOT_SENT', N'PENDING', N'COMPLETED')),
+    CONSTRAINT CK_ExamDates_CancelledRegistrationCount
+        CHECK (CancelledRegistrationCount IS NULL OR CancelledRegistrationCount >= 0)
 );
 GO
 
+-- Theo nghiệp vụ hiện tại: một ngày chỉ mở một ngày thi dự kiến, không phụ thuộc hạng GPLX
+CREATE UNIQUE INDEX UX_ExamDates_ExamDate
+    ON ExamDates(ExamDate);
+GO
+
 -- N–N ExamRegistration - ExamDates: thí sinh chọn ngày dự kiến; IsActive đánh dấu lựa chọn còn hiệu lực
+-- Police duyệt/từ chối trực tiếp trên từng dòng của bảng nối này
 CREATE TABLE RegistrationDates (
     RegistrationDateId INT PRIMARY KEY IDENTITY(1,1),
     ExamRegistrationId INT NOT NULL REFERENCES ExamRegistration(ExamRegistrationId),
     ExamDateId INT NOT NULL REFERENCES ExamDates(ExamDateId),
     IsActive BIT NOT NULL DEFAULT 1,
-    UNIQUE (ExamRegistrationId, ExamDateId)
+    PoliceStatus NVARCHAR(20) NOT NULL
+        CONSTRAINT DF_RegistrationDates_PoliceStatus DEFAULT N'NOT_SENT',
+    PoliceReason NVARCHAR(500) NULL,
+    OfficialCandidateNumber NVARCHAR(50) NULL,
+    CONSTRAINT UQ_RegistrationDates_Registration_Date
+        UNIQUE (ExamRegistrationId, ExamDateId),
+    CONSTRAINT CK_RegistrationDates_PoliceStatus
+        CHECK (PoliceStatus IN (N'NOT_SENT', N'PENDING', N'APPROVED', N'REJECTED'))
 );
 GO
 
+CREATE INDEX IX_RegistrationDates_ExamDate_PoliceStatus
+    ON RegistrationDates(ExamDateId, PoliceStatus, IsActive);
+GO
+
+-- Số báo danh chỉ cần duy nhất trong cùng danh sách ngày dự kiến
+CREATE UNIQUE INDEX UX_RegistrationDates_Date_CandidateNumber
+    ON RegistrationDates(ExamDateId, OfficialCandidateNumber)
+    WHERE OfficialCandidateNumber IS NOT NULL;
+GO
+
+-- Danh sách thi chính thức do Police Staff lập. ExamRegistrationId NULL
+-- đối với thí sinh đến từ đơn vị khác (không có tài khoản tại trung tâm)
+CREATE TABLE OfficialExamCandidate (
+    OfficialExamCandidateId INT PRIMARY KEY IDENTITY(1,1),
+    ExamDateId INT NOT NULL REFERENCES ExamDates(ExamDateId),
+    ExamRegistrationId INT NULL REFERENCES ExamRegistration(ExamRegistrationId),
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    CandidateNumber NVARCHAR(50) NULL,
+    FullName NVARCHAR(255) NOT NULL,
+    DateOfBirth DATE NOT NULL,
+    GovernmentIdNumber NVARCHAR(100) NOT NULL,
+    PhoneNumber NVARCHAR(20) NOT NULL,
+    Email NVARCHAR(255) NOT NULL,
+    SourceUnitCode NVARCHAR(50) NOT NULL,
+    SourceUnitName NVARCHAR(255) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UNIQUE (ExamDateId, GovernmentIdNumber)
+);
+GO
+
+CREATE UNIQUE INDEX UX_OfficialExamCandidate_Date_Number
+    ON OfficialExamCandidate(ExamDateId, CandidateNumber)
+    WHERE CandidateNumber IS NOT NULL;
+GO
+
+CREATE INDEX IX_OfficialExamCandidate_Date
+    ON OfficialExamCandidate(ExamDateId);
+GO
+
 -- ============================== EXAM ==============================
+-- SourceExamDateId: phiên thi chính thức tạo từ ngày dự kiến nào
 CREATE TABLE Exam (
     ExamId INT PRIMARY KEY IDENTITY(1,1),
     ExamCode NVARCHAR(50) NOT NULL UNIQUE,
@@ -114,8 +186,16 @@ CREATE TABLE Exam (
     ExamPassword NVARCHAR(255) NULL,
     CentreName NVARCHAR(255) NOT NULL,
     LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
-    CHECK (EndTime IS NULL OR EndTime > StartTime)
+    SourceExamDateId INT NULL REFERENCES ExamDates(ExamDateId),
+    CONSTRAINT CK_Exam_EndTimeAfterStart
+        CHECK (EndTime IS NULL OR EndTime > StartTime)
 );
+GO
+
+-- Một ngày dự kiến chỉ sinh tối đa một phiên thi chính thức
+CREATE UNIQUE INDEX UX_Exam_SourceExamDateId
+    ON Exam(SourceExamDateId)
+    WHERE SourceExamDateId IS NOT NULL;
 GO
 
 CREATE TABLE ExamSection (
@@ -195,18 +275,28 @@ CREATE TABLE Candidate (
     ReasonForTaking NVARCHAR(355),
     PhotoImageUrl NVARCHAR(500),
     IsAbsent BIT NOT NULL DEFAULT 0,
-    IsSuspended BIT NOT NULL DEFAULT 0
+    IsSuspended BIT NOT NULL DEFAULT 0,
+    SourceUnitCode NVARCHAR(50) NULL,
+    SourceUnitName NVARCHAR(255) NULL
 );
 GO
 
+-- ExamRegistrationId nối thí sinh trong phiên chính thức về tài khoản Registrant
 CREATE TABLE ExamEnrollment (
     ExamEnrollmentId INT PRIMARY KEY IDENTITY(1,1),
     CandidateId INT NOT NULL REFERENCES Candidate(CandidateId),
     ExamId INT NOT NULL REFERENCES Exam(ExamId),
+    ExamRegistrationId INT NULL REFERENCES ExamRegistration(ExamRegistrationId),
     AllocatedExamAreaId INT NULL REFERENCES ExamArea(ExamAreaId),
     ExamDeviceId INT NULL REFERENCES ExamDevice(ExamDeviceId),
     UNIQUE (CandidateId, ExamId)
 );
+GO
+
+-- Một hồ sơ đăng ký không được xuất hiện hai lần trong cùng một phiên
+CREATE UNIQUE INDEX UX_ExamEnrollment_Exam_Registration
+    ON ExamEnrollment(ExamId, ExamRegistrationId)
+    WHERE ExamRegistrationId IS NOT NULL;
 GO
 
 CREATE TABLE ExamEnrollmentSection (
@@ -375,4 +465,26 @@ CREATE TABLE Audit (
     Details NVARCHAR(MAX),
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
 );
+GO
+
+-- ============================== INDEXES ==============================
+
+CREATE INDEX IX_ExamDates_Status_PoliceStatus_Date
+    ON ExamDates([Status], PoliceStatus, ExamDate);
+GO
+
+CREATE INDEX IX_ExamRegistration_Profile_Status
+    ON ExamRegistration(ProfileId, RegistrationStatus);
+GO
+
+CREATE INDEX IX_Document_Profile_Type
+    ON Document(ProfileId, DocumentTypeId);
+GO
+
+CREATE INDEX IX_Exam_Date_Status
+    ON Exam(ExamDate, [Status]);
+GO
+
+CREATE INDEX IX_ExamEnrollment_Exam
+    ON ExamEnrollment(ExamId);
 GO
