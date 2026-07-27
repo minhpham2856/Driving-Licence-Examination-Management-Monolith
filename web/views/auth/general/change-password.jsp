@@ -83,7 +83,7 @@
                 <link rel="stylesheet"
                       href="${ctx}/assets/css/examstaff/account.css?v=20260714b">
             </head>
-            <body class="has-side-nav-bar">
+            <body class="has-side-nav-bar account-portal">
                 <c:choose>
                     <c:when test="${useManagingShell}">
                         <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
@@ -102,7 +102,7 @@
                     </c:otherwise>
                 </c:choose>
                 <div class="dashboard-shell">
-                    <main class="main-content">
+                    <main class="main-content account-main">
                         <div class="account-page account-page--portal">
     </c:when>
     <%--case 4: public shell--%>
@@ -117,7 +117,12 @@
 </c:choose>
 
 <%--shared form body--%>
-<div class="account-shell">
+<div class="account-shell account-shell--narrow">
+    <header class="account-hero">
+        <p class="account-hero__eyebrow">Bảo mật tài khoản</p>
+        <h1 class="account-hero__title">Đổi mật khẩu</h1>
+        <p class="account-hero__sub">Sử dụng mật khẩu mới đủ mạnh và không chia sẻ với người khác.</p>
+    </header>
     <%--flash message--%>
     <c:if test="${not empty message}">
         <div class="account-alert account-alert--${messageType eq 'success' ? 'success' : 'error'}"

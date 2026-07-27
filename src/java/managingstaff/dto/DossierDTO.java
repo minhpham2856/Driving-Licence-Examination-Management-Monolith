@@ -114,7 +114,7 @@ public class DossierDTO {
     }
 
     public boolean isReminderEligible() {
-        return isPendingReview() || "Rejected".equals(status);
+        return "Rejected".equals(status);
     }
 
     public boolean isGraduationCertificateRequired() { return false; }
