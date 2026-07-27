@@ -56,6 +56,7 @@ public class DevicesServlet extends HttpServlet {
             Map<String, Object> data = viewService.getDeviceViewByExam(activeExamId, search, preferredAreaId, sectionType);
             RequestUtil.applyModel(request, data);
         }
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/devices.jsp").forward(request, response);
     }
 

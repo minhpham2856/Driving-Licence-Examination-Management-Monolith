@@ -2,113 +2,127 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<c:set var="faultSbd" value="${not empty requestScope.candidate ? requestScope.candidate.candidateNumber : param.sbd}" />
-<c:set var="faultPageUrl" value="${not empty requestScope.pageUrl ? requestScope.pageUrl : pageContext.request.contextPath.concat('/examiner/score-entry')}" />
+<%--fault helpers--%>
+<%--sbd from candidate or param--%>
+<c:set var="faultSbd"
+       value="${not empty requestScope.candidate ? requestScope.candidate.candidateNumber : param.sbd}" />
+<%--post url for adjust--%>
+<c:set var="faultPageUrl"
+       value="${not empty requestScope.pageUrl ? requestScope.pageUrl : pageContext.request.contextPath.concat('/examiner/score-entry')}" />
+<%--true = client-side +/- before save--%>
 <c:set var="deferredAdjust" value="${param.deferredAdjust == 'true'}" />
 
-<section class="score-entry-card score-entry-card--penalties">
-    <div class="score-entry-card__head">
-        <div class="score-entry-card__title">
+<section class="card card-penalties">
+    <div class="card-head">
+        <div class="card-title">
             <span class="material-symbols-outlined">warning</span>
             <h2>Danh sách lỗi</h2>
         </div>
     </div>
 
-    <div class="score-entry-penalty-wrap">
-        <table class="score-entry-penalty-table">
+    <div class="penalty-wrap">
+        <table class="penalty-table">
+            <%--headers--%>
             <thead>
                 <tr>
                     <th>Lỗi</th>
                     <th>Trừ</th>
                     <th>Lần</th>
-                    <th>Thời gian</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
+
+            <%--body--%>
             <tbody>
                 <c:choose>
+
+                    <%--case 1: no deductions--%>
                     <c:when test="${empty requestScope.scoreDeductions}">
                         <tr>
-                            <td colspan="5" class="score-entry-table__empty">Chưa có dữ liệu lỗi.</td>
+                            <td colspan="4" class="table-empty">Chưa có dữ liệu lỗi.</td>
                         </tr>
                     </c:when>
+
+                    <%--case 2: has deductions--%>
                     <c:otherwise>
                         <c:forEach var="deduction" items="${requestScope.scoreDeductions}">
-                            <c:set var="recordedTime" value="" />
-                            <c:if test="${not empty deduction.recordedAt}">
-                                <fmt:formatDate var="recordedTime" value="${deduction.recordedAt}" pattern="HH:mm:ss"/>
-                            </c:if>
-                            <tr class="${deduction.critical ? 'score-entry-penalty-row--critical' : ''}"
+                            <tr class="${deduction.critical ? 'penalty-row critical' : ''}"
                                 data-deduction-id="${deduction.id}"
                                 data-critical="${deduction.critical}"
                                 data-points="${deduction.points}"
                                 data-base-count="${deduction.occurrenceCount}">
+
                                 <td>
-                                    <span class="score-entry-penalty-reason">${deduction.reason}</span>
+                                    <span class="penalty-reason">${deduction.reason}</span>
                                 </td>
-                                <td class="score-entry-penalty-points">
+
+                                <%--points / fail--%>
+                                <td class="penalty-points">
                                     <c:choose>
+                                        <%--case 1: critical fail--%>
                                         <c:when test="${deduction.critical}">TRƯỢT</c:when>
+                                        <%--case 2: point value--%>
                                         <c:otherwise>
                                             <fmt:formatNumber value="${deduction.points}" pattern="#"/>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="score-entry-penalty-count">
+
+                                <td class="penalty-count">
                                     <span class="js-deduction-count" data-deduction-id="${deduction.id}">
                                         ${deduction.occurrenceCount > 0 ? deduction.occurrenceCount : ''}
                                     </span>
                                 </td>
-                                <td class="score-entry-penalty-time">
+
+                                <%--+/- actions--%>
+                                <td class="penalty-actions">
                                     <c:choose>
-                                        <c:when test="${deferredAdjust}">
-                                            <span class="js-deduction-time"
-                                                  data-deduction-id="${deduction.id}"
-                                                  data-base-time="${recordedTime}">
-                                                <c:if test="${not empty deduction.recordedAt}">
-                                                    ${recordedTime}
-                                                </c:if>
-                                            </span>
-                                        </c:when>
-                                        <c:when test="${not empty deduction.recordedAt}">
-                                            <fmt:formatDate value="${deduction.recordedAt}" pattern="HH:mm:ss"/>
-                                        </c:when>
-                                        <c:otherwise></c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td class="score-entry-penalty-actions">
-                                    <c:choose>
+                                        <%--case 1: js adjust (edit result)--%>
                                         <c:when test="${not empty faultSbd and deferredAdjust}">
                                             <button type="button"
-                                                    class="score-entry-penalty-btn score-entry-penalty-btn--minus js-deduction-adjust"
+                                                    class="penalty-btn penalty-btn-minus js-deduction-adjust"
                                                     data-deduction-id="${deduction.id}"
                                                     data-delta="-1"
                                                     title="Giảm">−</button>
                                             <button type="button"
-                                                    class="score-entry-penalty-btn score-entry-penalty-btn--plus js-deduction-adjust"
+                                                    class="penalty-btn penalty-btn-plus js-deduction-adjust"
                                                     data-deduction-id="${deduction.id}"
                                                     data-delta="1"
                                                     title="Tăng">+</button>
                                         </c:when>
+
+                                        <%--case 2: post adjust (score entry)--%>
                                         <c:when test="${not empty faultSbd}">
-                                            <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">
+                                            <form method="post"
+                                                  action="${faultPageUrl}"
+                                                  class="penalty-form">
                                                 <input type="hidden" name="action" value="adjustDeduction">
                                                 <input type="hidden" name="sbd" value="${faultSbd}">
                                                 <input type="hidden" name="deductionId" value="${deduction.id}">
                                                 <input type="hidden" name="delta" value="-1">
-                                                <button type="submit" class="score-entry-penalty-btn score-entry-penalty-btn--minus" title="Giảm">−</button>
+                                                <button type="submit"
+                                                        class="penalty-btn penalty-btn-minus"
+                                                        title="Giảm">−</button>
                                             </form>
-                                            <form method="post" action="${faultPageUrl}" class="score-entry-penalty-form">
+                                            <form method="post"
+                                                  action="${faultPageUrl}"
+                                                  class="penalty-form">
                                                 <input type="hidden" name="action" value="adjustDeduction">
                                                 <input type="hidden" name="sbd" value="${faultSbd}">
                                                 <input type="hidden" name="deductionId" value="${deduction.id}">
                                                 <input type="hidden" name="delta" value="1">
-                                                <button type="submit" class="score-entry-penalty-btn score-entry-penalty-btn--plus" title="Tăng">+</button>
+                                                <button type="submit"
+                                                        class="penalty-btn penalty-btn-plus"
+                                                        title="Tăng">+</button>
                                             </form>
                                         </c:when>
+
+                                        <%--case 3: no candidate yet--%>
                                         <c:otherwise>
-                                            <span class="score-entry-penalty-btn score-entry-penalty-btn--minus examiner-btn--disabled" title="Chọn thí sinh trước">−</span>
-                                            <span class="score-entry-penalty-btn score-entry-penalty-btn--plus examiner-btn--disabled" title="Chọn thí sinh trước">+</span>
+                                            <span class="penalty-btn penalty-btn-minus btn grey-out"
+                                                  title="Chọn thí sinh trước">−</span>
+                                            <span class="penalty-btn penalty-btn-plus btn grey-out"
+                                                  title="Chọn thí sinh trước">+</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </td>

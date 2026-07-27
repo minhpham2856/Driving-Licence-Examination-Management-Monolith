@@ -65,6 +65,8 @@ public final class Attributes {
         public static final String CURRENT_SCORE = "currentScore";
         public static final String SCORE_DISQUALIFIED = "scoreDisqualified";
         public static final String VIOLATION_REASONS = "violationReasons";
+        public static final String VIOLATION = "violation";
+        public static final String VIOLATION_EVIDENCE_URL = "violationEvidenceUrl";
         public static final String PAPER_ANSWERS = "paperAnswers";
         public static final String PAPER_SUMMARY = "paperSummary";
         public static final String AUDIT_LOGS = "auditLogs";
@@ -79,6 +81,8 @@ public final class Attributes {
         public static final String FORM_REASON_DETAIL = "formReasonDetail";
         public static final String FORM_NEW_SCORE = "formNewScore";
         public static final String EDIT_ERROR = "editError";
+        public static final String FLASH_SUCCESS = "flashSuccess";
+        public static final String FLASH_ERROR = "flashError";
 
         public static final class Print {
 

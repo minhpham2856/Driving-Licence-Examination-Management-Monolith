@@ -25,12 +25,7 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Question q = new Question();
-                    q.setQuestionId(rs.getInt("QuestionId"));
-                    q.setQuestionNumber(rs.getInt("QuestionNumber"));
-                    q.setImageUrl(rs.getString("ImageUrl"));
-                    q.setCorrectAnswer(rs.getString("CorrectAnswer"));
-                    list.add(q);
+                    list.add(mapRow(rs));
                 }
             }
         } catch (SQLException e) {
@@ -46,17 +41,22 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Question q = new Question();
-                q.setQuestionId(rs.getInt("QuestionId"));
-                q.setQuestionNumber(rs.getInt("QuestionNumber"));
-                q.setImageUrl(rs.getString("ImageUrl"));
-                q.setCorrectAnswer(rs.getString("CorrectAnswer"));
-                list.add(q);
+                list.add(mapRow(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    private static Question mapRow(ResultSet rs) throws SQLException {
+        Question q = new Question();
+        q.setQuestionId(rs.getInt("QuestionId"));
+        q.setQuestionNumber(rs.getInt("QuestionNumber"));
+        q.setImageUrl(rs.getString("ImageUrl"));
+        q.setCorrectAnswer(rs.getString("CorrectAnswer"));
+        q.setCritical(rs.getBoolean("IsCritical"));
+        return q;
     }
 }
 

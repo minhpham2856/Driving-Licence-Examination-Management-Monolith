@@ -2,99 +2,113 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
+<%--context / back / page urls--%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Sửa kết quả" />
 <c:set var="backUrl" value="${ctx}/examiner/action" scope="request" />
-<c:set var="pageUrl" value="${ctx}/examiner/result-details-edit?sbd=${candidate.candidateNumber}" scope="request" />
+<c:set var="pageUrl"
+       value="${ctx}/examiner/result-details-edit?sbd=${candidate.candidateNumber}"
+       scope="request" />
+
+<%--score / form reason--%>
 <c:set var="currentScore" value="${requestScope.currentScore}" />
 <c:set var="selectedReason" value="${formReason}" />
 
 <!DOCTYPE html>
 <html lang="vi">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>SÁT HẠCH</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
+        <jsp:include page="/views/examiner/components/head.jsp">
             <jsp:param name="pageCss" value="result-edit.css,score-entry.css" />
         </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' inactive' : ''}">
 
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="action" />
         </jsp:include>
 
-        <div class="examiner-shell">
-            <jsp:include page="/views/layout/header-examiner.jsp" />
-            <main class="examiner-main examiner-main--scroll">
-                <jsp:include page="/views/examiner/components/examiner-messages.jsp" />
+        <div class="shell">
+            <jsp:include page="/views/layout/header-examiner.jsp">
+                <jsp:param name="title" value="Sửa kết quả" />
+            </jsp:include>
+            <main class="main scroll">
+                <jsp:include page="/views/examiner/components/messages.jsp" />
 
-                <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="wrapperClass" value="examiner-toolbar" />
-                    <jsp:param name="leftClass" value="exr-toolbar-left" />
-                    <jsp:param name="rightClass" value="examiner-toolbar__actions" />
-                    <jsp:param name="backClass" value="exr-back" />
-                    <jsp:param name="btnBack" value="left" />
-                    <jsp:param name="btnRefresh" value="right" />
-                </jsp:include>
+                <section class="toolbar">
+                    <div class="toolbar-left">
+                        <a href="${backUrl}" class="back">
+                            <span class="material-symbols-outlined">arrow_back</span>Quay lại
+                        </a>
+                    </div>
+                    <div class="toolbar-actions">
+                        <a href="${pageUrl}"
+                           class="btn white icon-only"
+                           title="Làm mới">
+                            <span class="material-symbols-outlined">refresh</span>
+                        </a>
+                    </div>
+                </section>
 
                 <c:choose>
+                    <%--case 1: missing candidate--%>
                     <c:when test="${empty candidate}">
-                        <section class="exr-card">
+                        <section class="card">
                             <p>Không tìm thấy thí sinh để sửa kết quả.</p>
                         </section>
                     </c:when>
+
+                    <%--case 2: edit form--%>
                     <c:otherwise>
-                        <form id="scoreEditForm" action="${ctx}/examiner/result-details-edit" method="post">
+                        <form id="scoreEditForm"
+                              action="${ctx}/examiner/result-details-edit"
+                              method="post">
                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
-                            <div class="exr-grid exr-card--mt">
-                                <div class="exr-col-left">
-                                    <section class="exr-card">
-                                        <div class="exr-section-title">
+                            <div class="edit-grid card-mt">
+                                <div class="col-left">
+                                    <section class="card">
+                                        <div class="section-title">
                                             <span class="material-symbols-outlined">badge</span>
                                             <span>THÔNG TIN THÍ SINH</span>
                                         </div>
-                                        <p class="exr-candidate-line">
+                                        <p class="candidate-line">
                                             ${candidate.fullName} - ${candidate.governmentId} - SBD: ${candidate.candidateNumber}
                                         </p>
                                     </section>
 
-                                    <section class="exr-card">
-                                        <div class="exr-section-title">
+                                    <section class="card">
+                                        <div class="section-title">
                                             <span class="material-symbols-outlined">calculate</span>
                                             <span>ĐIỀU CHỈNH ĐIỂM</span>
                                         </div>
-                                        <div class="exr-score-compare">
-                                            <div class="exr-score-panel">
-                                                <p class="exr-score-panel__label">ĐIỂM HIỆN TẠI</p>
-                                                <div class="exr-score-panel__value">
+                                        <div class="score-compare">
+                                            <div class="score-panel">
+                                                <p class="score-panel-label">ĐIỂM HIỆN TẠI</p>
+                                                <div class="score-panel-value">
                                                     <c:choose>
+                                                        <%--case 1: disqualified--%>
                                                         <c:when test="${scoreDisqualified}">
-                                                            <span class="exr-score-number exr-score-number--fail">TRƯỢT</span>
+                                                            <span class="score-number score-number-fail">TRƯỢT</span>
                                                         </c:when>
+
+                                                        <%--case 2: numeric score--%>
                                                         <c:otherwise>
-                                                            <span class="exr-score-number" id="oldScoreDisplay">
+                                                            <span class="score-number" id="oldScoreDisplay">
                                                                 <fmt:formatNumber value="${currentScore}" pattern="#"/>
                                                             </span>
-                                                            <span class="exr-score-max">/ 100</span>
+                                                            <span class="score-max">/ 100</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
                                             </div>
-                                            <div class="exr-score-panel">
-                                                <p class="exr-score-panel__label">ĐIỂM MỚI</p>
-                                                <div class="exr-score-panel__value">
-                                                    <span class="exr-score-number" id="previewNewScore">
-                                                        <fmt:formatNumber value="${empty currentScore ? 100 : currentScore}" pattern="#"/>
+                                            <div class="score-panel">
+                                                <p class="score-panel-label">ĐIỂM MỚI</p>
+                                                <div class="score-panel-value">
+                                                    <span class="score-number" id="previewNewScore">
+                                                        <fmt:formatNumber value="${empty currentScore ? 100 : currentScore}"
+                                                                          pattern="#"/>
                                                     </span>
-                                                    <span class="exr-score-max">/ 100</span>
+                                                    <span class="score-max">/ 100</span>
                                                 </div>
-                                                <p class="exr-confirm-note">Điểm mới cập nhật khi +/- lỗi bên dưới.</p>
+                                                <p class="confirm-note">Điểm mới cập nhật khi +/- lỗi bên dưới.</p>
                                             </div>
                                         </div>
                                     </section>
@@ -104,38 +118,66 @@
                                     </jsp:include>
                                 </div>
 
-                                <aside class="exr-col-right">
-                                    <section class="exr-card">
-                                        <div class="exr-section-title">
+                                <aside class="col-right">
+                                    <section class="card">
+                                        <div class="section-title">
                                             <span class="material-symbols-outlined">verified_user</span>
                                             <span>XÁC NHẬN CHỈNH SỬA</span>
                                         </div>
-                                        <div class="exr-control">
-                                            <label class="exr-input-label" for="reason">CHỌN LÝ DO <span class="exr-req">*</span></label>
-                                            <select id="reason" name="reasonCode" class="exr-select" required>
+                                        <div class="control">
+                                            <label class="input-label" for="reason">
+                                                CHỌN LÝ DO <span class="req">*</span>
+                                            </label>
+                                            <select id="reason" name="reasonCode" class="select" required>
                                                 <option value="">-- Lựa chọn lý do quy định --</option>
-                                                <option value="cham-sai" ${selectedReason eq 'cham-sai' ? 'selected' : ''}>Chấm sai</option>
-                                                <option value="nhap-nham" ${selectedReason eq 'nhap-nham' ? 'selected' : ''}>Nhập nhầm điểm</option>
-                                                <option value="khieu-nai" ${selectedReason eq 'khieu-nai' ? 'selected' : ''}>Thí sinh khiếu nại</option>
-                                                <option value="khac" ${selectedReason eq 'khac' ? 'selected' : ''}>Lý do khác</option>
+                                                <option value="cham-sai"
+                                                        ${selectedReason eq 'cham-sai' ? 'selected' : ''}>
+                                                    Chấm sai
+                                                </option>
+                                                <option value="nhap-nham"
+                                                        ${selectedReason eq 'nhap-nham' ? 'selected' : ''}>
+                                                    Nhập nhầm điểm
+                                                </option>
+                                                <option value="khieu-nai"
+                                                        ${selectedReason eq 'khieu-nai' ? 'selected' : ''}>
+                                                    Thí sinh khiếu nại
+                                                </option>
+                                                <option value="khac"
+                                                        ${selectedReason eq 'khac' ? 'selected' : ''}>
+                                                    Lý do khác
+                                                </option>
                                             </select>
                                         </div>
-                                        <div class="exr-control">
-                                            <label class="exr-input-label" for="reasonDetail">LÝ DO CHI TIẾT (tùy chọn)</label>
-                                            <textarea id="reasonDetail" name="reasonDetail" class="exr-textarea"
+                                        <div class="control">
+                                            <label class="input-label" for="reasonDetail">
+                                                LÝ DO CHI TIẾT (tùy chọn)
+                                            </label>
+                                            <textarea id="reasonDetail"
+                                                      name="reasonDetail"
+                                                      class="textarea"
                                                       placeholder="Nhập mô tả chi tiết nguyên nhân dẫn đến việc thay đổi điểm số...">${formReasonDetail}</textarea>
                                         </div>
-                                        <div class="exr-control">
-                                            <label class="exr-input-label" for="pwd">MẬT KHẨU XÁC THỰC BẢO MẬT <span class="exr-req">*</span></label>
-                                            <input type="password" id="pwd" name="confirmPassword" class="exr-input"
-                                                   placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
+                                        <div class="control">
+                                            <label class="input-label" for="pwd">
+                                                MẬT KHẨU XÁC THỰC BẢO MẬT <span class="req">*</span>
+                                            </label>
+                                            <input type="password"
+                                                   id="pwd"
+                                                   name="confirmPassword"
+                                                   class="input"
+                                                   placeholder="Nhập mật khẩu của bạn"
+                                                   required
+                                                   autocomplete="current-password">
                                         </div>
-                                        <div class="exr-confirm-wrap">
-                                            <button type="submit" class="examiner-btn examiner-btn--primary exr-confirm-btn--full">
+                                        <div class="confirm-wrap">
+                                            <button type="submit"
+                                                    class="btn blue confirm-btn-full">
                                                 <span class="material-symbols-outlined">task_alt</span>
                                                 XÁC NHẬN THAY ĐỔI ĐIỂM
                                             </button>
-                                            <p class="exr-confirm-note">Mọi thay đổi điểm sẽ được ghi nhận vào lịch sử kiểm tra.</p>
+                                            <p class="confirm-note">
+                                                Mọi thay đổi điểm sẽ được ghi nhận vào lịch sử kiểm tra.
+                                            </p>
                                         </div>
                                     </section>
                                 </aside>
@@ -179,10 +221,6 @@
                         if (label) {
                             label.textContent = count || '';
                         }
-                        var timeLabel = row.querySelector('.js-deduction-time');
-                        if (timeLabel && count === 0) {
-                            timeLabel.textContent = '';
-                        }
                         if (row.dataset.critical === 'true' && count > 0) {
                             failed = true;
                         }
@@ -198,20 +236,6 @@
                         var previous = counts.get(id) || 0;
                         var next = Math.max(0, previous + Number(button.dataset.delta));
                         counts.set(id, next);
-                        var row = button.closest('tr[data-deduction-id]');
-                        var timeLabel = row ? row.querySelector('.js-deduction-time') : null;
-                        if (timeLabel) {
-                            if (next > 0 && previous === 0) {
-                                timeLabel.textContent = new Date().toLocaleTimeString('vi-VN', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    second: '2-digit',
-                                    hour12: false
-                                });
-                            } else if (next === 0) {
-                                timeLabel.textContent = '';
-                            }
-                        }
                         render();
                     });
                 });

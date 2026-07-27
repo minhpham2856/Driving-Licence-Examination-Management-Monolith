@@ -95,7 +95,7 @@ public class AuditServiceImpl implements AuditService {
         row.put("actionBadge", mapActionBadge(action));
         row.put("entityName", entityLabelFromDb(log.getEntityName()));
         row.put("sbd", sbd);
-        row.put("newValueClass", action == AuditAction.DELETE ? "audit-td--old" : "audit-td--new");
+        row.put("newValueClass", action == AuditAction.DELETE ? "audit-td-old" : "audit-td-new");
         row.put("multiline", message != null && message.contains("\n"));
         if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
             row.put("info", buildChangeInfo(log, action, sbd));
@@ -217,15 +217,15 @@ public class AuditServiceImpl implements AuditService {
     private static String mapActionBadge(AuditAction action) {
         return switch (action) {
             case CREATE ->
-                "audit-badge--insert";
+                "audit-badge-insert";
             case DELETE ->
-                "audit-badge--delete";
+                "audit-badge-delete";
             case EXPORT ->
-                "audit-badge--export";
+                "audit-badge-export";
             case IMPORT ->
-                "audit-badge--import";
+                "audit-badge-import";
             default ->
-                "audit-badge--update";
+                "audit-badge-update";
         };
     }
 

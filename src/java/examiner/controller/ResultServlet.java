@@ -81,6 +81,7 @@ public class ResultServlet extends HttpServlet {
             }
         }
 
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/result-details-edit.jsp").forward(request, response);
     }
 

@@ -5,66 +5,74 @@
 <head>
     <meta charset="UTF-8">
     <title>${docTitle}</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/examiner/print-document.css">
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/examiner/print-document.css">
 </head>
-<body class="print-doc" data-auto-print="${autoPrint ? 'true' : 'false'}">
-<div class="print-doc__toolbar no-print">
-    <button type="button" class="print-doc__btn print-doc__btn--primary" id="btnPrint">In</button>
-    <button type="button" class="print-doc__btn" onclick="window.close()">Đóng</button>
+<body class="doc"
+      data-auto-print="${autoPrint ? 'true' : 'false'}">
+<div class="toolbar no-print">
+    <button type="button"
+            class="btn blue"
+            id="btnPrint">In</button>
+    <button type="button"
+            class="btn"
+            onclick="window.close()">Đóng</button>
 </div>
 
-<div class="print-doc__page print-doc__page--bb1 print-doc__page--layout">
-    <div class="print-doc__header">
-        <div class="print-doc__header-col">
-            <div class="print-doc__org">CÔNG AN <c:out value="${bb.DEPT}"/></div>
-            <div class="print-doc__org">HỘI ĐỒNG SÁT HẠCH</div>
+<div class="page page-bb1 page-layout">
+    <div class="header">
+        <div class="header-col">
+            <div class="org">CÔNG AN <c:out value="${bb.DEPT}"/></div>
+            <div class="org">HỘI ĐỒNG SÁT HẠCH</div>
         </div>
-        <div class="print-doc__header-col print-doc__header-col--right">
-            <div class="print-doc__org">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-            <div class="print-doc__motto">Độc lập – Tự do – Hạnh phúc</div>
+        <div class="header-col right">
+            <div class="org">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+            <div class="motto">Độc lập – Tự do – Hạnh phúc</div>
         </div>
     </div>
 
-    <h1 class="print-doc__title">BIÊN BẢN SÁT HẠCH THỰC HÀNH LÁI XE TRONG HÌNH</h1>
+    <h1 class="title">BIÊN BẢN SÁT HẠCH THỰC HÀNH LÁI XE TRONG HÌNH</h1>
 
-    <div class="print-doc__info">
-        <div class="print-doc__info-main">
-            <div class="print-doc__row">
+    <div class="info">
+        <div class="info-main">
+            <div class="row">
                 <span>Họ và tên: <strong><c:out value="${bb.FNAME}"/></strong></span>
                 <span>Khoá sát hạch: <c:out value="${bb.EXAM}"/></span>
             </div>
-            <div class="print-doc__row">
+            <div class="row">
                 <span>Hạng: <c:out value="${bb.CLASS}"/></span>
                 <span>Ngày sinh: <c:out value="${bb.DOB}"/></span>
             </div>
-            <div class="print-doc__row">
+            <div class="row">
                 <span>Ngày sát hạch: <c:out value="${bb.DATE}"/></span>
                 <span>Số báo danh: <c:out value="${bb.CNO}"/></span>
             </div>
-            <div class="print-doc__row">
+            <div class="row">
                 <span>Số định danh: <c:out value="${bb.IDNO}"/></span>
                 <span>Thời điểm bắt đầu: <c:out value="${bb.START}"/></span>
             </div>
-            <div class="print-doc__row">
+            <div class="row">
                 <span>Số xe sát hạch: <c:out value="${bb.VNO}"/></span>
                 <span>Lần thi: <c:out value="${bb.TAKENO}"/></span>
             </div>
-            <div class="print-doc__row">
+            <div class="row">
                 <span>Thời điểm kết thúc: <c:out value="${bb.END}"/></span>
                 <span>Tổng thời gian sát hạch: <c:out value="${bb.TIME}"/></span>
             </div>
         </div>
-        <div class="print-doc__photo">
+        <div class="photo">
             <c:choose>
+                <%--case 1: has photo--%>
                 <c:when test="${not empty bb.PHOTO_URL}">
                     <img src="${bb.PHOTO_URL}" alt="Ảnh thí sinh">
                 </c:when>
+                <%--case 2: empty--%>
                 <c:otherwise>Ảnh 3x4</c:otherwise>
             </c:choose>
         </div>
     </div>
 
-    <table class="print-doc__practice">
+    <table class="practice">
         <thead>
         <tr>
             <th>Số TT</th>
@@ -75,11 +83,13 @@
         </thead>
         <tbody>
         <c:choose>
+            <%--case 1: no deductions--%>
             <c:when test="${empty bb.deductionRows}">
                 <tr>
-                    <td colspan="4" class="print-doc__empty">Không có lỗi bị trừ điểm</td>
+                    <td colspan="4" class="empty">Không có lỗi bị trừ điểm</td>
                 </tr>
             </c:when>
+            <%--case 2: has deductions--%>
             <c:otherwise>
                 <c:forEach var="row" items="${bb.deductionRows}">
                     <tr>
@@ -91,7 +101,7 @@
                 </c:forEach>
             </c:otherwise>
         </c:choose>
-        <tr class="print-doc__practice-total">
+        <tr class="practice-total">
             <td colspan="2">Cộng</td>
             <td><c:out value="${bb.TIMES}"/></td>
             <td><c:out value="${bb.TOTAL}"/></td>
@@ -99,13 +109,13 @@
         </tbody>
     </table>
 
-    <p class="print-doc__ketluan">
+    <p class="ketluan">
         Kết luận: Số điểm đạt được: <strong><c:out value="${bb.SCORE}"/></strong>
         &nbsp;&nbsp; Đạt <strong>[<c:out value="${empty bb.P ? ' ' : bb.P}"/>]</strong>
         &nbsp;&nbsp; Không đạt <strong>[<c:out value="${empty bb.F ? ' ' : bb.F}"/>]</strong>
     </p>
 
-    <div class="print-doc__signs">
+    <div class="signs">
         <div>Sát hạch viên ký xác nhận</div>
         <div>Học viên ký xác nhận kết quả</div>
     </div>

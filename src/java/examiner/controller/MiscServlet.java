@@ -77,6 +77,7 @@ public class MiscServlet extends HttpServlet {
                 "/views/examiner/audit.jsp";
         };
         // audit and print-documents need server-loaded attributes.
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 }

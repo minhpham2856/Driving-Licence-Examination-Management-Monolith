@@ -26,9 +26,6 @@ public interface ExaminerViewDAO {
     // Loads deduction occurrence counts keyed by ScoreDeductionId for one candidate/exam.
     Map<Integer, int[]> getAllDeductionOccurrencesByExam(int candidateId, int examId);
 
-    // Loads deduction recorded timestamps keyed by ScoreDeductionId for one candidate/exam.
-    Map<Integer, java.util.Date> getAllDeductionRecordedAtByExam(int candidateId, int examId);
-
     // Loads current score and critical-disqualification flag for one candidate section.
     Map<String, Object> getIfScoreSummaryByCandidateAndExam(int candidateId, int examId, String sectionType);
 }

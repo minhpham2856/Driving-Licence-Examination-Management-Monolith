@@ -72,6 +72,7 @@ public class DashboardServlet extends HttpServlet {
         }
 
         // Display the dashboard page
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/dashboard.jsp").forward(request, response);
     }
 

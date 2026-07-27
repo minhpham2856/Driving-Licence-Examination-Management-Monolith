@@ -69,9 +69,6 @@ public interface ActionService {
     ServiceResult<Void> markSuspended(int examId, int sbd, Integer actionUserId, String reasonCode,
             String reasonDetail, SectionType sectionType);
 
-    // Clears Candidate.IsSuspended.
-    ServiceResult<Void> undoSuspension(int examId, int sbd, Integer actionUserId, SectionType sectionType);
-
     // Verifies a user's password against the stored hash in the database.
     boolean verifyPassword(User user, String password);
 

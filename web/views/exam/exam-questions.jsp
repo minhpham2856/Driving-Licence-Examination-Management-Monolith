@@ -34,10 +34,7 @@
         <c:forEach var="q" items="${questions}" varStatus="status">
             <section class="exam-question-card">
                 <div class="exam-question-card__head">
-                    <span>Câu ${status.count}</span>
-                    <c:if test="${q.critical}">
-                        <em>Câu điểm liệt</em>
-                    </c:if>
+                    <span>Câu ${status.count} [${q.questionNumber} - ${q.correctAnswer} - ${q.critical}]</span>
                 </div>
                 <c:if test="${not empty q.imageUrl}">
                     <img class="exam-question-card__image" src="${q.imageUrl}" alt="Hình câu hỏi ${status.count}">
