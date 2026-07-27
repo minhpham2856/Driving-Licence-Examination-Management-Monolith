@@ -9,18 +9,33 @@ import java.util.Map;
 
 public final class ConfigManager {
 
-    private static final Map<String, String> ENV = loadDotEnv();
+    /**
+     * Nạp lại file .env tối đa mỗi RELOAD_INTERVAL_MS mili-giây thay vì chỉ đọc
+     * một lần lúc classloader khởi tạo. Nhờ vậy sửa .env (vd điền email/app password)
+     * có hiệu lực trong vài giây mà KHÔNG cần restart lại Tomcat.
+     */
+    private static final long RELOAD_INTERVAL_MS = 3000;
+    private static volatile Map<String, String> ENV = loadDotEnv();
+    private static volatile long lastLoadedAt = System.currentTimeMillis();
 
     private ConfigManager() {
     }
 
 //     OS env trước, rồi .env (project root = thư mục có src/ và .env)
     public static String get(String key) {
+        maybeReload();
         String fromOs = System.getenv(key);
         if (fromOs != null && !fromOs.isBlank()) {
             return fromOs.trim();
         }
         return ENV.get(key);
+    }
+
+    private static synchronized void maybeReload() {
+        long now = System.currentTimeMillis();
+        if (now - lastLoadedAt < RELOAD_INTERVAL_MS) return;
+        lastLoadedAt = now;
+        ENV = loadDotEnv();
     }
 
     public static String get(String key, String defaultValue) {
