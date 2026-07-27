@@ -120,10 +120,7 @@ public final class AllocationPassRules {
         if ("passed".equalsIgnoreCase(nullToPass(c.getTheoryPassed()))) {
             return true;
         }
-        String license = normalizeLicense(c.getLicenseCode(), c.getClazz());
-        return isMotorcycle(license)
-                && "none".equalsIgnoreCase(nullToPass(c.getTheoryPassed()))
-                && "Retake".equalsIgnoreCase(c.getRegistrationType());
+        return false;
     }
 
     private static String nullToPass(String v) {
