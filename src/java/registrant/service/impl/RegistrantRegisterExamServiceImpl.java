@@ -245,6 +245,11 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
             request.setAttribute("canConfirmRegistration", false);
             return;
         }
+        if (licenceId > 0
+                && registrantdao.hasCancelledPreferredExamDateWithoutActive(profile.getProfileId(), licenceId)) {
+            request.setAttribute("preferredDateCancelledNotice",
+                    "Ngày thi nguyện vọng trước đó đã bị hủy. Bạn có thể chọn ngày khác đang mở đăng ký.");
+        }
 
         if (!sessionChosen || selectedSession == null) {
             request.setAttribute("canConfirmRegistration", false);

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.Date;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import managingstaff.dao.DossierDAO;
@@ -21,7 +22,9 @@ import managingstaff.dao.impl.TentativeExamDateDAOImpl;
 import managingstaff.dto.DossierDTO;
 import managingstaff.dto.TentativeExamDateDTO;
 import managingstaff.service.ApprovedCandidateExcelService;
+import managingstaff.service.EmailService;
 import managingstaff.service.impl.ApprovedCandidateExcelServiceImpl;
+import managingstaff.service.impl.EmailServiceImpl;
 import managingstaff.util.AuditLogHelper;
 import managingstaff.util.SessionUtil;
 import shared.util.TentativeExamDatePolicy;
@@ -34,6 +37,7 @@ public class TentativeExamDateServlet extends HttpServlet {
     private final DossierDAO dossierDAO = new DossierDAOImpl();
     private final LicenceDAO licenceDAO = new LicenceDAOImpl();
     private final ApprovedCandidateExcelService excelService = new ApprovedCandidateExcelServiceImpl();
+    private final EmailService emailService = new EmailServiceImpl();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -98,15 +102,24 @@ public class TentativeExamDateServlet extends HttpServlet {
             int id = integer(req.getParameter("dateId"));
             String reason = req.getParameter("cancelReason");
             try {
+                TentativeExamDateDTO cancelledDate = dateDAO.findById(id);
+                List<DossierDTO> recipients = cancelledDate == null
+                        ? List.of()
+                        : dossiers(dateDAO.findAllRegistrationIds(id));
                 int affected = dateDAO.cancel(id, reason,
                         SessionUtil.currentUserId(req.getSession(false)));
+                int sent = sendCancellationEmails(cancelledDate, recipients, reason);
                 AuditLogHelper.persistChange(req.getSession(), "CANCEL TENTATIVE EXAM DATE",
                         "Hủy ngày thi dự kiến #" + id + ". Lý do: " + reason.trim()
-                                + ". Đã giải phóng " + affected + " lựa chọn.",
+                                + ". Đã hủy " + affected + " lựa chọn ngày và gửi "
+                                + sent + " email.",
                         "Open", "Cancelled", "ExamDates", id);
+                String emailResult = emailService.isConfigured()
+                        ? " Đã gửi email cho " + sent + "/" + affected + " thí sinh."
+                        : " Chưa gửi email vì SMTP chưa được cấu hình.";
                 req.getSession().setAttribute("tentativeSuccess",
-                        "Đã hủy ngày thi dự kiến và giải phóng " + affected
-                                + " lựa chọn của thí sinh.");
+                        "Đã hủy ngày thi dự kiến và hủy " + affected
+                                + " lựa chọn ngày của thí sinh." + emailResult);
                 resp.sendRedirect(req.getContextPath()
                         + "/manager/tentative-exam-dates?tab=cancelled&dateId=" + id);
             } catch (Exception e) {
@@ -145,6 +158,37 @@ public class TentativeExamDateServlet extends HttpServlet {
             req.getSession().setAttribute("tentativeError", e.getMessage());
             resp.sendRedirect(req.getContextPath() + "/manager/tentative-exam-dates");
         }
+    }
+
+    private int sendCancellationEmails(TentativeExamDateDTO date,
+            List<DossierDTO> recipients, String reason) {
+        if (!emailService.isConfigured() || date == null || date.getExamDate() == null) {
+            return 0;
+        }
+        String formattedDate = date.getExamDate().toLocalDate()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        int sent = 0;
+        for (DossierDTO dossier : recipients) {
+            if (dossier == null || dossier.getUser() == null) {
+                continue;
+            }
+            String fullName = dossier.getProfile() == null
+                    || dossier.getProfile().getFullName() == null
+                    || dossier.getProfile().getFullName().isBlank()
+                    ? "thí sinh" : dossier.getProfile().getFullName();
+            String body = "Xin chào " + fullName + ",\n\n"
+                    + "Trung tâm đã hủy ngày thi dự kiến " + formattedDate
+                    + ", hạng " + date.getLicenceClass() + ".\n"
+                    + "Lý do: " + reason.trim() + ".\n\n"
+                    + "Lựa chọn ngày cũ của bạn đã được hủy. Hồ sơ đã duyệt và "
+                    + "tài liệu vẫn được giữ nguyên; vui lòng đăng nhập và thực hiện "
+                    + "lại bước đăng ký ngày thi dự kiến từ đầu.";
+            if (emailService.sendTextEmail(dossier.getUser().getEmail(),
+                    "Thông báo hủy ngày thi dự kiến", body)) {
+                sent++;
+            }
+        }
+        return sent;
     }
 
     private void export(HttpServletRequest req, HttpServletResponse resp, int dateId, String type) throws IOException {
