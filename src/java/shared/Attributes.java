@@ -15,6 +15,7 @@ public final class Attributes {
         public static final String REGISTRATION_USERNAME = "registrationUsername";
         public static final String REGISTRATION_PASSWORD = "registrationPassword";
         public static final String ACTIVE_CANDIDATE_EXAM_ID = "activeCandidateExamId";
+        public static final String ACTIVE_CANDIDATE_KIOSK_PASSWORD = "activeCandidateKioskPassword";
     }
 
     // Request attributes for page data and one-hop flash
@@ -90,7 +91,7 @@ public final class Attributes {
             public static final String AUTO_PRINT = "autoPrint";
             public static final String PAYLOAD = "payload";
             public static final String PRINTED_AT = "printedAt";
-            public static final String MODEL = "bb";
+            public static final String MODEL = "printModel";
             public static final String ANSWER_LIST_A = "answerListA";
             public static final String ANSWER_LIST_B = "answerListB";
             public static final String MARKS_A = "marksA";

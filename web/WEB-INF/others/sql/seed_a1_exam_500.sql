@@ -36,7 +36,7 @@ WHERE ExamId = @A1ExamId AND SectionType = N'Thực hành trong hình';
 -- 1. Kích hoạt kỳ thi
 UPDATE Exam
 SET [Status] = N'Đang diễn ra'
-   ,ExamPassword = N'exam123'
+   ,ExamPassword = NULL
 WHERE ExamId = @A1ExamId;
 GO
 

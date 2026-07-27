@@ -379,7 +379,57 @@ body.examstaff-portal .exam-shift-chip__btn:disabled {
     pointer-events: none;
 }
 
-/* Header examstaff - breadcrumb + kỳ thi đang chọn */
+/* Header examstaff - layout + breadcrumb + kỳ thi đang chọn */
+body.examstaff-portal .examiner-header {
+    flex-shrink: 0;
+    height: 64px;
+    padding: 0 24px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #c3c6d6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-sizing: border-box;
+}
+
+body.examstaff-portal .examiner-header__title,
+body.examstaff-portal .examiner-header__crumb-row {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+body.examstaff-portal .examiner-header__crumb-primary {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 700;
+    color: #003d9b;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+
+body.examstaff-portal .examiner-header__crumb-primary:hover,
+body.examstaff-portal .examiner-header__crumb-primary:focus {
+    color: #003d9b;
+    text-decoration: none;
+}
+
+body.examstaff-portal .examiner-header__crumb-child {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #171c1f;
+}
+
+body.examstaff-portal .examiner-header__meta {
+    flex-shrink: 0;
+    min-width: 0;
+}
+
 body.examstaff-portal .examiner-header--examstaff .examiner-header__crumb-current {
     font-weight: 600;
     color: #0f172a;
@@ -432,6 +482,37 @@ body.examstaff-portal .examiner-header__exam-date {
     padding-left: 8px;
     border-left: 1px solid #cbd5e1;
     white-space: nowrap;
+}
+
+body.examstaff-portal .exam-kiosk-password {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+body.examstaff-portal .exam-kiosk-password__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+}
+
+body.examstaff-portal .exam-kiosk-password__value {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #0052cc;
+}
+
+body.examstaff-portal .exam-kiosk-password__empty {
+    font-size: 13px;
+    color: #64748b;
 }
 
 @media (max-width: 960px) {

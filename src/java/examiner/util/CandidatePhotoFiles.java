@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 // Resolve candidate portrait files stored under candidate-photos/ (local runtime data).
+// Mirror module examstaff.util.CandidatePhotoFiles — giữ logic đọc đồng bộ.
 public final class CandidatePhotoFiles {
 
     public static final String STORED_PHOTO_PREFIX = "candidate-photos/";

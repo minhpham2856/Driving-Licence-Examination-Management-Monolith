@@ -62,6 +62,27 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
     }
 
     @Override
+    public boolean verifyExamPassword(int examId, String examPassword) {
+        if (examId <= 0 || examPassword == null || examPassword.isBlank()) {
+            return false;
+        }
+        String sql = "SELECT ExamPassword FROM Exam WHERE ExamId = ? AND [Status] = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examId);
+            ps.setString(2, ExamStatus.IN_PROGRESS.getValue());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+                return passwordMatches(examPassword.trim(), rs.getString("ExamPassword"));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
     public CandidateExamContextDTO getEligibleTheoryContext(int examId, String candidateNumber) {
         if (examId <= 0) {
             return null;

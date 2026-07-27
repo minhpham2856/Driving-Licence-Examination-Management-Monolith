@@ -89,6 +89,7 @@ public class ExamViewDAOImpl extends DBContext implements ExamViewDAO {
         dto.setLicenseCode(rs.getString("licenseCode"));
         dto.setExamCode(rs.getString("examCode"));
         dto.setExamTypeName(rs.getString("examTypeName"));
+        dto.setExamPassword(rs.getString("examPassword"));
         return dto;
     }
 }

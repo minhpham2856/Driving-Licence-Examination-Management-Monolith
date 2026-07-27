@@ -22,7 +22,7 @@
 <div class="page page-bb1">
     <div class="header">
         <div class="header-col">
-            <div class="org">CÔNG AN <c:out value="${bb.DEPT}"/></div>
+            <div class="org">CÔNG AN <c:out value="${printModel.DEPT}"/></div>
             <div class="org org-underline">HỘI ĐỒNG SÁT HẠCH</div>
         </div>
         <div class="header-col">
@@ -36,31 +36,31 @@
     <div class="info">
         <div class="info-main">
             <div class="row">
-                <span>Họ và tên: <span class="value"><c:out value="${bb.FNAME}"/></span></span>
-                <span>Khoá sát hạch: <span class="value"><c:out value="${bb.EXAM}"/></span></span>
+                <span>Họ và tên: <span class="value"><c:out value="${printModel.FNAME}"/></span></span>
+                <span>Khoá sát hạch: <span class="value"><c:out value="${printModel.EXAM}"/></span></span>
             </div>
             <div class="row">
-                <span>Ngày sinh: <c:out value="${bb.DOB}"/></span>
-                <span>Ngày sát hạch: <c:out value="${bb.DATE}"/></span>
+                <span>Ngày sinh: <c:out value="${printModel.DOB}"/></span>
+                <span>Ngày sát hạch: <c:out value="${printModel.DATE}"/></span>
             </div>
             <div class="row">
-                <span>Số định danh: <c:out value="${bb.IDNO}"/></span>
-                <span>Thời điểm bắt đầu: <c:out value="${bb.START}"/></span>
+                <span>Số định danh: <c:out value="${printModel.IDNO}"/></span>
+                <span>Thời điểm bắt đầu: <c:out value="${printModel.START}"/></span>
             </div>
             <div class="row">
-                <span>Hạng: <c:out value="${bb.CLASS}"/></span>
-                <span>Thời điểm kết thúc: <c:out value="${bb.END}"/></span>
+                <span>Hạng: <c:out value="${printModel.CLASS}"/></span>
+                <span>Thời điểm kết thúc: <c:out value="${printModel.END}"/></span>
             </div>
             <div class="row">
-                <span>Số báo danh: <c:out value="${bb.CNO}"/></span>
-                <span>Lần thi: <c:out value="${bb.TAKENO}"/></span>
+                <span>Số báo danh: <c:out value="${printModel.CNO}"/></span>
+                <span>Lần thi: <c:out value="${printModel.TAKENO}"/></span>
             </div>
         </div>
         <div class="photo">
             <c:choose>
                 <%--case 1: has photo--%>
-                <c:when test="${not empty bb.PHOTO_URL}">
-                    <img src="${bb.PHOTO_URL}" alt="Ảnh thí sinh">
+                <c:when test="${not empty printModel.photoImageUrl}">
+                    <img src="${pageContext.request.contextPath}/examiner/candidate-photo?sbd=${printModel.CNO}" alt="Ảnh thí sinh">
                 </c:when>
                 <%--case 2: empty--%>
                 <c:otherwise>(ảnh 3x4)</c:otherwise>
@@ -134,11 +134,11 @@
 
     <p class="ketluan">
         <span class="ketluan-label">Kết luận:</span>
-        Số điểm đạt được: <c:out value="${bb.SCORE}"/>
+        Số điểm đạt được: <c:out value="${printModel.SCORE}"/>
         &nbsp;&nbsp;&nbsp; Đạt
-        <span class="box"><c:out value="${empty bb.P ? ' ' : bb.P}"/></span>
+        <span class="box"><c:out value="${empty printModel.P ? ' ' : printModel.P}"/></span>
         &nbsp;&nbsp;&nbsp; Không đạt
-        <span class="box"><c:out value="${empty bb.F ? ' ' : bb.F}"/></span>
+        <span class="box"><c:out value="${empty printModel.F ? ' ' : printModel.F}"/></span>
     </p>
 
     <div class="signs">

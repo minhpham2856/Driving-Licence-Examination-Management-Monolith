@@ -17,6 +17,11 @@ public class CandidateExamAccessServiceImpl implements CandidateExamAccessServic
     }
 
     @Override
+    public boolean verifyExamPassword(int examId, String examPassword) {
+        return accessDAO.verifyExamPassword(examId, examPassword);
+    }
+
+    @Override
     public CandidateExamContextDTO authenticate(int examId, String candidateNumber) {
         return accessDAO.getEligibleTheoryContext(examId, candidateNumber);
     }

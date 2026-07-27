@@ -25,7 +25,6 @@
 
 <%--first-load / filter param tokens--%>
 <c:set var="isFirstLoad" value="${empty param.submit}" />
-<c:set var="typeParams" value="${fn:join(paramValues.type, ',')}" />
 <c:set var="durationParams" value="${fn:join(paramValues.duration, ',')}" />
 
 <main class="public-main categories-page">
@@ -59,26 +58,6 @@
                                class="filter-search__input"
                                placeholder="Tìm hạng bằng..."
                                value="<c:out value='${searchQuery}' />">
-                    </div>
-
-                    <div class="filter-group">
-                        <h3 class="filter-group__title">LOẠI PHƯƠNG TIỆN</h3>
-                        <div class="filter-group__options">
-                            <label class="filter-option">
-                                <input type="checkbox"
-                                       name="type"
-                                       value="moto-2"
-                                       <c:if test="${fn:contains(typeParams, 'moto-2')}">checked</c:if>>
-                                <span class="filter-label-text">Mô tô 2 bánh</span>
-                            </label>
-                            <label class="filter-option">
-                                <input type="checkbox"
-                                       name="type"
-                                       value="moto-3"
-                                       <c:if test="${fn:contains(typeParams, 'moto-3')}">checked</c:if>>
-                                <span class="filter-label-text">Mô tô 3 bánh</span>
-                            </label>
-                        </div>
                     </div>
 
                     <div class="filter-group filter-group--bordered">
@@ -124,11 +103,6 @@
                             <c:set var="preservedParams"
                                    value="${preservedParams}&q=${fn:escapeXml(searchQuery)}" />
                         </c:if>
-                        <c:forTokens var="t" items="${typeParams}" delims=",">
-                            <c:if test="${not empty t}">
-                                <c:set var="preservedParams" value="${preservedParams}&type=${t}" />
-                            </c:if>
-                        </c:forTokens>
                         <c:forTokens var="d" items="${durationParams}" delims=",">
                             <c:if test="${not empty d}">
                                 <c:set var="preservedParams" value="${preservedParams}&duration=${d}" />

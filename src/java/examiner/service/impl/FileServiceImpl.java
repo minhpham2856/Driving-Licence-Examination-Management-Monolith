@@ -9,7 +9,6 @@ import examiner.dto.PrintPreviewDTO;
 import examiner.dto.XmlExportTable;
 import examiner.dao.CandidateAnswerDAO;
 import examiner.dao.CandidateViolationDAO;
-import examiner.util.CandidatePhotoFiles;
 import shared.enums.FileType;
 import shared.enums.SectionType;
 import shared.model.Audit;
@@ -600,11 +599,11 @@ public class FileServiceImpl implements FileService {
         switch (normalized) {
             case "theory", "signature", "signature_form" -> {
                 form = "THEORY";
-                data = buildBb1Placeholders(ctx, candidate);
+                data = buildTheoryPrintModel(ctx, candidate);
             }
             case "layout" -> {
                 form = "LAYOUT";
-                data = buildBb2Placeholders(ctx, candidate);
+                data = buildLayoutPrintModel(ctx, candidate);
             }
             case "violation" -> {
                 form = "VIOLATION";
@@ -613,8 +612,8 @@ public class FileServiceImpl implements FileService {
             case "result" -> {
                 form = ctx.isTheory() ? "THEORY" : "LAYOUT";
                 data = "THEORY".equals(form)
-                        ? buildBb1Placeholders(ctx, candidate)
-                        : buildBb2Placeholders(ctx, candidate);
+                        ? buildTheoryPrintModel(ctx, candidate)
+                        : buildLayoutPrintModel(ctx, candidate);
             }
             default ->
                 throw new IOException("Loại văn bản in không được hỗ trợ: " + documentType);
@@ -631,29 +630,10 @@ public class FileServiceImpl implements FileService {
             data.put("marksA", buildChoiceMarks(listA));
             data.put("marksB", buildChoiceMarks(listB));
         }
-        String photoUrl = candidate.getPhotoImageUrl();
-        data.put("PHOTO_URL", resolveCandidatePhotoUrl(ctx, candidate.getCandidateNumber(), photoUrl));
-        data.put("PIC", "");
         return data;
     }
 
-    // Build a browser-reachable photo URL for print templates (local file via servlet, or remote http).
-    private String resolveCandidatePhotoUrl(ExportContextDTO ctx, int sbd, String photoUrl) {
-        if (photoUrl == null || photoUrl.isBlank()) {
-            return "";
-        }
-        String trimmed = photoUrl.trim();
-        if (CandidatePhotoFiles.isRemoteUrl(trimmed)) {
-            return trimmed;
-        }
-        if (CandidatePhotoFiles.findPhotoFile(trimmed) == null) {
-            return "";
-        }
-        String contextPath = ctx.contextPath() == null ? "" : ctx.contextPath();
-        return contextPath + "/examiner/candidate-photo?sbd=" + sbd;
-    }
-
-    private Map<String, Object> buildBb1Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
+    private Map<String, Object> buildTheoryPrintModel(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("A", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_A_FROM, BLOCK_A_TO));
         data.put("B", buildTheoryAnswerBlock(candidate.getEnrollmentId(), BLOCK_B_FROM, BLOCK_B_TO));
@@ -664,7 +644,7 @@ public class FileServiceImpl implements FileService {
         return data;
     }
 
-    private Map<String, Object> buildBb2Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {
+    private Map<String, Object> buildLayoutPrintModel(ExportContextDTO ctx, CandidateRowDTO candidate) {
         Map<String, Object> data = baseCandidatePlaceholders(ctx, candidate);
         data.put("VNO", format(candidate.getVehicleName()));
         data.put("TIME", format(candidate.getExamDate()));
@@ -732,7 +712,7 @@ public class FileServiceImpl implements FileService {
         data.put("DEPT", "TP. HÀ NỘI");
         data.put("FNAME", format(candidate.getFullName()));
         data.put("EXAM", formatExamCode(ctx));
-        data.put("PIC", "");
+        data.put("photoImageUrl", candidate.getPhotoImageUrl());
         data.put("DOB", format(candidate.getDob()));
         data.put("DATE", format(candidate.getExamDate()));
         data.put("IDNO", format(candidate.getGovernmentId()));
@@ -914,9 +894,6 @@ public class FileServiceImpl implements FileService {
     // Validates export request for Excel-only session document types.
     private void validateExport(String documentType, FileType format, int sbd) throws IOException {
         String normalized = formatDocumentType(documentType);
-        if (format == FileType.DOCX) {
-            throw new IOException("Loại tài liệu này chỉ xuất Excel.");
-        }
         if (format != FileType.EXCEL) {
             throw new IOException("Định dạng xuất không được hỗ trợ.");
         }

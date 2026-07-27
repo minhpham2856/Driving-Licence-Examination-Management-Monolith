@@ -21,6 +21,10 @@
     </target>
     <target name="-pre-run-deploy">
         <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
+        <mkdir dir="${build.web.dir}/META-INF"/>
+        <copy file="${web.docbase.dir}/META-INF/context.xml"
+              tofile="${build.web.dir}/META-INF/context.xml"
+              failonerror="true"/>
     </target>
 
     <!--
