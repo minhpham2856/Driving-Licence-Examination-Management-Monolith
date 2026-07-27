@@ -1,5 +1,6 @@
 package policestaff.dao.impl;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,10 +16,11 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
 
     private static final String SUMMARY_SELECT = """
             SELECT ed.ExamDateId,ed.ExamDate,l.LicenceClass,ed.PoliceStatus,
-                   SUM(CASE WHEN rd.IsActive=1 THEN 1 ELSE 0 END) TotalCandidates,
+                   SUM(CASE WHEN rd.PoliceStatus IN(N'PENDING',N'APPROVED',N'REJECTED')
+                            THEN 1 ELSE 0 END) TotalCandidates,
                    SUM(CASE WHEN rd.IsActive=1 AND rd.PoliceStatus=N'PENDING' THEN 1 ELSE 0 END) PendingCandidates,
                    SUM(CASE WHEN rd.IsActive=1 AND rd.PoliceStatus=N'APPROVED' THEN 1 ELSE 0 END) ApprovedCandidates,
-                   SUM(CASE WHEN rd.IsActive=1 AND rd.PoliceStatus=N'REJECTED' THEN 1 ELSE 0 END) RejectedCandidates
+                   SUM(CASE WHEN rd.PoliceStatus=N'REJECTED' THEN 1 ELSE 0 END) RejectedCandidates
             FROM ExamDates ed
             JOIN Licence l ON l.LicenceId=ed.LicenceId
             LEFT JOIN RegistrationDates rd ON rd.ExamDateId=ed.ExamDateId
@@ -126,9 +128,10 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
     @Override
     public List<PoliceCandidateDTO> findCandidates(int examDateId, int offset, int limit) {
         String sql = "SELECT rd.RegistrationDateId,rd.ExamRegistrationId,rd.PoliceStatus,"
-                + "rd.PoliceReason,rd.OfficialCandidateNumber FROM RegistrationDates rd "
+                + "rd.PoliceReason,rd.OfficialCandidateNumber,er.IsRetake FROM RegistrationDates rd "
                 + "JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId "
-                + "WHERE rd.ExamDateId=? AND rd.IsActive=1 "
+                + "JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId "
+                + "WHERE rd.ExamDateId=? AND (rd.IsActive=1 OR rd.PoliceStatus=N'REJECTED') "
                 + "AND ed.PoliceStatus IN(N'PENDING',N'COMPLETED') ORDER BY rd.RegistrationDateId "
                 + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         List<PoliceCandidateDTO> rows = new ArrayList<>();
@@ -144,6 +147,7 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
                     row.setPoliceStatus(rs.getString(3));
                     row.setPoliceReason(rs.getString(4));
                     row.setOfficialCandidateNumber(rs.getString(5));
+                    row.setRetake(rs.getBoolean(6));
                     rows.add(row);
                 }
             }
@@ -154,7 +158,8 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
     @Override
     public int countCandidates(int examDateId) {
         String sql = "SELECT COUNT(*) FROM RegistrationDates rd JOIN ExamDates ed "
-                + "ON ed.ExamDateId=rd.ExamDateId WHERE rd.ExamDateId=? AND rd.IsActive=1 "
+                + "ON ed.ExamDateId=rd.ExamDateId WHERE rd.ExamDateId=? "
+                + "AND (rd.IsActive=1 OR rd.PoliceStatus=N'REJECTED') "
                 + "AND ed.PoliceStatus IN(N'PENDING',N'COMPLETED')";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examDateId);
@@ -163,22 +168,165 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
     }
 
     @Override
-    public int reviewCandidate(int registrationDateId, String decision, String reason) {
+    public int reviewCandidate(int registrationDateId, String decision, String reason,
+            String participationType) {
         String normalized = "APPROVED".equalsIgnoreCase(decision) ? "APPROVED" : "REJECTED";
         if ("REJECTED".equals(normalized) && (reason == null || reason.trim().length() < 3)) {
             throw new IllegalArgumentException("Phải nhập lý do khi từ chối hồ sơ.");
         }
-        String sql = "UPDATE rd SET PoliceStatus=?,PoliceReason=? OUTPUT inserted.ExamRegistrationId "
-                + "FROM RegistrationDates rd JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId "
-                + "WHERE rd.RegistrationDateId=? AND rd.IsActive=1 AND rd.PoliceStatus=N'PENDING' "
-                + "AND ed.PoliceStatus=N'PENDING'";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, normalized);
-            if ("REJECTED".equals(normalized)) ps.setString(2, reason.trim());
-            else ps.setNull(2, java.sql.Types.NVARCHAR);
-            ps.setInt(3, registrationDateId);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
-        } catch (SQLException ex) { throw failure(ex); }
+        Connection connection = getConnection();
+        boolean previousAutoCommit = true;
+        try {
+            previousAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            int registrationId = 0;
+            String sql = "UPDATE rd SET PoliceStatus=?,PoliceReason=?,"
+                    + "IsActive=CASE WHEN ?=N'REJECTED' THEN 0 ELSE IsActive END "
+                    + "OUTPUT inserted.ExamRegistrationId "
+                    + "FROM RegistrationDates rd JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId "
+                    + "WHERE rd.RegistrationDateId=? AND rd.IsActive=1 "
+                    + "AND rd.PoliceStatus=N'PENDING' AND ed.PoliceStatus=N'PENDING'";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, normalized);
+                if ("REJECTED".equals(normalized)) ps.setString(2, reason.trim());
+                else ps.setNull(2, java.sql.Types.NVARCHAR);
+                ps.setString(3, normalized);
+                ps.setInt(4, registrationDateId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) registrationId = rs.getInt(1);
+                }
+            }
+            if (registrationId <= 0) {
+                connection.rollback();
+                return 0;
+            }
+
+            if ("APPROVED".equals(normalized)) {
+                saveOfficialDecision(connection, registrationDateId, participationType);
+            } else {
+                try (PreparedStatement ps = connection.prepareStatement("""
+                        DELETE official
+                        FROM OfficialExamCandidate official
+                        JOIN RegistrationDates selected
+                          ON selected.ExamDateId=official.ExamDateId
+                         AND selected.ExamRegistrationId=official.ExamRegistrationId
+                        WHERE selected.RegistrationDateId=?
+                        """)) {
+                    ps.setInt(1, registrationDateId);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = connection.prepareStatement("""
+                        UPDATE ExamRegistration
+                        SET RegistrationStatus=N'Rejected',
+                            Notes=CONCAT(
+                                CASE WHEN Notes IS NULL OR LTRIM(RTRIM(Notes))='' THEN ''
+                                     ELSE Notes + ';' END,
+                                N'#POLICE_REJECT# ',?
+                            )
+                        WHERE ExamRegistrationId=?
+                        """)) {
+                    ps.setString(1, reason.trim());
+                    ps.setInt(2, registrationId);
+                    if (ps.executeUpdate() != 1) {
+                        throw new SQLException("Không cập nhật được trạng thái hồ sơ bị CSGT từ chối.");
+                    }
+                }
+            }
+
+            connection.commit();
+            return registrationId;
+        } catch (SQLException ex) {
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+                // Giữ lỗi nghiệp vụ gốc.
+            }
+            throw failure(ex);
+        } catch (RuntimeException ex) {
+            try {
+                connection.rollback();
+            } catch (SQLException ignored) {
+                // Giữ lỗi nghiệp vụ gốc.
+            }
+            throw ex;
+        } finally {
+            try {
+                connection.setAutoCommit(previousAutoCommit);
+            } catch (SQLException ignored) {
+                // Connection sẽ được DBContext xử lý ở lần truy cập tiếp theo.
+            }
+        }
+    }
+
+    private static void saveOfficialDecision(Connection connection, int registrationDateId,
+            String requestedType) throws SQLException {
+        String selectedType;
+        boolean retake;
+        try (PreparedStatement ps = connection.prepareStatement("""
+                SELECT er.IsRetake
+                FROM RegistrationDates rd
+                JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
+                WHERE rd.RegistrationDateId=?
+                """)) {
+            ps.setInt(1, registrationDateId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("Không tìm thấy đăng ký cần thẩm định.");
+                }
+                retake = rs.getBoolean("IsRetake");
+            }
+        }
+        if (!retake) {
+            selectedType = "FULL_EXAM";
+        } else if ("FULL_EXAM".equalsIgnoreCase(requestedType)
+                || "PRACTICAL_ONLY".equalsIgnoreCase(requestedType)) {
+            selectedType = requestedType.toUpperCase(java.util.Locale.ROOT);
+        } else {
+            throw new IllegalArgumentException(
+                    "Hồ sơ thi lại phải được xác định thi toàn bộ hoặc chỉ thi thực hành.");
+        }
+
+        String update = """
+                UPDATE official SET ExamParticipationType=?
+                FROM OfficialExamCandidate official
+                JOIN RegistrationDates selected
+                  ON selected.ExamDateId=official.ExamDateId
+                 AND selected.ExamRegistrationId=official.ExamRegistrationId
+                WHERE selected.RegistrationDateId=?
+                """;
+        int updated;
+        try (PreparedStatement ps = connection.prepareStatement(update)) {
+            ps.setString(1, selectedType);
+            ps.setInt(2, registrationDateId);
+            updated = ps.executeUpdate();
+        }
+        if (updated > 0) {
+            return;
+        }
+
+        String insert = """
+                INSERT INTO OfficialExamCandidate
+                  (ExamDateId,ExamRegistrationId,LicenceId,FullName,DateOfBirth,
+                   GovernmentIdNumber,PhoneNumber,Email,SourceUnitCode,SourceUnitName,
+                   ExamParticipationType)
+                SELECT rd.ExamDateId,er.ExamRegistrationId,ed.LicenceId,p.FullName,
+                       CAST(p.DateOfBirth AS date),p.GovernmentIdNumber,p.PhoneNumber,u.Email,
+                       N'LAIVUI',N'Trung tâm sát hạch Lái Vui',?
+                FROM RegistrationDates rd
+                JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
+                JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
+                JOIN Profile p ON p.ProfileId=er.ProfileId
+                JOIN [User] u ON u.UserId=p.UserId
+                WHERE rd.RegistrationDateId=?
+                """;
+        try (PreparedStatement ps = connection.prepareStatement(insert)) {
+            ps.setString(1, selectedType);
+            ps.setInt(2, registrationDateId);
+            if (ps.executeUpdate() != 1) {
+                throw new SQLException("Không lưu được nội dung thi do CSGT quyết định.");
+            }
+        }
     }
 
     @Override
@@ -192,7 +340,8 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
             try (PreparedStatement ps = c.prepareStatement("SELECT "
                     + "SUM(CASE WHEN PoliceStatus=N'PENDING' THEN 1 ELSE 0 END),"
                     + "SUM(CASE WHEN PoliceStatus=N'APPROVED' THEN 1 ELSE 0 END) "
-                    + "FROM RegistrationDates WITH(UPDLOCK,HOLDLOCK) WHERE ExamDateId=? AND IsActive=1")) {
+                    + "FROM RegistrationDates WITH(UPDLOCK,HOLDLOCK) WHERE ExamDateId=? "
+                    + "AND (IsActive=1 OR PoliceStatus=N'REJECTED')")) {
                 ps.setInt(1, examDateId);
                 try (ResultSet rs = ps.executeQuery()) { rs.next(); pending=rs.getInt(1); approved=rs.getInt(2); }
             }
@@ -201,10 +350,12 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
             String syncSql = """
                     INSERT INTO OfficialExamCandidate
                       (ExamDateId,ExamRegistrationId,LicenceId,FullName,DateOfBirth,
-                       GovernmentIdNumber,PhoneNumber,Email,SourceUnitCode,SourceUnitName)
+                       GovernmentIdNumber,PhoneNumber,Email,SourceUnitCode,SourceUnitName,
+                       ExamParticipationType)
                     SELECT rd.ExamDateId,er.ExamRegistrationId,ed.LicenceId,p.FullName,
                            CAST(p.DateOfBirth AS date),p.GovernmentIdNumber,p.PhoneNumber,u.Email,
-                           N'LAIVUI',N'Trung tâm sát hạch Lái Vui'
+                           N'LAIVUI',N'Trung tâm sát hạch Lái Vui',
+                           CASE WHEN er.IsRetake=1 THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END
                     FROM RegistrationDates rd
                     JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
                     JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
@@ -264,7 +415,7 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
                   SELECT o.OfficialExamCandidateId,o.ExamDateId,o.ExamRegistrationId,
                          rd.RegistrationDateId,o.LicenceId,o.CandidateNumber,o.FullName,o.DateOfBirth,
                          o.GovernmentIdNumber,o.PhoneNumber,o.Email,
-                         o.SourceUnitCode,o.SourceUnitName,l.LicenceClass
+                         o.SourceUnitCode,o.SourceUnitName,l.LicenceClass,o.ExamParticipationType
                   FROM OfficialExamCandidate o
                   JOIN ExamDates ed ON ed.ExamDateId=o.ExamDateId
                   JOIN Licence l ON l.LicenceId=o.LicenceId
@@ -276,13 +427,17 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
                   SELECT 0,rd.ExamDateId,er.ExamRegistrationId,rd.RegistrationDateId,ed.LicenceId,NULL,
                          p.FullName,CAST(p.DateOfBirth AS date),p.GovernmentIdNumber,
                          p.PhoneNumber,u.Email,N'LAIVUI',N'Trung tâm sát hạch Lái Vui',
-                         l.LicenceClass
+                         l.LicenceClass,
+                         COALESCE(o.ExamParticipationType,
+                           CASE WHEN er.IsRetake=1 THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END)
                   FROM RegistrationDates rd
                   JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
                   JOIN Licence l ON l.LicenceId=ed.LicenceId
                   JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
                   JOIN Profile p ON p.ProfileId=er.ProfileId
                   JOIN [User] u ON u.UserId=p.UserId
+                  LEFT JOIN OfficialExamCandidate o ON o.ExamDateId=rd.ExamDateId
+                    AND o.ExamRegistrationId=rd.ExamRegistrationId
                   WHERE rd.ExamDateId=? AND rd.IsActive=1
                     AND rd.PoliceStatus=N'APPROVED' AND ed.PoliceStatus=N'PENDING'
                 ) q
@@ -338,7 +493,8 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
     public boolean canAccessDocument(int documentId) {
         String sql = "SELECT 1 FROM Document d JOIN ExamRegistration er ON er.ProfileId=d.ProfileId "
                 + "JOIN RegistrationDates rd ON rd.ExamRegistrationId=er.ExamRegistrationId "
-                + "JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId WHERE d.DocumentId=? AND rd.IsActive=1 "
+                + "JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId WHERE d.DocumentId=? "
+                + "AND (rd.IsActive=1 OR rd.PoliceStatus=N'REJECTED') "
                 + "AND ed.PoliceStatus IN(N'PENDING',N'COMPLETED')";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, documentId);
@@ -365,7 +521,8 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
         x.setDateOfBirth(rs.getDate("DateOfBirth")); x.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
         x.setLicenceClass(rs.getString("LicenceClass")); x.setPhoneNumber(rs.getString("PhoneNumber"));
         x.setEmail(rs.getString("Email")); x.setSourceUnitCode(rs.getString("SourceUnitCode"));
-        x.setSourceUnitName(rs.getString("SourceUnitName")); return x;
+        x.setSourceUnitName(rs.getString("SourceUnitName"));
+        x.setExamParticipationType(rs.getString("ExamParticipationType")); return x;
     }
 
     private static IllegalStateException failure(SQLException ex) {
