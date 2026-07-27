@@ -2,7 +2,7 @@ package auth.filter;
 
 import auth.dto.UserDTO;
 import auth.enums.RoleRoute;
-import auth.util.FormatUtil;
+import shared.util.FormatUtil;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

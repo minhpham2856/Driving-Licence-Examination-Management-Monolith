@@ -56,4 +56,12 @@ public interface ExamDAO {
      * @return true nếu cập nhật thành công; false nếu thất bại
      */
     boolean finishExam(int examId, String status, Timestamp endTime);
+
+    /**
+     * Ghi mật khẩu máy thi (OTP kiosk) cho kỳ thi.
+     * @param examId   mã kỳ thi
+     * @param password mật khẩu plain text (OTP 6 số)
+     * @return true nếu cập nhật thành công
+     */
+    boolean updateExamPassword(int examId, String password);
 }

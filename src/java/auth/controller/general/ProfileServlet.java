@@ -8,7 +8,8 @@ import auth.service.AuditService;
 import auth.service.ProfileService;
 import auth.service.impl.AuditServiceImpl;
 import auth.service.impl.ProfileServiceImpl;
-import auth.util.FormatUtil;
+import shared.util.FormatUtil;
+import auth.util.AuthSessionUtil;
 import auth.util.ValidationUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -79,9 +80,9 @@ public class ProfileServlet extends HttpServlet {
                     AuditEntity.DOSSIER,
                     "Cập nhật hồ sơ cá nhân",
                     sessionUser.getUserId());
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.SUCCESS);
         } else {
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.DANGER);
         }
 
         request.setAttribute(Attributes.Request.MESSAGE,
@@ -96,7 +97,7 @@ public class ProfileServlet extends HttpServlet {
 
     // session user set by login; filter guarantees non-null here
     private static UserDTO sessionUser(HttpServletRequest request) {
-        return (UserDTO) request.getSession(false).getAttribute(Attributes.Session.USER);
+        return AuthSessionUtil.sessionUser(request);
     }
 
     // load account from DB and sync session profile for sidebar display
@@ -111,14 +112,8 @@ public class ProfileServlet extends HttpServlet {
         if (accountUser.getEmail() == null || accountUser.getEmail().isBlank()) {
             accountUser.setEmail(sessionUser.getEmail());
         }
-        Profile displayProfile = account.getProfile();
-        if (displayProfile == null) {
-            // Cho phép tài khoản Staff cũ chỉ có bản ghi User tự hoàn thiện Profile.
-            displayProfile = new Profile();
-            displayProfile.setUserId(sessionUser.getUserId());
-        }
         request.setAttribute(Attributes.Request.ACCOUNT_USER, accountUser);
-        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, displayProfile);
+        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, account.getProfile());
 
         HttpSession session = request.getSession(false);
         if (session != null) {

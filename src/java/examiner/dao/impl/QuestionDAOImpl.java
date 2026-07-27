@@ -7,9 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+// JDBC implementation for Question; examiner module DAO layer only.
 public class QuestionDAOImpl extends DBContext implements QuestionDAO {
+    // Loads question rows for a list of question ids.
     @Override
-    public List<Question> findByIds(List<Integer> questionIds) {
+    public List<Question> getAllByIds(List<Integer> questionIds) {
         List<Question> list = new ArrayList<>();
         if (questionIds == null || questionIds.isEmpty()) return list;
         StringBuilder sql = new StringBuilder("SELECT * FROM Question WHERE QuestionId IN (");
@@ -23,12 +25,7 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Question q = new Question();
-                    q.setQuestionId(rs.getInt("QuestionId"));
-                    q.setQuestionNumber(rs.getInt("QuestionNumber"));
-                    q.setImageUrl(rs.getString("ImageUrl"));
-                    q.setCorrectAnswer(rs.getString("CorrectAnswer"));
-                    list.add(q);
+                    list.add(mapRow(rs));
                 }
             }
         } catch (SQLException e) {
@@ -36,24 +33,30 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
         }
         return list;
     }
+    // Loads all question rows.
     @Override
-    public List<Question> findAll() {
+    public List<Question> getAll() {
         List<Question> list = new ArrayList<>();
         String sql = "SELECT * FROM Question";
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                Question q = new Question();
-                q.setQuestionId(rs.getInt("QuestionId"));
-                q.setQuestionNumber(rs.getInt("QuestionNumber"));
-                q.setImageUrl(rs.getString("ImageUrl"));
-                q.setCorrectAnswer(rs.getString("CorrectAnswer"));
-                list.add(q);
+                list.add(mapRow(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    private static Question mapRow(ResultSet rs) throws SQLException {
+        Question q = new Question();
+        q.setQuestionId(rs.getInt("QuestionId"));
+        q.setQuestionNumber(rs.getInt("QuestionNumber"));
+        q.setImageUrl(rs.getString("ImageUrl"));
+        q.setCorrectAnswer(rs.getString("CorrectAnswer"));
+        q.setCritical(rs.getBoolean("IsCritical"));
+        return q;
     }
 }
 
