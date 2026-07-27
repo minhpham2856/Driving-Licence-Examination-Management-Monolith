@@ -126,7 +126,6 @@
                                 <select class="p-input-field p-input-field--select p-input-field--no-icon" id="view-gender" disabled>
                                     <option value="Nam" ${gender eq 'Nam' ? 'selected' : ''}>Nam</option>
                                     <option value="Nữ" ${gender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
-                                    <option value="Khác" ${gender eq 'Khác' ? 'selected' : ''}>Khác</option>
                                 </select>
                             </div>
                         </div>
@@ -397,7 +396,6 @@
                         <select class="p-input-field p-input-field--select p-input-field--no-icon" id="edit-gender" name="gender">
                             <option value="Nam" ${editGender eq 'Nam' ? 'selected' : ''}>Nam</option>
                             <option value="Nữ" ${editGender eq 'Nữ' ? 'selected' : ''}>Nữ</option>
-                            <option value="Khác" ${editGender eq 'Khác' ? 'selected' : ''}>Khác</option>
                         </select>
                     </div>
                     <div class="p-input-group">
