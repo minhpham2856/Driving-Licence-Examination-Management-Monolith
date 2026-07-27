@@ -16,6 +16,7 @@ public class OfficialExamCandidateDTO {
     private String email;
     private String sourceUnitCode;
     private String sourceUnitName;
+    private String examParticipationType;
 
     public int getId() { return id; }
     public void setId(int value) { id = value; }
@@ -43,5 +44,11 @@ public class OfficialExamCandidateDTO {
     public void setSourceUnitCode(String value) { sourceUnitCode = value; }
     public String getSourceUnitName() { return sourceUnitName; }
     public void setSourceUnitName(String value) { sourceUnitName = value; }
+    public String getExamParticipationType() { return examParticipationType; }
+    public void setExamParticipationType(String value) { examParticipationType = value; }
+    public String getExamParticipationLabel() {
+        return "PRACTICAL_ONLY".equalsIgnoreCase(examParticipationType)
+                ? "Chỉ thi thực hành" : "Lý thuyết và thực hành";
+    }
     public boolean isInternalCandidate() { return examRegistrationId != null; }
 }
