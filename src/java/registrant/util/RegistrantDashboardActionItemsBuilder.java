@@ -27,7 +27,8 @@ public final class RegistrantDashboardActionItemsBuilder {
             List<RegistrantDocumentView> documents,
             int registeredExams,
             int examResults,
-            RegistrantRegisteredExamRow upcoming) {
+            RegistrantRegisteredExamRow upcoming,
+            boolean hasCancelledPreferredWithoutActive) {
 
         List<RegistrantDashboardActionItem> items = new ArrayList<>();
         String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;
@@ -71,12 +72,21 @@ public final class RegistrantDashboardActionItemsBuilder {
         }
 
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status) && registeredExams <= 0) {
-            add(items, item(
-                    "Chưa gửi nguyện vọng ngày thi",
-                    "Hồ sơ đã duyệt — chọn ngày thi dự kiến và chờ thông báo lịch chính thức từ trung tâm.",
-                    "Đăng ký nguyện vọng",
-                    "/registrant/register-exam",
-                    "info"));
+            if (hasCancelledPreferredWithoutActive) {
+                add(items, item(
+                        "Nguyện vọng ngày thi đã bị hủy",
+                        "Bạn có thể chọn ngày thi dự kiến khác đang mở đăng ký.",
+                        "Đăng ký lại",
+                        "/registrant/register-exam",
+                        "warning"));
+            } else {
+                add(items, item(
+                        "Chưa gửi nguyện vọng ngày thi",
+                        "Hồ sơ đã duyệt — chọn ngày thi dự kiến và chờ thông báo lịch chính thức từ trung tâm.",
+                        "Đăng ký nguyện vọng",
+                        "/registrant/register-exam",
+                        "info"));
+            }
         }
 
         if (upcoming != null && upcoming.isPreferredDate()) {

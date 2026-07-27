@@ -91,8 +91,11 @@ public class RegistrantDashboardServiceImpl implements RegistrantDashboardServic
                 : Collections.emptyList();
         int registeredExams = toIntStat(stats.get("registeredExams"));
         int examResults = toIntStat(stats.get("examResults"));
+        boolean hasCancelledPreferredWithoutActive = profileId > 0
+                && registrantdao.hasAnyCancelledPreferredExamDateWithoutActive(profileId);
         List<RegistrantDashboardActionItem> actionItems = RegistrantDashboardActionItemsBuilder.build(
-                profile, registrationStatus, documents, registeredExams, examResults, upcoming);
+                profile, registrationStatus, documents, registeredExams, examResults, upcoming,
+                hasCancelledPreferredWithoutActive);
         model.put("dashboardActionItems", actionItems);
         model.put("dashboardActionsComplete", actionItems.isEmpty());
         return model;

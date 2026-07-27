@@ -25,9 +25,11 @@ public interface RegistrantUploadService {
     /**
      * Gửi yêu cầu duyệt hồ sơ (chính hoặc bổ sung).
      * approvalLicenceCode: hạng GPLX thí sinh gửi để managing staff duyệt.
+     * isRetake: thi lại (true) hoặc thi lần đầu (false) — lưu ExamRegistration.IsRetake.
      * Trả về null nếu thành công.
      */
-    String requestApproval(UserDTO user, String requestNote, String approvalLicenceCode, HttpSession session);
+    String requestApproval(UserDTO user, String requestNote, String approvalLicenceCode, boolean isRetake,
+            HttpSession session);
 
     /** Trả về null nếu xóa thành công. */
     String deleteDocument(UserDTO user, int documentId, HttpServletRequest request);
