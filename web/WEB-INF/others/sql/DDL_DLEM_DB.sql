@@ -1,12 +1,13 @@
 -- ============================================
--- Database Schema
+-- Database Schema (unified)
 -- Driving License Examination Management System
 -- DB: DLEM_DB_2
--- Ghi chú merge police / managing staff + examiner / candidate:
---   - ExamDates / RegistrationDates / OfficialExamCandidate: luồng CSGT
---   - Exam.SourceExamDateId: phiên thi tạo từ ngày dự kiến
---   - ExamEnrollment.ExamRegistrationId: nối registrant ↔ phiên thi
---   - Giữ ExamPassword, CandidateViolation, CheckedIn*, ResultPrintedAt
+-- Ghi chú schema hợp nhất (đăng ký + thi):
+--   - ExamDates / RegistrationDates / OfficialExamCandidate: luồng đăng ký + police
+--   - ExamRegistration.IsRetake, OfficialExamCandidate.ExamParticipationType
+--   - Exam.SourceExamDateId, ExamEnrollment.ExamRegistrationId
+--   - Exam.ExamPassword, CandidateViolation, CheckedIn*, ResultPrintedAt: luồng thi examiner/candidate
+-- Chỉ chạy file này (+ DML). Không chạy DDL_DLEM_DB_2_POLICE.sql.
 -- ============================================
 
 USE master;
@@ -86,7 +87,8 @@ CREATE TABLE ExamRegistration (
     RegistrationStatus NVARCHAR(50) NOT NULL,
     Notes NVARCHAR(MAX),
     ProfileId INT NOT NULL REFERENCES Profile(ProfileId),
-    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+    IsRetake BIT NOT NULL DEFAULT 0
 );
 GO
 
@@ -160,6 +162,7 @@ CREATE TABLE OfficialExamCandidate (
     Email NVARCHAR(255) NOT NULL,
     SourceUnitCode NVARCHAR(50) NOT NULL,
     SourceUnitName NVARCHAR(255) NOT NULL,
+    ExamParticipationType NVARCHAR(30) NOT NULL DEFAULT N'FULL_EXAM',
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UNIQUE (ExamDateId, GovernmentIdNumber)
 );

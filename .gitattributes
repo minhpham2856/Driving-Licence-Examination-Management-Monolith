@@ -1,0 +1,11 @@
+src/java/auth/** merge=ours
+src/java/examiner/** merge=ours
+src/java/general/** merge=ours
+src/java/candidate/** merge=ours
+web/views/auth/** merge=ours
+web/views/examiner/** merge=ours
+web/views/general/** merge=ours
+web/assets/css/examiner/** merge=ours
+web/assets/js/examiner-action.js merge=ours
+web/views/layout/header-examiner.jsp merge=ours
+web/views/layout/sidebar-examiner.jsp merge=ours

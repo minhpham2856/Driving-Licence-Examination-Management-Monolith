@@ -112,14 +112,8 @@ public class ProfileServlet extends HttpServlet {
         if (accountUser.getEmail() == null || accountUser.getEmail().isBlank()) {
             accountUser.setEmail(sessionUser.getEmail());
         }
-        Profile displayProfile = account.getProfile();
-        if (displayProfile == null) {
-            // Cho phép tài khoản Staff cũ chỉ có bản ghi User tự hoàn thiện Profile.
-            displayProfile = new Profile();
-            displayProfile.setUserId(sessionUser.getUserId());
-        }
         request.setAttribute(Attributes.Request.ACCOUNT_USER, accountUser);
-        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, displayProfile);
+        request.setAttribute(Attributes.Request.ACCOUNT_PROFILE, account.getProfile());
 
         HttpSession session = request.getSession(false);
         if (session != null) {
