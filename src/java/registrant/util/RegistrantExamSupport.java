@@ -22,7 +22,13 @@ public final class RegistrantExamSupport {
 
     /** Nhãn trạng thái nguyện vọng ngày thi (chờ trung tâm công bố lịch chính thức). */
     public static final String PREFERRED_DATE_STATUS_LABEL = "Nguyện vọng — chờ lịch chính thức";
+    /** ExamDates đã Locked: nguyện vọng còn active nhưng không còn mở đăng ký. */
+    public static final String PREFERRED_DATE_LOCKED_STATUS_LABEL =
+            "Nguyện vọng — đã đóng đăng ký, chờ lịch chính thức";
+    /** RegistrationDates IsActive=0 sau khi managing hủy ngày. */
+    public static final String PREFERRED_DATE_CANCELLED_STATUS_LABEL = "Nguyện vọng — đã hủy";
     public static final String PREFERRED_DATE_REG_STATUS = "PreferredDate";
+    public static final String PREFERRED_DATE_CANCELLED_REG_STATUS = "PreferredDateCancelled";
 
     /** Đã có SBD / đã xếp ca, chưa đến ngày thi. */
     public static final String SCHEDULED_WAITING_STATUS_LABEL = "Đã xếp lịch — chờ ngày thi";
@@ -175,28 +181,83 @@ public final class RegistrantExamSupport {
         row.setStatusLabel(SCHEDULED_WAITING_STATUS_LABEL);
     }
 
-    /** Badge nguyện vọng ngày thi trên dashboard / my-exams. */
+    /** Badge nguyện vọng ngày thi trên dashboard (chỉ dòng còn active). */
     public static void applyPreferredDateStatus(RegistrantRegisteredExamRow row) {
-        row.setPreferredDate(true);
-        row.setSbdPending(true);
-        row.setStatusClass("pending");
-        row.setStatusLabel(PREFERRED_DATE_STATUS_LABEL);
-        row.setSessionTimePublished(false);
-        row.setLocation("Theo lịch trung tâm");
+        applyPreferredDateStatus(row, true, null);
     }
 
-    /** Gán badge/nhãn nguyện vọng ngày thi cho dòng my-exams. */
-    public static void applyPreferredDateStatus(RegistrantMyExamRow row) {
+    /** Badge nguyện vọng dashboard: active + Locked thì đổi nhãn. */
+    public static void applyPreferredDateStatus(RegistrantRegisteredExamRow row,
+            boolean active, String examDateStatus) {
         row.setPreferredDate(true);
+        row.setSbdPending(true);
+        row.setSessionTimePublished(false);
+        row.setLocation("Theo lịch trung tâm");
+        if (!active) {
+            row.setStatusClass("rejected");
+            row.setStatusLabel(PREFERRED_DATE_CANCELLED_STATUS_LABEL);
+            return;
+        }
+        row.setStatusClass("pending");
+        row.setStatusLabel(isLockedExamDateStatus(examDateStatus)
+                ? PREFERRED_DATE_LOCKED_STATUS_LABEL
+                : PREFERRED_DATE_STATUS_LABEL);
+    }
+
+    /** Gán badge/nhãn nguyện vọng ngày thi cho dòng my-exams (active). */
+    public static void applyPreferredDateStatus(RegistrantMyExamRow row) {
+        applyPreferredDateStatus(row, true, null, null);
+    }
+
+    /**
+     * Badge my-exams nguyện vọng: active/Open, active/Locked, hoặc đã hủy (IsActive=0).
+     */
+    public static void applyPreferredDateStatus(RegistrantMyExamRow row, boolean active,
+            String examDateStatus, String cancelReason) {
+        row.setPreferredDate(true);
+        row.setPreferredCancelled(!active);
+        row.setCancelReason(blankToNull(cancelReason));
         row.setSbdPending(true);
         row.setSbdDisplay("—");
         row.setRoomName("Chưa xếp phòng");
-        row.setStatusClass("pending");
-        row.setStatusLabel(PREFERRED_DATE_STATUS_LABEL);
-        row.setRegistrationStatus(PREFERRED_DATE_REG_STATUS);
-        row.setOverallResultLabel("Đã gửi nguyện vọng — chờ trung tâm công bố lịch chính thức");
         row.setSessionTimePublished(false);
         row.setPendingPayment(false);
+        if (!active) {
+            row.setStatusClass("rejected");
+            row.setStatusLabel(PREFERRED_DATE_CANCELLED_STATUS_LABEL);
+            row.setRegistrationStatus(PREFERRED_DATE_CANCELLED_REG_STATUS);
+            String reason = blankToNull(cancelReason);
+            row.setOverallResultLabel(reason != null
+                    ? "Ngày thi nguyện vọng đã bị hủy. Lý do: " + reason
+                    : "Ngày thi nguyện vọng đã bị hủy. Bạn có thể chọn ngày khác đang mở.");
+            row.setSessionTimeDisplay("Đã hủy");
+            return;
+        }
+        row.setStatusClass("pending");
+        boolean locked = isLockedExamDateStatus(examDateStatus);
+        row.setStatusLabel(locked ? PREFERRED_DATE_LOCKED_STATUS_LABEL : PREFERRED_DATE_STATUS_LABEL);
+        row.setRegistrationStatus(PREFERRED_DATE_REG_STATUS);
+        row.setOverallResultLabel(locked
+                ? "Đã đóng đăng ký — lựa chọn được giữ, chờ trung tâm công bố lịch chính thức"
+                : "Đã gửi nguyện vọng — chờ trung tâm công bố lịch chính thức");
+        row.setSessionTimeDisplay("Chờ trung tâm công bố");
+    }
+
+    /** True nếu ExamDates.Status = Locked. */
+    public static boolean isLockedExamDateStatus(String status) {
+        return status != null && "Locked".equalsIgnoreCase(status.trim());
+    }
+
+    /** True nếu dòng my-exams là nguyện vọng còn hiệu lực (chưa bị hủy). */
+    public static boolean isActivePreferredMyExam(RegistrantMyExamRow row) {
+        return row != null && row.isPreferredDate() && !row.isPreferredCancelled();
+    }
+
+    private static String blankToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 
     /** Badge my-exams: nguyện vọng / chờ SBD → đã xếp lịch → đã thi chờ kết quả → đạt/trượt. */

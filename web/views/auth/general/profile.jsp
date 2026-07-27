@@ -9,6 +9,7 @@
 <c:set var="useExamstaffShell" value="${requestScope.accountShell eq 'examstaff'}" />
 <c:set var="useExaminerShell" value="${requestScope.accountShell eq 'examiner'}" />
 <c:set var="useAdminShell" value="${requestScope.accountShell eq 'admin'}" />
+<c:set var="useManagingShell" value="${requestScope.accountShell eq 'managingstaff'}" />
 <c:set var="usePoliceShell" value="${requestScope.accountShell eq 'police'}" />
 <c:set var="headerTitle" value="Hồ sơ cá nhân" scope="request" />
 <c:set var="accountCssVer" value="20260714d" />
@@ -36,6 +37,28 @@
             <main class="main-content">
                 <div class="account-page account-page--portal account-page--profile">
 </c:when>
+    <c:when test="${useManagingShell}">
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+            <title>Hồ sơ cá nhân - Ban quản lý</title>
+            <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+            <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
+            <link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}">
+        </head>
+        <body class="has-side-nav-bar">
+            <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
+                <jsp:param name="activeSidebar" value="profile" />
+            </jsp:include>
+            <div class="dashboard-shell">
+                <main class="main-content">
+                    <div class="account-page account-page--portal account-page--profile">
+    </c:when>
     <c:when test="${useExamstaffShell}">
         <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
             <jsp:param name="activeSidebar" value="ho-so" />
@@ -73,7 +96,7 @@
                     <div class="account-page account-page--portal account-page--profile">
     </c:when>
     <c:when test="${usePoliceShell}">
-        <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hồ sơ cán bộ CSGT</title><link rel="stylesheet" href="${ctx}/assets/css/style.css"><link rel="stylesheet" href="${ctx}/assets/css/layout.css"><link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}"></head><body class="has-side-nav-bar"><jsp:include page="/views/layout/sidebar-policestaff.jsp"><jsp:param name="activeSidebar" value="profile"/></jsp:include><div class="dashboard-shell"><main class="main-content"><div class="account-page account-page--portal account-page--profile">
+        <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hồ sơ cán bộ CSGT</title><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"><link rel="stylesheet" href="${ctx}/assets/css/style.css"><link rel="stylesheet" href="${ctx}/assets/css/layout.css"><link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}"></head><body class="has-side-nav-bar"><jsp:include page="/views/layout/sidebar-policestaff.jsp"><jsp:param name="activeSidebar" value="profile"/></jsp:include><div class="dashboard-shell"><main class="main-content"><div class="account-page account-page--portal account-page--profile">
     </c:when>
     <c:otherwise>
         <jsp:include page="/views/layout/header.jsp">
@@ -195,7 +218,7 @@
                                     </div>
                                     <div class="account-field">
                                         <label class="account-field__label" for="dateOfBirth">Ngày sinh</label>
-                                        <input class="account-input" type="date" id="dateOfBirth" name="dateOfBirth"
+                                        <input class="account-input" type="date" id="dateOfBirth" name="dateOfBirth" required
                                                value="<fmt:formatDate value='${p.dateOfBirth}' pattern='yyyy-MM-dd' />">
                                     </div>
                                     <div class="account-field">
@@ -244,6 +267,16 @@
     </body>
     </html>
 </c:when>
+    <c:when test="${useManagingShell}">
+                    </div>
+                </main>
+                <jsp:include page="/views/layout/footer.jsp">
+                    <jsp:param name="standalone" value="false" />
+                </jsp:include>
+            </div>
+        </body>
+        </html>
+    </c:when>
     <c:when test="${useExamstaffShell}">
         </div>
         <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

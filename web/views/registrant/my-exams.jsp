@@ -266,11 +266,31 @@
                                 <c:if test="${selectedExam.preferredDate}">
                                     <div class="exam-details-card" style="margin-top:1rem;">
                                         <div class="exam-details-card__body">
-                                            <p class="placeholder-text" style="margin:0;">
-                                                Đây là <strong>ngày thi nguyện vọng</strong> bạn đã đăng ký.
-                                                Lịch thi chính thức, số báo danh và kết quả sát hạch sẽ được cập nhật sau khi
-                                                trung tâm công bố. Trạng thái hiện tại: <strong>Nguyện vọng — chờ lịch chính thức</strong>.
-                                            </p>
+                                            <c:choose>
+                                                <c:when test="${selectedExam.preferredCancelled}">
+                                                    <p class="placeholder-text" style="margin:0;">
+                                                        Ngày thi nguyện vọng này <strong>đã bị hủy</strong>.
+                                                        <c:choose>
+                                                            <c:when test="${not empty selectedExam.cancelReason}">
+                                                                Lý do: <strong><c:out value="${selectedExam.cancelReason}"/></strong>.
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                Không có lý do chi tiết trên hệ thống.
+                                                            </c:otherwise>
+                                                        </c:choose>
+                                                        Bạn có thể chọn ngày thi dự kiến khác đang mở tại
+                                                        <a href="${pageContext.request.contextPath}/registrant/register-exam">Đăng ký thi</a>.
+                                                    </p>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <p class="placeholder-text" style="margin:0;">
+                                                        Đây là <strong>ngày thi nguyện vọng</strong> bạn đã đăng ký.
+                                                        Lịch thi chính thức, số báo danh và kết quả sát hạch sẽ được cập nhật sau khi
+                                                        trung tâm công bố. Trạng thái hiện tại:
+                                                        <strong><c:out value="${selectedExam.statusLabel}"/></strong>.
+                                                    </p>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
                                 </c:if>
