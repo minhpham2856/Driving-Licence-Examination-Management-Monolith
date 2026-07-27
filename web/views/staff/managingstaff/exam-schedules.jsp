@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý phiên thi - Lái Vui</title>
+    <title>Quản lý kỳ thi - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
     <style>
@@ -134,12 +134,12 @@
         <nav class="breadcrumbs">
             <a href="${ctx}/manager/dashboard">Dashboard</a>
             <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Quản lý phiên thi</span>
+            <span class="breadcrumbs__current">Quản lý kỳ thi</span>
         </nav>
 
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Quản Lý Phiên Thi</h1>
+                <h1 class="page-title">Quản Lý Kỳ Thi</h1>
                 <p class="page-subtitle">
                     Managing Staff tạo phiên thi từ danh sách chính thức đã nhận và quản lý trạng thái các phiên.
                 </p>
@@ -157,20 +157,54 @@
             <section class="schedule-card">
                 <h2 class="schedule-card__title">${empty editingSession ? 'Tạo phiên thi mới' : 'Sửa phiên thi'}</h2>
                 <p class="schedule-card__hint">
-                    Phiên được tạo độc lập và hiển thị cho Registrant. Ngày thi phải sau ngày hôm nay.
+                    Ngày thi và hạng GPLX được lấy từ danh sách CSGT đã ban hành, không nhập hoặc thay đổi lại.
                 </p>
                 <form class="schedule-form" action="${ctx}/manager/exam-schedules" method="post">
                     <input type="hidden" name="action" value="save">
                     <input type="hidden" name="sessionId" value="${editingSession.id}">
-                    <c:if test="${empty editingSession}"><div class="input-group"><label class="input-label">Danh sách CSGT đã duyệt</label><select class="input-field" name="sourceExamDateId" required><option value="">Chọn danh sách chính thức</option><c:forEach var="source" items="${policeCompletedDates}"><option value="${source.id}"><fmt:formatDate value="${source.examDate}" pattern="dd/MM/yyyy"/> · Hạng ${source.licenceClass} · ${source.officialCandidateCount} thí sinh chính thức</option></c:forEach></select><small style="color:#64748b">Ngày, hạng và toàn bộ thí sinh sẽ được lấy trực tiếp từ danh sách CSGT.</small></div></c:if>
+                    <c:if test="${empty editingSession}">
+                        <div class="input-group">
+                            <label class="input-label">Danh sách CSGT đã ban hành</label>
+                            <select class="input-field" id="officialRosterSelect" name="sourceExamDateId" required>
+                                <option value="">Chọn danh sách chính thức</option>
+                                <c:forEach var="source" items="${policeCompletedDates}">
+                                    <fmt:formatDate var="sourceDate" value="${source.examDate}" pattern="dd/MM/yyyy"/>
+                                    <option value="${source.id}"
+                                            data-date="${sourceDate}"
+                                            data-licence="${source.licenceClass}">
+                                        ${sourceDate} · Hạng ${source.licenceClass} · ${source.officialCandidateCount} thí sinh chính thức
+                                    </option>
+                                </c:forEach>
+                            </select>
+                            <small style="color:#64748b">Hệ thống tự lấy ngày, hạng và toàn bộ thí sinh từ danh sách này.</small>
+                        </div>
+                        <div id="officialRosterSummary" class="schedule-form__row" style="display:none">
+                            <div class="input-group">
+                                <label class="input-label">Ngày thi chính thức</label>
+                                <input id="officialExamDate" class="input-field" type="text" readonly>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Hạng GPLX</label>
+                                <input id="officialLicenceClass" class="input-field" type="text" readonly>
+                            </div>
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty editingSession}">
+                        <fmt:formatDate var="editingExamDate" value="${editingSession.examDate}" pattern="dd/MM/yyyy" />
+                        <div class="schedule-form__row">
+                            <div class="input-group">
+                                <label class="input-label">Ngày thi chính thức</label>
+                                <input class="input-field" type="text" readonly value="${editingExamDate}">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Hạng GPLX</label>
+                                <input class="input-field" type="text" readonly value="Hạng ${editingSession.licenseCode}">
+                            </div>
+                        </div>
+                        <small style="color:#64748b">Ngày thi và hạng GPLX đã được CSGT ban hành nên không thể sửa.</small>
+                    </c:if>
                     <div class="input-group"><label class="input-label">Trung tâm</label>
                         <input class="input-field" name="centreName" required minlength="3" value="<c:out value='${editingSession.centreName}' />"></div>
-                    <div class="input-group"><label class="input-label">Hạng GPLX</label><select class="input-field" name="licenceId" required>
-                        <c:forEach var="l" items="${licences}"><option value="${l.licenceId}" ${editingSession.licenceId eq l.licenceId ? 'selected' : ''}>Hạng ${l.licenceClass}</option></c:forEach>
-                    </select></div>
-                    <c:if test="${editingSession.registeredCount gt 0}"><small style="color:#b45309">Phiên đã có thí sinh: hệ thống chỉ cập nhật ngày và trung tâm; hạng GPLX được giữ nguyên.</small></c:if>
-                    <div class="input-group"><label class="input-label">Ngày thi</label>
-                        <input class="input-field" type="date" name="examDate" min="${today}" required value="${editingSession.examDate}"></div>
                     <fmt:formatDate var="editingStartTime" value="${editingSession.shiftStartTime}" pattern="HH:mm" />
                     <div class="input-group"><label class="input-label">Giờ bắt đầu</label>
                         <input class="input-field" type="time" name="startTime" required value="${editingStartTime}"></div>
@@ -274,13 +308,13 @@
                 <h2 class="schedule-card__title">Danh sách thí sinh · <c:out value="${viewSession.sessionName}" /></h2>
                 <p class="schedule-card__hint">${viewSession.registeredCount} thí sinh · ${viewSession.status}</p>
                 <div class="schedule-table-wrap"><table class="schedule-table"><thead><tr>
-                    <th>SBD</th><th>Họ và tên</th><th>CCCD</th><th>Ngày sinh</th><th>Điện thoại</th><th>Email</th>
+                    <th>SBD</th><th>Họ và tên</th><th>CCCD</th><th>Ngày sinh</th><th>Nội dung thi</th><th>Điện thoại</th><th>Email</th>
                 </tr></thead><tbody>
                     <c:forEach var="c" items="${sessionCandidates}"><tr>
                         <td>${c.sbd}</td><td><strong><c:out value="${c.fullName}" /></strong></td><td><c:out value="${c.govIdNo}" /></td>
-                        <td><fmt:formatDate value="${c.dateOfBirth}" pattern="dd/MM/yyyy" /></td><td><c:out value="${c.phoneNo}" /></td><td><c:out value="${c.email}" /></td>
+                        <td><fmt:formatDate value="${c.dateOfBirth}" pattern="dd/MM/yyyy" /></td><td><strong><c:out value="${c.examParticipationLabel}" /></strong></td><td><c:out value="${c.phoneNo}" /></td><td><c:out value="${c.email}" /></td>
                     </tr></c:forEach>
-                    <c:if test="${empty sessionCandidates}"><tr><td colspan="6" style="text-align:center;padding:2rem;color:#64748b">Phiên thi chưa có thí sinh.</td></tr></c:if>
+                    <c:if test="${empty sessionCandidates}"><tr><td colspan="7" style="text-align:center;padding:2rem;color:#64748b">Phiên thi chưa có thí sinh.</td></tr></c:if>
                 </tbody></table></div>
             </section>
         </c:if>
@@ -291,5 +325,25 @@
     </jsp:include>
 </div>
 
+<script>
+    (() => {
+        const select = document.getElementById('officialRosterSelect');
+        if (!select) return;
+
+        const summary = document.getElementById('officialRosterSummary');
+        const date = document.getElementById('officialExamDate');
+        const licence = document.getElementById('officialLicenceClass');
+        const syncOfficialRoster = () => {
+            const option = select.options[select.selectedIndex];
+            const selected = option && option.value;
+            summary.style.display = selected ? 'grid' : 'none';
+            date.value = selected ? option.dataset.date : '';
+            licence.value = selected ? 'Hạng ' + option.dataset.licence : '';
+        };
+
+        select.addEventListener('change', syncOfficialRoster);
+        syncOfficialRoster();
+    })();
+</script>
 </body>
 </html>

@@ -1,12 +1,12 @@
 /* Examiner portal - reset, typography, shell */
-body.examiner-portal,
-body.examiner-portal *,
-body.examiner-portal *::before,
-body.examiner-portal *::after {
+body.portal,
+body.portal *,
+body.portal *::before,
+body.portal *::after {
     box-sizing: border-box;
 }
 
-body.examiner-portal {
+body.portal {
     margin: 0;
     background-color: #f6fafe;
     color: #434654;
@@ -17,32 +17,32 @@ body.examiner-portal {
     -moz-osx-font-smoothing: grayscale;
 }
 
-body.examiner-portal h1,
-body.examiner-portal h2,
-body.examiner-portal h3,
-body.examiner-portal h4,
-body.examiner-portal p {
+body.portal h1,
+body.portal h2,
+body.portal h3,
+body.portal h4,
+body.portal p {
     margin: 0;
 }
 
-body.examiner-portal button,
-body.examiner-portal input,
-body.examiner-portal select,
-body.examiner-portal textarea {
+body.portal button,
+body.portal input,
+body.portal select,
+body.portal textarea {
     font: inherit;
 }
 
-body.examiner-portal table {
+body.portal table {
     border-collapse: collapse;
     border-spacing: 0;
 }
 
-body.examiner-portal img {
+body.portal img {
     max-width: 100%;
     height: auto;
 }
 
-.examiner-shell {
+.shell {
     margin-left: 260px;
     width: calc(100% - 260px);
     min-height: 100vh;
@@ -54,12 +54,12 @@ body.examiner-portal img {
     overflow: hidden;
 }
 
-body.examiner-portal .examiner-main,
-body.examiner-portal.has-side-nav-bar .examiner-main {
+body.portal .main,
+body.portal.has-side-nav-bar .main {
     margin-left: 0 !important;
 }
 
-.examiner-main {
+.main {
     flex: 1;
     width: 100%;
     min-height: 0;
@@ -71,32 +71,32 @@ body.examiner-portal.has-side-nav-bar .examiner-main {
     overflow: hidden;
 }
 
-.examiner-main--dashboard > .examiner-toolbar,
-.examiner-main--dashboard > .examiner-summary {
+.main.dash > .toolbar,
+.main.dash > .summary {
     flex-shrink: 0;
 }
 
-.examiner-main--dashboard > .examiner-flash-container,
-.examiner-main--scroll > .examiner-flash-container,
-.examiner-main--dashboard > .examiner-alert,
-.examiner-main--scroll > .examiner-alert {
+.main.dash > .flash-wrap,
+.main.scroll > .flash-wrap,
+.main.dash > .alert,
+.main.scroll > .alert {
     flex-shrink: 0;
 }
 
-.examiner-main--scroll {
+.main.scroll {
     overflow: auto;
 }
 
-.examiner-main--score-entry {
+.main.score {
     overflow: hidden;
 }
 
-.examiner-main--score-entry > .examiner-flash-container,
-.examiner-main--score-entry > .examiner-alert {
+.main.score > .flash-wrap,
+.main.score > .alert {
     flex-shrink: 0;
 }
 
-body.examiner-portal--inactive .examiner-main {
+body.portal.inactive .main {
     pointer-events: none;
     user-select: none;
     opacity: 0.45;
@@ -111,7 +111,7 @@ body.examiner-portal--inactive .examiner-main {
     opacity: 0.45;
 }
 
-.examiner-page-desc {
+.page-desc {
     margin: 8px 0 0;
     font-size: 14px;
     line-height: 24px;
@@ -119,13 +119,13 @@ body.examiner-portal--inactive .examiner-main {
     max-width: 640px;
 }
 
-.examiner-page-subdesc {
+.page-subdesc {
     margin: 4px 0 0;
     font-size: 14px;
     color: #434654;
 }
 
-#callSelectedForm {
+#actionSelectedForm {
     display: flex;
     flex-direction: column;
     flex: 1;

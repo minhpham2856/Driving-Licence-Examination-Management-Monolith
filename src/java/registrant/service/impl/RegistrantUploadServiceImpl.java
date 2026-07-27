@@ -74,6 +74,10 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         model.put("otherDocumentCount", otherDocs.size());
         model.put("profileApproved", profileApproved);
         model.put("profileRejected", profileRejected);
+        if (profileRejected) {
+            model.put("rejectionReason",
+                    registrantdao.findProfileDocumentRejectionReason(ctx.getProfileId()));
+        }
         model.put("primaryPendingReview", primaryPending);
         model.put("approvalLicenceOptions", listApprovalLicenceOptions());
         model.put("hasSupplementAwaitingSubmit", RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs));
@@ -163,7 +167,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
     /** Gửi duyệt: Pending→từ chối; Approved→requestSupplementApproval; Draft/Rejected→duyệt hồ sơ chính (+ hạng đã chọn). */
     @Override
-    public String requestApproval(UserDTO user, String requestNote, String approvalLicenceCode,
+    public String requestApproval(UserDTO user, String requestNote, String approvalLicenceCode, boolean isRetake,
             HttpSession session) {
         Profile profile = RegistrantProfileSupport.resolveProfile(profiledao, user);
         if (profile == null) {
@@ -182,6 +186,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
         List<RegistrantDocumentView> docs = documentdao.listByProfileId(profile.getProfileId());
         String registrationStatus = registrantdao.findProfileDocumentRegistrationStatus(profile.getProfileId());
+        String retakeLabel = isRetake ? " (thi lại)" : " (thi lần đầu)";
 
         if (ProfileRegistrationStatus.PENDING.equalsIgnoreCase(registrationStatus)) {
             return "Hồ sơ đang chờ duyệt.";
@@ -205,18 +210,21 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                         ? requestNote.trim()
                         : "Xin duyệt hạng " + licenceCode.trim().toUpperCase()
                             + " với hồ sơ đã có (tái sử dụng 4 giấy tờ bắt buộc).";
+                msg = msg + retakeLabel;
                 int erId = registrantdao.insertLicenceDocumentRegistration(
-                        profile.getProfileId(), licenceId, ProfileRegistrationStatus.PENDING, msg);
+                        profile.getProfileId(), licenceId, ProfileRegistrationStatus.PENDING, msg, isRetake);
                 if (erId <= 0) {
                     return "Không thể gửi yêu cầu duyệt hạng " + licenceCode + ". Vui lòng thử lại.";
                 }
                 RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), msg);
                 return null;
             }
-            if (!requestSupplementApproval(profile.getProfileId(), requestNote, docs, licenceId, licenceCode)) {
+            if (!requestSupplementApproval(profile.getProfileId(), requestNote, docs, licenceId, licenceCode,
+                    isRetake)) {
                 return "Không thể gửi yêu cầu duyệt hồ sơ bổ sung. Vui lòng thử lại.";
             }
-            RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), requestNote);
+            RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(),
+                    (requestNote != null ? requestNote : "") + retakeLabel);
             return null;
         } else if (!hasUploadableDocumentsForReview(docs)) {
             return "Chưa có tài liệu nào để gửi duyệt. Vui lòng tải lên ít nhất một tệp.";
@@ -231,14 +239,16 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
 
         docs = documentdao.listByProfileId(profile.getProfileId());
         RegistrantProfileSupport.updateRegistrationStatus(
-                profile.getProfileId(), ProfileRegistrationStatus.PENDING, docs, registrantdao, licenceId);
-        RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(), requestNote);
+                profile.getProfileId(), ProfileRegistrationStatus.PENDING, docs, registrantdao, licenceId,
+                isRetake);
+        RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(),
+                (requestNote != null ? requestNote : "") + retakeLabel);
         return null;
     }
 
     /** Tạo ER bổ sung + gắn Other awaiting với hạng chọn lúc gửi duyệt. */
     private boolean requestSupplementApproval(int profileId, String requestNote,
-            List<RegistrantDocumentView> docs, int licenceId, String licenceCode) {
+            List<RegistrantDocumentView> docs, int licenceId, String licenceCode, boolean isRetake) {
         List<RegistrantDocumentView> awaiting = new ArrayList<>();
         for (RegistrantDocumentView doc : docs) {
             if (!DocumentDAOImpl.isOtherType(doc.getDocumentType())) {
@@ -269,7 +279,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                     + ". Yêu cầu: " + requestNote.trim()
                 : "Thí sinh gửi duyệt hồ sơ bổ sung hạng " + licenceCode.trim().toUpperCase() + ".";
         int supplementErId = registrantdao.insertSupplementDocumentRegistration(
-                profileId, licenceId, ProfileRegistrationStatus.PENDING, erMessage);
+                profileId, licenceId, ProfileRegistrationStatus.PENDING, erMessage, isRetake);
         if (supplementErId <= 0) {
             return false;
         }

@@ -72,8 +72,10 @@ public class ProfileServlet extends HttpServlet {
         if (dob != null && !dob.isBlank()) {
             updated.setDateOfBirth(new Timestamp(Date.valueOf(dob.trim()).getTime()));
         }
-        updated.setSex("Nữ".equalsIgnoreCase(request.getParameter("gender"))
-                || "Nu".equalsIgnoreCase(request.getParameter("gender")));
+        // Profile.Sex: true/1 = Nam, false/0 = Nữ (khớp seed DB + managing staff)
+        String gender = request.getParameter("gender");
+        updated.setSex("Nam".equalsIgnoreCase(gender)
+                || "1".equals(gender));
         updated.setPhoneNumber(request.getParameter("phone"));
         updated.setAddress(request.getParameter("address"));
         updated.setGovernmentIdNumber(RegistrantExamSupport.normalizeGovIdNumber(request.getParameter("idCard")));

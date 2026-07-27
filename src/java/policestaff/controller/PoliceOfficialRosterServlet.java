@@ -99,13 +99,15 @@ public class PoliceOfficialRosterServlet extends HttpServlet {
         resp.setHeader("Content-Disposition", "attachment; filename=official-list-"
                 + submission.getExamDateId() + ".csv");
         StringBuilder csv = new StringBuilder(
-                "Số báo danh,Họ và tên,Ngày sinh,CCCD,Hạng GPLX,Số điện thoại,Email\r\n");
+                "Số báo danh,Họ và tên,Ngày sinh,CCCD,Hạng GPLX,Nội dung thi,Số điện thoại,Email\r\n");
         java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("dd/MM/yyyy");
         for (OfficialExamCandidateDTO row : rows) {
             String dob = row.getDateOfBirth() == null ? "" : format.format(row.getDateOfBirth());
             csv.append(cell(row.getCandidateNumber())).append(',').append(cell(row.getFullName())).append(',')
                     .append(cell(dob)).append(',').append(cell(row.getGovernmentIdNumber())).append(',')
-                    .append(cell(submission.getLicenceClass())).append(',').append(cell(row.getPhoneNumber())).append(',')
+                    .append(cell(submission.getLicenceClass())).append(',')
+                    .append(cell(row.getExamParticipationLabel())).append(',')
+                    .append(cell(row.getPhoneNumber())).append(',')
                     .append(cell(row.getEmail())).append("\r\n");
         }
         resp.getOutputStream().write(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});

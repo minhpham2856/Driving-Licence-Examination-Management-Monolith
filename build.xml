@@ -12,13 +12,6 @@
     <property name="source.encoding" value="UTF-8"/>
     <import file="nbproject/build-impl.xml"/>
 
-    <target name="-post-init">
-        <path id="test.lib.classpath.id">
-            <fileset dir="${basedir}/test/lib" includes="*.jar"/>
-        </path>
-        <pathconvert property="test.lib.classpath" refid="test.lib.classpath.id" pathsep=";"/>
-    </target>
-
     <!-- Orphan package from older layout; must not sit beside examstaff.controller.PublicCallStateServlet -->
     <target name="-post-compile">
         <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
@@ -28,21 +21,10 @@
     </target>
     <target name="-pre-run-deploy">
         <delete dir="${build.classes.dir}/examstaff/controller/pub" quiet="true"/>
-    </target>
-
-    <!-- UI tests (Selenium + JUnit). Requires Chrome and Tomcat at test.base.url -->
-    <target name="test-ui" depends="compile,compile-test" description="Run Selenium UI smoke tests">
-        <mkdir dir="${build.test.results.dir}"/>
-        <junit printsummary="yes" haltonfailure="no" fork="true" showoutput="true">
-            <classpath>
-                <pathelement path="${javac.classpath}"/>
-                <pathelement path="${build.classes.dir}"/>
-                <pathelement path="${build.test.classes.dir}"/>
-                <fileset dir="test/lib" includes="*.jar"/>
-            </classpath>
-            <formatter type="brief" usefile="false"/>
-            <test name="ExamstaffStaffLoginUiTest" todir="${build.test.results.dir}"/>
-        </junit>
+        <mkdir dir="${build.web.dir}/META-INF"/>
+        <copy file="${web.docbase.dir}/META-INF/context.xml"
+              tofile="${build.web.dir}/META-INF/context.xml"
+              failonerror="true"/>
     </target>
 
     <!--

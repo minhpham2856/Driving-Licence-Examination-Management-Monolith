@@ -84,7 +84,7 @@
             <span class="side-nav-bar__label" data-node-id="manager:21">Quản lý thí sinh</span>
         </a>
 
-        <%-- Chi tiết hồ sơ học viên --%>
+        <%-- Chi tiết hồ sơ thí sinh --%>
         <a href="${ctx}/manager/dossier-detail"
            class="side-nav-bar__link${activeSidebar eq 'chi-tiet-hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:25"
@@ -132,7 +132,7 @@
                     <path d="M8 2v4M16 2v4M3 10h18M8 15h3M14 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </span>
-            <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý phiên thi</span>
+            <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý kỳ thi</span>
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>
@@ -166,6 +166,28 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="manager:90">
+        <a href="${ctx}/managingstaff/profile"
+           class="side-nav-bar__logout${activeSidebar eq 'profile' ? ' is-active' : ''}"
+           style="margin-bottom:6px">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M4 21a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Hồ sơ cá nhân</span>
+        </a>
+        <a href="${ctx}/managingstaff/change-password"
+           class="side-nav-bar__logout${activeSidebar eq 'change-password' ? ' is-active' : ''}"
+           style="margin-bottom:6px">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Đổi mật khẩu</span>
+        </a>
         <a href="${ctx}/logout" class="side-nav-bar__logout" data-node-id="manager:91">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">

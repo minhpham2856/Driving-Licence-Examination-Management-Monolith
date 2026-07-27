@@ -1,12 +1,20 @@
 -- ============================================
--- DML – DLEM_DB_2 (khớp DDL_DLEM_DB.sql)
--- Mật khẩu mặc định mọi tài khoản: login123 (BCrypt)
--- Sau DML chạy tiếp (tuỳ chọn):
---   seed_candidates_procedure_pending.sql  (15 TS chờ thủ tục: bảo lưu LT / thi cả 2 / bảo lưu TH)
---   seed_candidate.sql → seed_a1_exam_500.sql  (500 TS bulk, nếu có)
+-- DML – DLEM_DB_2 (khớp DDL_DLEM_DB.sql hợp nhất)
+-- Mật khẩu mặc định mọi tài khoản: login123
+-- ExamDates / RegistrationDates / OfficialExamCandidate: không seed —
+-- managing staff và police tạo qua UI.
 -- ============================================
 
 USE DLEM_DB_2;
+GO
+
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET QUOTED_IDENTIFIER ON;
+SET NUMERIC_ROUNDABORT OFF;
 GO
 
 DELETE FROM Audit;
@@ -22,6 +30,8 @@ DELETE FROM Licence_Fee;
 DELETE FROM ExamEnrollmentSection;
 DELETE FROM ExamEnrollment;
 DELETE FROM Candidate;
+DELETE FROM OfficialExamCandidate;
+DELETE FROM RegistrationDates;
 DELETE FROM ExamRegistration;
 DELETE FROM Document;
 DELETE FROM DocumentType;
@@ -34,6 +44,7 @@ DELETE FROM QuestionCategory;
 DELETE FROM ExamDevice;
 DELETE FROM ExamSection;
 DELETE FROM Exam;
+DELETE FROM ExamDates;
 DELETE FROM ExamArea;
 DELETE FROM ExamZone;
 DELETE FROM Fee;
@@ -51,7 +62,8 @@ INSERT INTO [Role] (RoleName) VALUES
 (N'Cán bộ quản lý'),
 (N'Cán bộ kỳ thi'),
 (N'Thí sinh'),
-(N'Người đăng ký thi');
+(N'Người đăng ký thi'),
+(N'Cán bộ CSGT');
 GO
 
 -- ============================================
@@ -78,7 +90,8 @@ INSERT INTO [User] (Username, Email, PasswordHash, RoleId, IsActive) VALUES
 (N'user_kim',    N'kim.ngo@gmail.com',              @Pw, 6, 1),
 (N'user_long',   N'long.bui@gmail.com',             @Pw, 6, 0),
 (N'user_hoa',    N'hoa.thi@gmail.com',              @Pw, 6, 1),
-(N'user_khoa',   N'khoa.tran@gmail.com',            @Pw, 6, 1);
+(N'user_khoa',   N'khoa.tran@gmail.com',            @Pw, 6, 1),
+(N'police123',   N'police@csgt.gov.vn',             @Pw, 7, 1);
 GO
 
 -- ============================================
@@ -102,16 +115,19 @@ INSERT INTO Profile (FullName, DateOfBirth, PhoneNumber, Sex, GovernmentIdNumber
 (N'Ngô Thị Kim',       '1999-09-09', N'0923456780', 0, N'001199090901', N'23 Bạch Đằng, Hải Châu, Đà Nẵng', 15),
 (N'Bùi Văn Long',      '1985-03-30', N'0888123456', 1, N'001085033001', N'67 Điện Biên Phủ, Ba Đình, Hà Nội', 16),
 (N'Nguyễn Thị Hoa',    '1997-05-14', N'0911004801', 0, N'001197051401', N'18 Hoàng Hoa Thám, Ba Đình, Hà Nội', 17),
-(N'Trần Văn Khoa',     '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Cầu Giấy, Hà Nội', 18);
+(N'Trần Văn Khoa',     '1996-09-03', N'0911004901', 1, N'001196090301', N'72 Cầu Giấy, Cầu Giấy, Hà Nội', 18),
+(N'Lê Văn Cảnh',       '1987-02-18', N'0911005001', 1, N'001087021801', N'Cục CSGT, Hà Nội', 19);
 GO
 
 -- ============================================
 -- 4. LOẠI TÀI LIỆU HỒ SƠ + TÀI LIỆU
 -- ============================================
 INSERT INTO DocumentType ([Type]) VALUES
+(N'Ảnh chân dung 3x4'),
 (N'Căn cước công dân (mặt trước)'),
 (N'Căn cước công dân (mặt sau)'),
 (N'Giấy khám sức khỏe'),
+(N'Hồ sơ khác'),
 (N'Giấy chứng nhận tốt nghiệp'),
 (N'Giấy phép lái xe hiện có');
 GO
@@ -143,31 +159,36 @@ GO
 -- ============================================
 -- 6. HỒ SƠ ĐĂNG KÝ THI
 -- ============================================
-INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId) VALUES
-(N'Duyệt',       N'Đủ hồ sơ, đủ điều kiện sức khỏe', 8,  (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Đã xác minh căn cước và giấy khám sức khỏe', 9, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Chờ duyệt',   N'Chờ cán bộ quản lý duyệt hồ sơ', 10, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'Duyệt',       N'Đăng ký thi cấp mới hạng A1', 11, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'Duyệt',       N'Nâng hạng từ A1 lên A', 12, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'Duyệt',       N'Đăng ký thi cấp mới hạng B1 (mô tô ba bánh)', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Hồ sơ hoàn chỉnh', 14, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Chờ duyệt',   N'Chờ bổ sung ảnh chân dung', 15, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'Loại',        N'Không đủ điều kiện sức khỏe theo quy định', 16, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Đã thu học phí và lệ phí thi', 17, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Loại',        N'Cần bổ sung giấy xác nhận cư trú', 18, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'));
+INSERT INTO ExamRegistration
+    (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
+VALUES
+(N'Duyệt',       N'Đủ hồ sơ, đủ điều kiện sức khỏe', 8,  (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Đã xác minh căn cước và giấy khám sức khỏe', 9, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Chờ duyệt',   N'Chờ cán bộ quản lý duyệt hồ sơ', 10, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), 0),
+(N'Duyệt',       N'Đăng ký thi cấp mới hạng A1', 11, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), 0),
+(N'Duyệt',       N'Đăng ký thi lại; chờ CSGT quyết định nội dung thi', 12, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), 1),
+(N'Duyệt',       N'Đăng ký thi cấp mới hạng B1 (mô tô ba bánh)', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Hồ sơ hoàn chỉnh', 14, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Chờ duyệt',   N'Chờ bổ sung ảnh chân dung', 15, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), 0),
+(N'Loại',        N'Không đủ điều kiện sức khỏe theo quy định', 16, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Đã thu học phí và lệ phí thi', 17, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Loại',        N'Cần bổ sung giấy xác nhận cư trú', 18, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0);
 GO
+
+-- ExamDates / RegistrationDates: không seed — managing staff tạo ngày thi dự kiến trên hệ thống.
 
 -- ============================================
 -- 7. KỲ THI (StartTime bắt buộc; EndTime NULL nếu chưa kết thúc)
+-- Sau seed: cán bộ phải Tạo mật khẩu máy thi trên dashboard trước khi kiosk login.
 -- ============================================
-INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], LicenceId, StartTime, EndTime) VALUES
-(N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
-(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
-(N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
-(N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
-(N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
-(N'B1-20260601-1300', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 13:00:00', '2026-06-01 16:00:00'),
-(N'B1-20260608-0730', '2026-06-08', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-08 07:30:00', '2026-06-08 09:00:00');
+INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], ExamPassword, LicenceId, StartTime, EndTime) VALUES
+(N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
+(N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
+(N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
+(N'B1-20260601-1300', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 13:00:00', '2026-06-01 16:00:00'),
+(N'B1-20260608-0730', '2026-06-08', N'Trung tâm Sát hạch Lái Vui – Đà Nẵng', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-08 07:30:00', '2026-06-08 09:00:00');
 GO
 
 -- ============================================
@@ -313,12 +334,9 @@ GO
 
 -- ============================================
 -- 13–18. THÍ SINH / GHI DANH / THANH TOÁN / KẾT QUẢ
--- Chạy sau DML (tuỳ chọn):
---   seed_candidates_procedure_pending.sql
---     15 Candidate SBD 601–615 trên A1-20260601-1000
---     (bảo lưu LT / thi cả 2 / bảo lưu TH; chưa ảnh, chưa Payment)
---   seed_candidate.sql   (500 Candidate SBD 001–500, nếu có)
---   seed_a1_exam_500.sql (ghi danh A1-20260601-1000 + phân công SHV, nếu có)
+-- Chạy sau DML:
+--   seed_candidate.sql   (500 Candidate SBD 001–500)
+--   seed_a1_exam_500.sql (ghi danh A1-20260601-1000 + phân công SHV)
 -- ============================================
 GO
 
@@ -1061,4 +1079,25 @@ WHERE l.LicenceClass = N'B1'
     539,540,543,548,553,556,559,560,562,565,
     567,568,583,592,600
 );
+GO
+
+-- Quy tắc nghiệp vụ mặc định: LT chưa hoàn tất thì TH phải "Chưa thi"
+UPDATE eesLayout
+SET eesLayout.Status = N'Chưa thi',
+    eesLayout.CheckedInAt = NULL,
+    eesLayout.CheckedInBy = NULL,
+    eesLayout.StartedAt = NULL,
+    eesLayout.CompletedAt = NULL,
+    eesLayout.ResultPrintedAt = NULL
+FROM ExamEnrollmentSection eesLayout
+JOIN ExamSection secLayout ON secLayout.ExamSectionId = eesLayout.ExamSectionId
+JOIN ExamEnrollment ee ON ee.ExamEnrollmentId = eesLayout.ExamEnrollmentId
+JOIN Candidate c ON c.CandidateId = ee.CandidateId
+JOIN ExamSection secTheory ON secTheory.ExamId = ee.ExamId AND secTheory.SectionType = N'Lý thuyết'
+JOIN ExamEnrollmentSection eesTheory
+    ON eesTheory.ExamEnrollmentId = ee.ExamEnrollmentId
+   AND eesTheory.ExamSectionId = secTheory.ExamSectionId
+WHERE secLayout.SectionType = N'Thực hành trong hình'
+  AND c.TakeTheory = 1
+  AND ISNULL(eesTheory.Status, N'Chưa thi') <> N'Đã thi';
 GO

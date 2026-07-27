@@ -205,6 +205,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 WHERE UPPER(LTRIM(RTRIM(l.LicenceClass))) IN (""" + placeholders + """
                 )
                   AND ed.ExamDate >= CAST(GETDATE() AS DATE)
+                  AND COALESCE(ed.Status, N'Open') = N'Open'
                 ORDER BY ed.ExamDate, ed.ExamDateId
                 """;
         List<RegistrantExamSessionOption> options = new ArrayList<>();
@@ -322,6 +323,69 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         }
     }
 
+    /** True nếu có nguyện vọng đã hủy và không còn active cho hạng này. */
+    @Override
+    public boolean hasCancelledPreferredExamDateWithoutActive(int profileId, int licenceId) {
+        if (profileId <= 0 || licenceId <= 0 || getConnection() == null) {
+            return false;
+        }
+        if (hasActivePreferredExamDate(profileId, licenceId)) {
+            return false;
+        }
+        String sql = """
+                SELECT TOP 1 1
+                FROM RegistrationDates rd
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+                WHERE er.ProfileId = ?
+                  AND er.LicenceId = ?
+                  AND rd.IsActive = 0
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            ps.setInt(2, licenceId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Kiểm tra nguyện vọng đã hủy thất bại profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+            return false;
+        }
+    }
+
+    /** True nếu có hạng nào đó từng hủy nguyện vọng và hiện không còn active. */
+    @Override
+    public boolean hasAnyCancelledPreferredExamDateWithoutActive(int profileId) {
+        if (profileId <= 0 || getConnection() == null) {
+            return false;
+        }
+        String sql = """
+                SELECT TOP 1 1
+                FROM RegistrationDates rd
+                INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+                WHERE er.ProfileId = ?
+                  AND rd.IsActive = 0
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM RegistrationDates rd2
+                      INNER JOIN ExamRegistration er2 ON er2.ExamRegistrationId = rd2.ExamRegistrationId
+                      WHERE er2.ProfileId = er.ProfileId
+                        AND er2.LicenceId = er.LicenceId
+                        AND rd2.IsActive = 1
+                  )
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Kiểm tra nguyện vọng đã hủy (dashboard) thất bại profile {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+            return false;
+        }
+    }
+
     private static Integer parseExamDateId(String raw) {
         if (raw == null || raw.isBlank()) {
             return null;
@@ -369,6 +433,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 SELECT 1 FROM ExamDates
                 WHERE ExamDateId = ?
                   AND ExamDate >= CAST(GETDATE() AS DATE)
+                  AND COALESCE(Status, N'Open') = N'Open'
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examDateId);
@@ -503,7 +568,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                        rd.RegistrationDateId,
                        ed.ExamDateId,
                        CAST(ed.ExamDate AS DATE) AS examDate,
-                       l.LicenceClass
+                       l.LicenceClass,
+                       COALESCE(ed.Status, N'Open') AS examDateStatus
                 FROM RegistrationDates rd
                 INNER JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId
                 INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
@@ -802,6 +868,11 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         rows.addAll(listPreferredMyExamsByUserId(userId, null));
         rows.addAll(queryMyExams(userId, null));
         rows.sort((a, b) -> {
+            // Nguyện vọng còn hiệu lực trước; đã hủy xếp sau
+            if (a.isPreferredDate() && b.isPreferredDate()
+                    && a.isPreferredCancelled() != b.isPreferredCancelled()) {
+                return a.isPreferredCancelled() ? 1 : -1;
+            }
             java.util.Date da = a.getExamDate();
             java.util.Date db = b.getExamDate();
             if (da == null && db == null) {
@@ -931,18 +1002,20 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 SELECT rd.RegistrationDateId,
                        ed.ExamDateId,
                        CAST(ed.ExamDate AS DATE) AS examDate,
-                       l.LicenceClass
+                       l.LicenceClass,
+                       rd.IsActive,
+                       COALESCE(ed.Status, N'Open') AS examDateStatus,
+                       ed.CancelReason
                 FROM RegistrationDates rd
                 INNER JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId
                 INNER JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
                 INNER JOIN Profile prof ON prof.ProfileId = er.ProfileId
                 INNER JOIN Licence l ON l.LicenceId = ed.LicenceId
                 WHERE prof.UserId = ?
-                  AND rd.IsActive = 1
                 """
                 + (registrationDateId != null ? " AND rd.RegistrationDateId = ?" : "")
                 + """
-                ORDER BY ed.ExamDate DESC, rd.RegistrationDateId DESC
+                ORDER BY rd.IsActive DESC, ed.ExamDate DESC, rd.RegistrationDateId DESC
                 """;
         List<RegistrantMyExamRow> rows = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -993,6 +1066,38 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     new Object[] { profileId, e.getMessage() });
         }
         return fallbackLegacyProfileDocumentStatus(profileId);
+    }
+
+    /** Lý do từ chối hồ sơ gốc (MESSAGE= trong Notes) — null nếu không Rejected/không có lý do. */
+    @Override
+    public String findProfileDocumentRejectionReason(int profileId) {
+        if (profileId <= 0 || getConnection() == null) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 RegistrationStatus, Notes
+                FROM ExamRegistration
+                WHERE ProfileId = ?
+                  AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                  AND (Notes IS NULL OR (
+                        Notes NOT LIKE N'%#SUPPLEMENT_DOC#%'
+                        AND Notes NOT LIKE N'%#LICENCE_DOC#%'
+                      ))
+                ORDER BY ExamRegistrationId ASC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()
+                        && ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(rs.getString("RegistrationStatus"))) {
+                    return RegistrantDocumentHelper.parseStaffMessageFromNotes(rs.getString("Notes"));
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không đọc lý do từ chối hồ sơ gốc {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return null;
     }
 
     /** Các hạng UI đã được duyệt kèm hồ sơ. */
@@ -1098,7 +1203,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     /** Tạo ER hồ sơ bổ sung với Notes #SUPPLEMENT_DOC# — trả ExamRegistrationId (>0) hoặc 0. */
     @Override
-    public int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes) {
+    public int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes,
+            boolean isRetake) {
         if (profileId <= 0 || licenceId <= 0 || status == null || status.isBlank()) {
             return 0;
         }
@@ -1108,14 +1214,15 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             mergedNotes = notes.trim();
         }
         String ins = """
-                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
+                VALUES (?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(ins, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, status.trim());
             ps.setString(2, mergedNotes);
             ps.setInt(3, profileId);
             ps.setInt(4, licenceId);
+            ps.setBoolean(5, isRetake);
             if (ps.executeUpdate() <= 0) {
                 return 0;
             }
@@ -1133,20 +1240,22 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
 
     /** Tạo ER #LICENCE_DOC# xin duyệt thêm hạng. */
     @Override
-    public int insertLicenceDocumentRegistration(int profileId, int licenceId, String status, String notes) {
+    public int insertLicenceDocumentRegistration(int profileId, int licenceId, String status, String notes,
+            boolean isRetake) {
         if (profileId <= 0 || licenceId <= 0 || status == null || status.isBlank()) {
             return 0;
         }
         String mergedNotes = RegistrantDocumentHelper.buildLicenceDocExamRegistrationNotes(notes);
         String ins = """
-                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
+                VALUES (?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(ins, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, status.trim());
             ps.setString(2, mergedNotes);
             ps.setInt(3, profileId);
             ps.setInt(4, licenceId);
+            ps.setBoolean(5, isRetake);
             if (ps.executeUpdate() <= 0) {
                 return 0;
             }
@@ -1204,12 +1313,19 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     /** Đồng bộ ER hồ sơ gốc (không gắn LicenceId). */
     @Override
     public boolean syncProfileDocumentRegistration(int profileId, String status, String notes) {
-        return syncProfileDocumentRegistration(profileId, status, notes, 0);
+        return syncProfileDocumentRegistration(profileId, status, notes, 0, false);
     }
 
     /** Đồng bộ ER hồ sơ gốc kèm LicenceId khi gửi duyệt. */
     @Override
     public boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId) {
+        return syncProfileDocumentRegistration(profileId, status, notes, licenceId, false);
+    }
+
+    /** Đồng bộ ER hồ sơ gốc kèm LicenceId + IsRetake khi gửi duyệt. */
+    @Override
+    public boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId,
+            boolean isRetake) {
         if (profileId <= 0 || status == null || status.isBlank()) {
             return false;
         }
@@ -1221,7 +1337,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             String markedNotes = RegistrantDocumentHelper.ensureProfileDocMarker(notes);
             int resolvedLicenceId = licenceId > 0 ? licenceId : 0;
             int rows = updatePrimaryWorkflowRegistrationRows(
-                    profileId, status.trim(), markedNotes, resolvedLicenceId);
+                    profileId, status.trim(), markedNotes, resolvedLicenceId, isRetake);
             if (rows > 0) {
                 return true;
             }
@@ -1231,7 +1347,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             if (insertLicenceId <= 0) {
                 return false;
             }
-            return insertPrimaryRegistrationRow(profileId, insertLicenceId, status.trim(), markedNotes);
+            return insertPrimaryRegistrationRow(profileId, insertLicenceId, status.trim(), markedNotes, isRetake);
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Không đồng bộ RegistrationStatus profile {0}: {1}",
                     new Object[] { profileId, e.getMessage() });
@@ -1240,11 +1356,11 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     }
 
     private int updatePrimaryWorkflowRegistrationRows(int profileId, String status, String notes,
-            int licenceId) throws SQLException {
+            int licenceId, boolean isRetake) throws SQLException {
         if (licenceId > 0) {
             String sql = """
                     UPDATE ExamRegistration
-                    SET RegistrationStatus = ?, Notes = ?, LicenceId = ?
+                    SET RegistrationStatus = ?, Notes = ?, LicenceId = ?, IsRetake = ?
                     WHERE ProfileId = ?
                       AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
                       AND (Notes IS NULL OR (
@@ -1256,13 +1372,14 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 ps.setString(1, status);
                 ps.setString(2, notes != null ? notes : "");
                 ps.setInt(3, licenceId);
-                ps.setInt(4, profileId);
+                ps.setBoolean(4, isRetake);
+                ps.setInt(5, profileId);
                 return ps.executeUpdate();
             }
         }
         String sql = """
                 UPDATE ExamRegistration
-                SET RegistrationStatus = ?, Notes = ?
+                SET RegistrationStatus = ?, Notes = ?, IsRetake = ?
                 WHERE ProfileId = ?
                   AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
                   AND (Notes IS NULL OR (
@@ -1273,22 +1390,25 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setString(2, notes != null ? notes : "");
-            ps.setInt(3, profileId);
+            ps.setBoolean(3, isRetake);
+            ps.setInt(4, profileId);
             return ps.executeUpdate();
         }
     }
 
-    private boolean insertPrimaryRegistrationRow(int profileId, int licenceId, String status, String notes)
+    private boolean insertPrimaryRegistrationRow(int profileId, int licenceId, String status, String notes,
+            boolean isRetake)
             throws SQLException {
         String ins = """
-                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
+                VALUES (?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(ins)) {
             ps.setString(1, status);
             ps.setString(2, notes != null ? notes : "");
             ps.setInt(3, profileId);
             ps.setInt(4, licenceId);
+            ps.setBoolean(5, isRetake);
             return ps.executeUpdate() > 0;
         }
     }
@@ -1408,7 +1528,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 RegistrantExamSupport.licenceClassDescription(row.getLicenceClass()));
         row.setExamDate(rs.getDate("examDate"));
         row.setCandidateNumber(null);
-        RegistrantExamSupport.applyPreferredDateStatus(row);
+        String examDateStatus = null;
+        try {
+            examDateStatus = rs.getString("examDateStatus");
+        } catch (SQLException ignored) {
+            // cột optional với query cũ
+        }
+        RegistrantExamSupport.applyPreferredDateStatus(row, true, examDateStatus);
         return row;
     }
 
@@ -1422,8 +1548,10 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         row.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
         row.setSbd(null);
         row.setExamSectionName("Nguyện vọng");
-        RegistrantExamSupport.applyPreferredDateStatus(row);
-        row.setSessionTimeDisplay("Chờ trung tâm công bố");
+        boolean active = rs.getInt("IsActive") == 1;
+        String examDateStatus = rs.getString("examDateStatus");
+        String cancelReason = rs.getString("CancelReason");
+        RegistrantExamSupport.applyPreferredDateStatus(row, active, examDateStatus, cancelReason);
         return row;
     }
 

@@ -86,23 +86,23 @@
                     </div>
                     <span class="allocation-stage-panel__count">${procedurePendingCount} thí sinh</span>
                 </div>
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-stage-table allocation-table--fill">
+                <div class="table-wrap">
+                    <table class="table allocation-stage-table allocation-table--fill">
                         <thead>
                             <tr>
-                                <th class="examiner-table__center" style="width: 56px;">STT</th>
+                                <th class="table-center" style="width: 56px;">STT</th>
                                 <th>SBD</th>
                                 <th>Họ tên</th>
                                 <th>Hạng</th>
                                 <th>Trạng thái</th>
-                                <th class="examiner-table__center" style="width: 140px;">Thao tác</th>
+                                <th class="table-center" style="width: 140px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             <c:forEach var="c" items="${procedurePendingCandidates}" varStatus="st">
                                 <c:set var="hasPhoto" value="${c.validCapturedPhoto or (not empty c.photoUrl)}" />
                                 <tr>
-                                    <td class="examiner-table__center">${st.count}</td>
+                                    <td class="table-center">${st.count}</td>
                                     <td><strong>${c.sbd}</strong></td>
                                     <td>${c.name}</td>
                                     <td>${c.clazz}</td>
@@ -119,7 +119,7 @@
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
-                                    <td class="examiner-table__center">
+                                    <td class="table-center">
                                         <a href="${pageContext.request.contextPath}/examstaff/procedure?sbd=${c.sbd}&amp;step=1<c:if test="${not empty requestScope.selectedExamId}">&amp;examId=${requestScope.selectedExamId}</c:if>#procedure-desk"
                                            class="allocation-table-action allocation-table-action--theory">Làm thủ tục</a>
                                     </td>
@@ -246,8 +246,8 @@
                 </header>
 
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 0; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">1. Thống kê theo hạng bằng sát hạch</h3>
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-results-table allocation-table--fill">
+                <div class="table-wrap">
+                    <table class="table allocation-results-table allocation-table--fill">
                         <thead>
                             <tr>
                                 <th scope="col">Hạng bằng</th>
@@ -290,8 +290,8 @@
                 </div>
 
                 <h3 style="font-size: 0.95rem; font-weight: 700; color: #003d9b; margin-top: 1.5rem; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em;">2. Thống kê tỷ lệ loại theo từng phần thi</h3>
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-results-table allocation-table--fill" style="margin-bottom: 0;">
+                <div class="table-wrap">
+                    <table class="table allocation-results-table allocation-table--fill" style="margin-bottom: 0;">
                         <thead>
                             <tr>
                                 <th scope="col">Phần thi sát hạch</th>
@@ -357,19 +357,19 @@
                     <div class="chart-legend">
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #10b981;"></div>
-                            <span>Đạt (${passEx} học viên)</span>
+                            <span>Đạt (${passEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #ef4444;"></div>
-                            <span>Trượt (${failEx} học viên)</span>
+                            <span>Trượt (${failEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #f59e0b;"></div>
-                            <span>Vắng (${absentEx} học viên)</span>
+                            <span>Vắng (${absentEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #b91c1c;"></div>
-                            <span>Đình chỉ (${suspendedEx} học viên)</span>
+                            <span>Đình chỉ (${suspendedEx} thí sinh)</span>
                         </div>
                     </div>
                 </div>

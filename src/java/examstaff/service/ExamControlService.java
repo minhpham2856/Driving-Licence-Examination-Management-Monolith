@@ -45,6 +45,13 @@ public interface ExamControlService {
     ServiceResult<String> resumeExam(int examId);
 
     /**
+     * Tạo OTP 6 số và lưu Exam.ExamPassword cho máy thi kiosk.
+     * @param examId mã kỳ thi
+     * @return ServiceResult với data = mật khẩu vừa tạo khi thành công
+     */
+    ServiceResult<String> generateExamPassword(int examId);
+
+    /**
      * Payload thành công khi bắt đầu kỳ thi (nhãn + số SHV).
      */
     public static final class StartExamData {
