@@ -15,6 +15,7 @@ import examstaff.service.impl.support.shared.ExamScheduleRules;
 import examstaff.service.impl.support.assign.ExaminerAssignmentRules;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.security.SecureRandom;
 import shared.enums.ErrorType;
 
 /**
@@ -217,5 +218,29 @@ public class ExamControlServiceImpl implements ExamControlService {
         }
         // Result
         return ServiceResult.ok(label, okMessage);
+    }
+
+    @Override
+    public ServiceResult<String> generateExamPassword(int examId) {
+        ExamSummaryDTO examSummary = examDAO.getById(examId);
+        if (examSummary == null) {
+            return fail("Không tìm thấy kỳ thi.");
+        }
+        String otp = randomSixDigitOtp();
+        if (!examDAO.updateExamPassword(examId, otp)) {
+            return fail("Không lưu được mật khẩu máy thi. Vui lòng thử lại.");
+        }
+        String label = buildExamLabel(examSummary);
+        String codeHint = examSummary.getExamCode() != null && !examSummary.getExamCode().isBlank()
+                ? examSummary.getExamCode().trim()
+                : String.valueOf(examId);
+        String message = "Mật khẩu máy thi kỳ \"" + label + "\": " + otp
+                + " (mã kỳ: " + codeHint + " — chỉ cán bộ biết, nhập tại màn hình mở ca thi).";
+        return ServiceResult.ok(otp, message);
+    }
+
+    private static String randomSixDigitOtp() {
+        int value = 100_000 + new SecureRandom().nextInt(900_000);
+        return String.valueOf(value);
     }
 }

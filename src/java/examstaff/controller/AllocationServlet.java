@@ -44,7 +44,7 @@ import java.util.List;
  * - Chuẩn bị kỳ thi + queue thí sinh (ExamStaffPageSupport)
  * - Nếu có action (allocateRoom / allocatePracticalRoom):
  *       AllocationService.executeCandidateAction → flash → redirect PRG
- * - Overview không action: có thể autoAllocateOnOverview
+ * - Nút autoAllocate: phân phòng/sân theo stage rồi redirect PRG
  * - Không action: bind danh sách stage → forward JSP
  * <p>Ghi DB phân phòng nằm ở DAO (ExamEnrollmentSectionSupport); servlet chỉ HTTP.
  */
@@ -93,23 +93,13 @@ public class AllocationServlet extends HttpServlet {
             ExamStaffHttpSupport.applyNoCacheHeaders(response);
             String webRoot = request.getServletContext().getRealPath("/");
 
-            // Đổi kỳ → clear cache queue cũ
             int urlExamId = ExamStaffHttpSupport.parseExamIdParam(request);
-            if (Boolean.TRUE.equals(session.getAttribute("examStaffExamJustChanged"))) {
-                session.removeAttribute("examStaffExamJustChanged");
-                ExamStaffPageSupport.clearCandidateCache(session);
-            }
-            if (urlExamId > 0) {
-                Integer loadedExam = (Integer) session.getAttribute(ExamStaffSessionKeys.LOADED_EXAM_ID);
-                if (loadedExam == null || loadedExam != urlExamId) {
-                    ExamStaffPageSupport.clearCandidateCache(session);
-                }
-                ExamStaffPageSupport.applyExamIdFromRequest(request, session,
-                        viewService.listAllExams(), viewService);
-            }
+            session.removeAttribute("examStaffExamJustChanged");
 
+            // Chuyển giữa các tab Allocation dùng lại queue cùng kỳ; nút Refresh buộc đọc DB.
+            boolean loadCandidates = shouldRefreshCandidateQueue(request, session, urlExamId);
             ExamStaffPageContext pageCtx = ExamStaffPageSupport.prepareExamStaffPage(
-                    request, session, webRoot, true, viewService);
+                    request, session, webRoot, loadCandidates, viewService);
             int examId = pageCtx.getExamId();
             List<ExamRegistrationDTO> qList = new ArrayList<>(pageCtx.getCandidates());
             publishCandidateQueue(request, session, qList, examId);
@@ -144,21 +134,14 @@ public class AllocationServlet extends HttpServlet {
             request.setAttribute("sortDir", sortSpec.isAscending() ? "asc" : "desc");
             String examIdParam = examId > 0 ? String.valueOf(examId) : request.getParameter("examId");
 
-            // Overview: tự phân bổ nếu chưa có action tường minh
-            if (action == null) {
-                ServiceResult<AllocationActionResultDTO> overviewResult =
-                        allocationService.autoAllocateOnOverview(examId, stage);
-                AllocationActionResultDTO overviewData = overviewResult.getData();
-                if (overviewData != null && overviewData.getAllocatedCount() > 0) {
-                    qList = refreshCandidateQueue(session, examId, webRoot, pageCtx.getAllExams());
-                    publishCandidateQueue(request, session, qList, examId);
-                }
-            }
-
             // Nhánh thao tác thí sinh → PRG
             if (action != null) {
                 try {
-                    if (regIdStr != null) {
+                    if ("autoAllocate".equals(action)) {
+                        ServiceResult<AllocationActionResultDTO> autoResult =
+                                allocationService.autoAllocateOnOverview(examId, stage);
+                        applyActionResult(request, session, autoResult);
+                    } else if (regIdStr != null) {
                         int regId = Integer.parseInt(regIdStr);
                         ExamRegistrationDTO profile = allocationService.findCandidate(regId, examId, qList);
                         if (profile != null) {
@@ -190,10 +173,6 @@ public class AllocationServlet extends HttpServlet {
                 }
 
                 ExamStaffPageSupport.clearCandidateCache(session);
-                qList = refreshCandidateQueue(session, examId, webRoot, pageCtx.getAllExams());
-                publishCandidateQueue(request, session, qList, examId);
-                session.setAttribute(ExamStaffSessionKeys.LAST_LOADED_EXAM_ID, examId);
-
                 stashAllocationFlash(session, request);
                 response.sendRedirect(buildRedirectUrl(request, servletPath, examId, page, pageSize,
                         searchQ, sortSpec, areaFilterId));
@@ -207,20 +186,24 @@ public class AllocationServlet extends HttpServlet {
             publishStageData(request, qList, stage, resultFilter, searchQ, page, pageSize, sortSpec, areaFilterId);
 
             request.setAttribute("allocationListPath", servletPath);
+            request.setAttribute("allocationStage", stage);
             request.setAttribute("allocationExtraQuery", AllocationStageHelper.buildExtraQuery(
                     page, pageSize, searchQ, examIdParam,
                     sortSpec.getColumn(), sortSpec.isAscending() ? "asc" : "desc", areaFilterId));
             request.setAttribute("allocationSearchQuery", searchQ.trim());
             request.setAttribute(Attributes.ExamStaff.ALLOCATION_AREA_FILTER, areaFilterId);
+            request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
+            request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
             try {
-                request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS,
-                        allocationService.listStaffedTheoryRoomsForExam(examId));
-                request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS,
-                        allocationService.listStaffedPracticalAreasForExam(examId));
+                if (AllocationStageHelper.STAGE_THEORY.equals(stage)) {
+                    request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS,
+                            allocationService.listStaffedTheoryRoomsForExam(examId));
+                } else if (AllocationStageHelper.STAGE_PRACTICAL.equals(stage)) {
+                    request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS,
+                            allocationService.listStaffedPracticalAreasForExam(examId));
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
-                request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
             }
 
             ExamStaffHttpSupport.consumeFlash(session, "examSelectMsg", request, "examSelectMsg");
@@ -247,6 +230,29 @@ public class AllocationServlet extends HttpServlet {
                         "Không tải được trang phân bổ: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Queue Allocation được dùng lại khi chuyển tab trong cùng kỳ.
+     * Nút Refresh hoặc cache thiếu/sai kỳ sẽ buộc tải lại từ DB.
+     */
+    private static boolean shouldRefreshCandidateQueue(
+            HttpServletRequest request, HttpSession session, int urlExamId) {
+        if (request != null) {
+            String refresh = request.getParameter("refresh");
+            if ("1".equals(refresh) || "true".equalsIgnoreCase(refresh)) {
+                return true;
+            }
+        }
+        if (session == null || session.getAttribute(ExamStaffSessionKeys.CANDIDATE_QUEUE) == null) {
+            return true;
+        }
+        Integer loadedExamId = (Integer) session.getAttribute(ExamStaffSessionKeys.LOADED_EXAM_ID);
+        Integer selectedExamId = (Integer) session.getAttribute(ExamStaffSessionKeys.SELECTED_EXAM_ID);
+        int requestedExamId = urlExamId > 0
+                ? urlExamId
+                : (selectedExamId != null ? selectedExamId : 0);
+        return loadedExamId == null || requestedExamId <= 0 || loadedExamId != requestedExamId;
     }
 
     /**

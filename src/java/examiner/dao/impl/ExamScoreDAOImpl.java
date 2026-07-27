@@ -63,6 +63,9 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return false;
     }
 
+    /** Ngưỡng đạt thực hành (khớp AllocationPassRules.PRACTICAL_PASS_SCORE). */
+    private static final int PRACTICAL_PASS_SCORE = 80;
+
     @Override
     public boolean recalculateFromDeductions(int examScoreId) {
         String sql = "SELECT SUM(sd.Points * dr.OccurrenceCount) AS totalDeduction, "
@@ -84,8 +87,31 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
             e.printStackTrace();
             return false;
         }
+        // Lỗi điểm liệt → điểm 0 (trượt). Còn lại: 100 − tổng điểm trừ.
         double score = hasCritical ? 0 : Math.max(0, 100 - totalDeduction);
-        return updateScore(examScoreId, score);
+        if (!updateScore(examScoreId, score)) {
+            return false;
+        }
+        // Đồng bộ ExamResult.IsPassed theo điểm vừa tính (≥ 80 và không bị liệt).
+        return syncExamResultPassed(examScoreId, score >= PRACTICAL_PASS_SCORE);
+    }
+
+    private boolean syncExamResultPassed(int examScoreId, boolean passed) {
+        String sql = """
+                UPDATE ExamResult
+                SET IsPassed = ?, ResultDate = GETDATE()
+                WHERE ExamResultId = (
+                    SELECT ExamResultId FROM ExamScore WHERE ExamScoreId = ?
+                )
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setBoolean(1, passed);
+            ps.setInt(2, examScoreId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     private static ExamScore map(ResultSet rs) throws SQLException {

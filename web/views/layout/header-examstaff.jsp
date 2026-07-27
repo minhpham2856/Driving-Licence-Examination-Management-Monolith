@@ -51,7 +51,7 @@
                 </c:if>
             </c:when>
             <c:otherwise>
-                <span class="examiner-tag examiner-tag--pending">Chưa chọn kỳ thi</span>
+                <span class="tag tag-pending">Chưa chọn kỳ thi</span>
             </c:otherwise>
         </c:choose>
     </div>

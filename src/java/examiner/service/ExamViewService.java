@@ -3,58 +3,81 @@ package examiner.service;
 import examiner.dto.ExamStatsDTO;
 import examiner.dto.EnrollmentDTO;
 import examiner.dto.CandidateRowDTO;
-import examiner.dto.ExamReportDTO;
 import shared.enums.SectionType;
 import java.util.List;
 import java.util.Map;
 
+// Service contract for loading and shaping examiner screen data: lists, stats, audit, scoring, and devices.
 public interface ExamViewService {
 
-    List<CandidateRowDTO> loadCandidateRows(int examId);
+    // Load candidate rows for the active section; searchQuery nullable when unused.
+    List<CandidateRowDTO> getAllFilteredByExam(int examId, SectionType sectionType, String searchQuery);
 
-    List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName);
+    // Load lightweight candidate rows for row-level actions without queue/area ordering.
+    List<CandidateRowDTO> getActionCandidateListByExam(int examId, SectionType sectionType, String searchQuery);
 
-    List<CandidateRowDTO> loadCandidateRows(int examId, boolean isTheory, String sectionName,
-            String searchQuery);
+    // Load simple dashboard rows with only candidates belonging to the exam.
+    List<CandidateRowDTO> getDashboardCandidateListByExam(int examId, SectionType sectionType, String searchQuery);
 
-    // Candidates suspended / recorded for violation in this exam (for print dropdown).
-    List<CandidateRowDTO> loadSuspendedCandidateRows(int examId);
+    // Builds aggregate counts (total, done, testing, pending, passed, failed) for the exam section.
+    ExamStatsDTO getStatsByExam(int examId, SectionType sectionType);
 
-    ExamStatsDTO buildCandidateSummary(int examId, boolean isTheory, String sectionName);
+    // Builds aggregate counts from rows already loaded for a page.
+    ExamStatsDTO getStatsByCandidateRows(int examId, SectionType sectionType, List<CandidateRowDTO> rows);
 
-    // Builds the end-of-day exam report for an exam (result + licence breakdown
-    // + top deduction reasons). Used by the examstaff report screen.
-    ExamReportDTO buildExamReport(int examId);
+    // Loads paginated audit log rows for the exam (page 1 when search is unused).
+    Map<String, Object> getAuditViewByExam(int examId, String pageParam);
 
-    Map<String, Object> getAuditLogsData(int examId, String pageParam);
+    // Loads paginated audit log rows with optional keyword search.
+    Map<String, Object> getAuditViewByExam(int examId, String pageParam, String searchQuery);
 
-    Map<String, Object> getAuditLogsData(int examId, String pageParam, String searchQuery);
-
+    // Loads theory paper answer detail and summary counts for one candidate.
     Map<String, Object> getPaperAnswersData(int examId, int sbd, String contextPath);
 
+    // Returns the minimum correct-answer count required to pass the theory exam.
     int theoryPassThreshold();
 
+    // Returns the total number of questions on the theory exam paper.
     int theoryMaxQuestions();
 
-    EnrollmentDTO findRegistration(int examId, int sbd);
+    // Finds enrollment by exam and SBD using default section context.
+    EnrollmentDTO getIfByExamAndSbd(int examId, int sbd);
 
-    CandidateRowDTO getCandidateViewRow(int examId, int sbd, boolean isTheory, String sectionName);
+    // Finds enrollment by exam, SBD, and active section type.
+    EnrollmentDTO getIfByExamAndSbd(int examId, int sbd, SectionType sectionType);
 
-    Map<String, Object> getScoreEntryData(int examId, Integer sbd, String sectionName);
+    // Loads a single candidate row DTO for detail or action screens.
+    CandidateRowDTO getCandidateViewRow(int examId, int sbd, SectionType sectionType);
 
-    Map<String, Object> getResultDetailsEditData(int examId, Integer sbd);
+    // Builds the score-entry view model: candidates, vehicles, deductions, and active SBD.
+    Map<String, Object> getScoreEntryViewByExam(int examId, Integer sbd, SectionType sectionType);
 
-    boolean isScoreQueueEligible(int examId, EnrollmentDTO reg,
-            boolean isTheory, String sectionName);
+    // Builds result-details edit data for layout section (default section overload).
+    Map<String, Object> getResultDetailsViewByExam(int examId, Integer sbd);
 
-    Map<String, Object> getViolationData(int examId, Integer sbd);
+    // Builds result-details edit data for the given section type.
+    Map<String, Object> getResultDetailsViewByExam(int examId, Integer sbd, SectionType sectionType);
 
-    Map<String, Object> getDevicesData(int examId, String searchQuery);
+    // Returns whether a candidate may appear in the score-entry queue.
+    boolean isScoreQueueEligible(int examId, EnrollmentDTO enrollment, SectionType sectionType);
 
-    Map<String, Object> getDevicesData(int examId, String searchQuery, Integer preferredAreaId);
+    // Builds violation-handling view data with default theory section.
+    Map<String, Object> getViolationViewByExam(int examId, Integer sbd);
 
-    boolean isCallEligible(int examId, EnrollmentDTO reg, boolean isTheory, String sectionName);
+    // Builds violation-handling view data for the given section type.
+    Map<String, Object> getViolationViewByExam(int examId, Integer sbd, SectionType sectionType);
 
-    List<CandidateRowDTO> orderCandidateRowsByQueue(List<CandidateRowDTO> rows,
-            SectionType examSection);
+    // Lists exam devices with optional search (theory section default).
+    Map<String, Object> getDeviceViewByExam(int examId, String searchQuery);
+
+    // Lists exam devices filtered by preferred theory room area.
+    Map<String, Object> getDeviceViewByExam(int examId, String searchQuery, Integer preferredAreaId);
+
+    // Lists devices or vehicles depending on section type (computers vs practical vehicles).
+    Map<String, Object> getDeviceViewByExam(int examId, String searchQuery, Integer preferredAreaId,
+            SectionType sectionType);
+
+    // Returns whether a candidate is eligible for call-board invoke actions.
+    boolean isActionEligible(int examId, EnrollmentDTO enrollment, SectionType sectionType);
+
 }

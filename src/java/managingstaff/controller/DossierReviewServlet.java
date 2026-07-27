@@ -115,7 +115,7 @@ public class DossierReviewServlet extends HttpServlet {
         }
         if (!emailService.isConfigured()) {
             request.getSession().setAttribute("reviewError",
-                    "Chưa cấu hình SMTP nên chưa thể gửi thông báo cho người đăng ký.");
+                    "Chưa cấu hình SMTP nên chưa thể gửi thông báo cho thí sinh.");
             response.sendRedirect(detailRedirect);
             return;
         }

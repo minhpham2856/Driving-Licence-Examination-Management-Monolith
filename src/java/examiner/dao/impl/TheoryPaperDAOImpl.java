@@ -8,28 +8,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+// JDBC implementation for TheoryPaper; examiner module DAO layer only.
 public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
 
+    // Finds the theory paper for an enrollment through its theory section row.
     @Override
     public TheoryPaper getByExamEnrollmentId(int examEnrollmentId) {
-        String sql = """
-                SELECT 
-                     tp.TheoryPaperId, 
-                     tp.ExamEnrollmentSectionId, 
-                     tp.StartedAt, 
-                     tp.SubmittedAt
-                FROM TheoryPaper tp
-                JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentSectionId = tp.ExamEnrollmentSectionId
-                JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
-                WHERE ees.ExamEnrollmentId = ?
-                  AND es.SectionType = ?
-                """;
+        String sql = "SELECT TOP 1 tp.TheoryPaperId, tp.ExamEnrollmentSectionId, tp.StartedAt, tp.SubmittedAt "
+                + "FROM TheoryPaper tp "
+                + "JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentSectionId = tp.ExamEnrollmentSectionId "
+                + "JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId "
+                + "WHERE ees.ExamEnrollmentId = ? AND es.SectionType = ? "
+                + "ORDER BY tp.TheoryPaperId DESC";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examEnrollmentId);
             ps.setString(2, SectionType.THEORY.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapRow(rs);
+                    return map(rs);
                 }
             }
         } catch (SQLException e) {
@@ -38,7 +34,26 @@ public class TheoryPaperDAOImpl extends DBContext implements TheoryPaperDAO {
         return null;
     }
 
-    private TheoryPaper mapRow(ResultSet rs) throws SQLException {
+    // Loads theory paper by its ExamEnrollmentSectionId.
+    @Override
+    public TheoryPaper getByExamEnrollmentSectionId(int examEnrollmentSectionId) {
+        String sql = "SELECT TOP 1 TheoryPaperId, ExamEnrollmentSectionId, StartedAt, SubmittedAt "
+                + "FROM TheoryPaper WHERE ExamEnrollmentSectionId = ? ORDER BY TheoryPaperId DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentSectionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return map(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Private helper: map.
+    private static TheoryPaper map(ResultSet rs) throws SQLException {
         TheoryPaper tp = new TheoryPaper();
         tp.setTheoryPaperId(rs.getInt("TheoryPaperId"));
         tp.setExamEnrollmentSectionId(rs.getInt("ExamEnrollmentSectionId"));

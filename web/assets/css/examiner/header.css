@@ -1,4 +1,4 @@
-.examiner-header {
+.header {
     flex-shrink: 0;
     height: 64px;
     padding: 0 24px;
@@ -11,7 +11,7 @@
     box-sizing: border-box;
 }
 
-.examiner-header__meta {
+.header-meta {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -19,7 +19,7 @@
     max-width: min(520px, 50%);
 }
 
-.examiner-header__meta-label {
+.header-meta-label {
     font-size: 13px;
     line-height: 20px;
     font-weight: 500;
@@ -27,7 +27,7 @@
     white-space: nowrap;
 }
 
-.examiner-header__meta-hint {
+.header-meta-hint {
     font-size: 13px;
     line-height: 20px;
     color: #434654;
@@ -36,14 +36,14 @@
     white-space: nowrap;
 }
 
-.examiner-header__title {
+.header-title {
     margin: 0;
     flex: 1;
     min-width: 0;
     overflow: hidden;
 }
 
-.examiner-header__crumb-row {
+.crumb-row {
     display: flex;
     align-items: baseline;
     flex-wrap: wrap;
@@ -51,7 +51,7 @@
     min-width: 0;
 }
 
-.examiner-header__crumb-primary {
+.crumb-primary {
     font-size: 20px;
     line-height: 28px;
     font-weight: 700;
@@ -60,14 +60,14 @@
     text-decoration: none;
 }
 
-.examiner-header__crumb-primary:hover,
-.examiner-header__crumb-primary:focus,
-.examiner-header__crumb-primary:active {
+.crumb-primary:hover,
+.crumb-primary:focus,
+.crumb-primary:active {
     color: #003d9b;
     text-decoration: none;
 }
 
-.examiner-header__crumb-child {
+.crumb-child {
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
@@ -75,14 +75,14 @@
     text-decoration: none;
 }
 
-.examiner-header__crumb-child:hover,
-.examiner-header__crumb-child:focus,
-.examiner-header__crumb-child:active {
+.crumb-child:hover,
+.crumb-child:focus,
+.crumb-child:active {
     color: #171c1f;
     text-decoration: none;
 }
 
-.examiner-header__crumb-sep {
+.crumb-sep {
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;

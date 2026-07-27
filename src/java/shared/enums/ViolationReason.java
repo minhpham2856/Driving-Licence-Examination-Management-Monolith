@@ -1,9 +1,9 @@
 package shared.enums;
 
 public enum ViolationReason {
-    SAFETY_VIOLATION("Gây mất an toàn nghiêm trọng trong quá trình thi"),
     CHEATING("Gian lận"),
-    OTHER("Lý do khác");
+    SAFETY_VIOLATION("Vi phạm nghiêm trọng"),
+    OTHER("Khác");
 
     private final String value;
 

@@ -2,6 +2,7 @@ package shared.model;
 
 import java.sql.Timestamp;
 
+// Theory attempt tied to one ExamEnrollmentSection (not enrollment/device directly).
 public class TheoryPaper {
 
     private int theoryPaperId;

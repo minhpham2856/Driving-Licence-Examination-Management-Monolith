@@ -7,6 +7,8 @@ import java.time.LocalDate;
 public final class TentativeExamDatePolicy {
 
     public static final int LOCK_BEFORE_WORKING_DAYS = 7;
+    public static final int MIN_REGISTRATIONS = 10;
+    public static final int MAX_REGISTRATIONS = 50;
 
     private TentativeExamDatePolicy() {
     }

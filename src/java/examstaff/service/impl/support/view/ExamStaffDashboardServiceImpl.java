@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Dựng view dashboard Exam Staff — tổng hợp số giám khảo đã phân công trong ngày.
+ * Dựng view dashboard Exam Staff — tổng hợp số sát hạch viên đã phân công trong ngày.
  * <p>
  * Gom các phiên cùng ngày qua ExamStaffExamQueryServiceImpl.listExamsForDay;
  * đếm SHV unique từ slot ExaminerAllocationServiceImpl.getAssignmentsByExamId.
@@ -51,7 +51,7 @@ public class ExamStaffDashboardServiceImpl {
         // Load: các phiên trong ngày theo kỳ tham chiếu
         List<ExamSummaryDTO> dayExams = examQuery.listExamsForDay(allExams, examId);
 
-        // Mutate: gom giám khảo đã gán (unique) trên mọi phiên ngày
+        // Mutate: gom sát hạch viên đã gán (unique) trên mọi phiên ngày
         Set<Integer> assignedExaminerIds = new HashSet<>();
         for (ExamSummaryDTO daySession : dayExams) {
             List<ExaminerSlotDTO> slots = allocationService.getAssignmentsByExamId(daySession.getId());

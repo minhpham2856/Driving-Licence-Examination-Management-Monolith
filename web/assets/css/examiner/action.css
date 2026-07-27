@@ -1,0 +1,49 @@
+.action-card .table-link {
+    color: #003d9b;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.action-card .table-link:hover {
+    color: #0052cc;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.action-card .tag {
+    min-width: 72px;
+    text-align: center;
+}
+
+.action-card .table td,
+.action-card .table th {
+    text-align: center;
+}
+
+.action-card .table td:nth-child(1),
+.action-card .table th:nth-child(1),
+.action-card .table td:nth-child(2),
+.action-card .table th:nth-child(2) {
+    text-align: left;
+}
+
+.action-card form {
+    margin: 0;
+}
+
+.action-card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.action-card .card-head {
+    flex-shrink: 0;
+}
+
+.action-card .table-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}

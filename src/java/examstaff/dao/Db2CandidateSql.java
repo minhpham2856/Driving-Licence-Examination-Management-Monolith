@@ -32,6 +32,30 @@ public final class Db2CandidateSql {
     }
 
     /**
+     * Marks an enrollment when a critical theory question is answered
+     * incorrectly or left unanswered.
+     */
+    private static final String JOIN_WRONG_CRITICAL_THEORY = """
+            LEFT JOIN (
+                SELECT criticalEes.ExamEnrollmentId,
+                       CAST(1 AS BIT) AS hasWrongCriticalTheory
+                FROM CandidateAnswer ca
+                INNER JOIN Question q ON q.QuestionId = ca.QuestionId
+                INNER JOIN TheoryPaper tp ON tp.TheoryPaperId = ca.TheoryPaperId
+                INNER JOIN ExamEnrollmentSection criticalEes
+                    ON criticalEes.ExamEnrollmentSectionId = tp.ExamEnrollmentSectionId
+                WHERE q.IsCritical = 1
+                  AND (
+                    ca.Answer IS NULL
+                    OR LTRIM(RTRIM(ca.Answer)) = N''
+                    OR UPPER(LTRIM(RTRIM(ca.Answer)))
+                       <> UPPER(LTRIM(RTRIM(q.CorrectAnswer)))
+                  )
+                GROUP BY criticalEes.ExamEnrollmentId
+            ) criticalTheory ON criticalTheory.ExamEnrollmentId = ee.ExamEnrollmentId
+            """;
+
+    /**
      * Câu SELECT thí sinh đầy đủ (có JOIN điểm LT/TH).
      * Gắn thêm WHERE từ caller khi thực thi.
      */
@@ -87,6 +111,7 @@ public final class Db2CandidateSql {
             + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_NAME_EXPR + " AS practicalAllocatedAreaName,\n"
             + """
               theory.scoreVal AS theoryScore,
+              CAST(ISNULL(criticalTheory.hasWrongCriticalTheory, 0) AS BIT) AS hasWrongCriticalTheory,
               practical.scoreVal AS practicalScore
             FROM Candidate c
             INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
@@ -96,6 +121,7 @@ public final class Db2CandidateSql {
             + Db2ExamSchemaSql.JOIN_THEORY_SECTION
             + Db2ExamSchemaSql.JOIN_PRACTICAL_SECTION
             + Db2ExamSchemaSql.JOIN_ALLOCATED_AREA
+            + JOIN_WRONG_CRITICAL_THEORY
             + """
             LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
             LEFT JOIN [User] u ON u.UserId = prof.UserId
@@ -191,6 +217,7 @@ public final class Db2CandidateSql {
             + Db2ExamSchemaSql.PRACTICAL_ALLOCATED_AREA_NAME_EXPR + " AS practicalAllocatedAreaName,\n"
             + """
               CAST(NULL AS INT) AS theoryScore,
+              CAST(ISNULL(criticalTheory.hasWrongCriticalTheory, 0) AS BIT) AS hasWrongCriticalTheory,
               CAST(NULL AS INT) AS practicalScore
             FROM Candidate c
             INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
@@ -200,6 +227,7 @@ public final class Db2CandidateSql {
             + Db2ExamSchemaSql.JOIN_THEORY_SECTION
             + Db2ExamSchemaSql.JOIN_PRACTICAL_SECTION
             + Db2ExamSchemaSql.JOIN_ALLOCATED_AREA
+            + JOIN_WRONG_CRITICAL_THEORY
             + """
             LEFT JOIN Profile prof ON prof.GovernmentIdNumber = c.GovernmentIdNumber
             LEFT JOIN [User] u ON u.UserId = prof.UserId

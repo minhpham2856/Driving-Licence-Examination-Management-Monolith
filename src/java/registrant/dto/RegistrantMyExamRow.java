@@ -25,7 +25,7 @@ public class RegistrantMyExamRow {
     private String theoryResultLabel;
     private String practicalResultLabel;
     private String overallResultLabel;
-    /** Hiển thị chính lý thuyết: vd. "32/35" (số câu đúng / tổng câu). */
+    /** Hiển thị chính lý thuyết: vd. "21/25" (số câu đúng / tổng câu). */
     private String theoryScoreDisplay;
     private String theoryScoreDetail;
     private Integer theoryCorrectCount;
@@ -49,6 +49,12 @@ public class RegistrantMyExamRow {
 
     /** True = nguyện vọng ngày thi (RegistrationDates), chưa phải kỳ chính thức. */
     private boolean preferredDate;
+
+    /** True = nguyện vọng đã bị hủy (RegistrationDates.IsActive=0). */
+    private boolean preferredCancelled;
+
+    /** Lý do hủy ngày thi dự kiến từ ExamDates.CancelReason (nếu có). */
+    private String cancelReason;
 
     public int getCandidateId() {
         return candidateId;
@@ -328,5 +334,21 @@ public class RegistrantMyExamRow {
 
     public void setPreferredDate(boolean preferredDate) {
         this.preferredDate = preferredDate;
+    }
+
+    public boolean isPreferredCancelled() {
+        return preferredCancelled;
+    }
+
+    public void setPreferredCancelled(boolean preferredCancelled) {
+        this.preferredCancelled = preferredCancelled;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 }

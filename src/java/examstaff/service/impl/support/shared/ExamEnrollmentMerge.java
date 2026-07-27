@@ -92,6 +92,8 @@ public final class ExamEnrollmentMerge {
         if (primary.getExamId() <= 0 && secondary.getExamId() > 0) {
             primary.setExamId(secondary.getExamId());
         }
+        primary.setWrongCriticalTheory(
+                primary.hasWrongCriticalTheory() || secondary.hasWrongCriticalTheory());
         mergeScoreField(primary, secondary, true);
         mergeScoreField(primary, secondary, false);
 

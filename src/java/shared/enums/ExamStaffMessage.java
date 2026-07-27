@@ -8,7 +8,7 @@ public enum ExamStaffMessage {
     EXAM_NOT_FOUND_PREFIX("Không tìm thấy kỳ thi"),
     /** Tiền tố lỗi khi đổi kỳ thi. */
     EXAM_CHANGE_ERROR_PREFIX("Không đổi được kỳ thi: "),
-    /** Kỳ đã kết thúc — không sửa hồ sơ / đình chỉ / hoàn tác. */
+    /** Kỳ đã kết thúc - không sửa hồ sơ / đình chỉ / hoàn tác. */
     EXAM_MUTATIONS_LOCKED(
             "Kỳ thi đã kết thúc. Không thể xóa, sửa hồ sơ, đình chỉ hoặc hoàn tác đình chỉ."),
     /** Mô tả lỗi mặc định. */

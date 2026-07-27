@@ -12,8 +12,11 @@ public class ExamEnrollmentSection {
     private String status; // Pending | InProgress | Completed
     private Timestamp allocatedAt;
     private Integer allocatedBy;
+    private Timestamp checkedInAt;
+    private Integer checkedInBy;
     private Timestamp startedAt;
     private Timestamp completedAt;
+    private Timestamp resultPrintedAt;
     private ExamEnrollment examEnrollment;
     private ExamSection examSection;
     private ExamArea examArea;
@@ -87,6 +90,22 @@ public class ExamEnrollmentSection {
         this.allocatedBy = v;
     }
 
+    public Timestamp getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(Timestamp v) {
+        this.checkedInAt = v;
+    }
+
+    public Integer getCheckedInBy() {
+        return checkedInBy;
+    }
+
+    public void setCheckedInBy(Integer v) {
+        this.checkedInBy = v;
+    }
+
     public Timestamp getStartedAt() {
         return startedAt;
     }
@@ -101,6 +120,14 @@ public class ExamEnrollmentSection {
 
     public void setCompletedAt(Timestamp v) {
         this.completedAt = v;
+    }
+
+    public Timestamp getResultPrintedAt() {
+        return resultPrintedAt;
+    }
+
+    public void setResultPrintedAt(Timestamp v) {
+        this.resultPrintedAt = v;
     }
 
     public ExamEnrollment getExamEnrollment() {

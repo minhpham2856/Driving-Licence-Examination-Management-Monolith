@@ -8,7 +8,7 @@ import java.util.List;
  *
  * Vai trò trong kiến trúc:
  * Cung cấp danh sách phòng lý thuyết, sân thực hành và khu vực gắn với kỳ thi
- * cho màn phân bổ (allocation), phân công giám khảo và chọn phòng trên UI.
+ * cho màn phân bổ (allocation), phân công sát hạch viên và chọn phòng trên UI.
  * Chỉ đọc — không ghi ExamArea.
  *
  * Hai nguồn dữ liệu:

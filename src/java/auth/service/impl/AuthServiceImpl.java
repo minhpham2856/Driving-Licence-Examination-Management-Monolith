@@ -12,7 +12,7 @@ import shared.model.Role;
 import shared.model.User;
 import auth.service.AuthService;
 import auth.service.EmailService;
-import auth.util.PasswordUtil;
+import shared.util.PasswordUtil;
 import auth.util.CredentialsGenerator;
 import auth.dto.ServiceResult;
 import shared.enums.ErrorType;

@@ -55,8 +55,10 @@ public class PoliceDashboardServiceImpl implements PoliceDashboardService {
     @Override public int countCandidates(int id) { return submissionDAO.countCandidates(id); }
 
     @Override
-    public boolean review(int registrationDateId, String decision, String reason) {
-        int registrationId = submissionDAO.reviewCandidate(registrationDateId, decision, reason);
+    public boolean review(int registrationDateId, String decision, String reason,
+            String participationType) {
+        int registrationId = submissionDAO.reviewCandidate(
+                registrationDateId, decision, reason, participationType);
         if (registrationId <= 0) return false;
         DossierDTO dossier = dossierDAO.findByRegistrationId(registrationId);
         boolean approved = "APPROVED".equalsIgnoreCase(decision);
@@ -66,7 +68,9 @@ public class PoliceDashboardServiceImpl implements PoliceDashboardService {
                     && !dossier.getUser().getEmail().isBlank()) {
                 String body = "Xin chào " + name + ",\n\nCơ quan CSGT đã "
                         + (approved ? "chấp thuận" : "từ chối") + " hồ sơ đề nghị sát hạch của bạn."
-                        + (approved ? " Trung tâm sẽ thông báo lịch thi chính thức sau khi nhận danh sách."
+                        + (approved ? "\nNội dung thi được duyệt: "
+                        + participationLabel(participationType)
+                        + ".\nTrung tâm sẽ thông báo lịch thi chính thức sau khi nhận danh sách."
                         : "\nLý do: " + reason
                         + "\n\nVui lòng liên hệ trung tâm để được hướng dẫn hoàn thiện lại hồ sơ.");
                 emailService.sendTextEmail(dossier.getUser().getEmail(),
@@ -87,6 +91,11 @@ public class PoliceDashboardServiceImpl implements PoliceDashboardService {
         return true;
     }
 
+    private static String participationLabel(String value) {
+        return "PRACTICAL_ONLY".equalsIgnoreCase(value)
+                ? "chỉ thi thực hành" : "lý thuyết và thực hành";
+    }
+
     @Override
     public OfficialRosterPublishResult complete(int examDateId) {
         int total = submissionDAO.completeSubmission(examDateId);
@@ -104,6 +113,7 @@ public class PoliceDashboardServiceImpl implements PoliceDashboardService {
                         + "Cơ quan CSGT đã ban hành danh sách sát hạch chính thức ngày " + examDate
                         + ", hạng " + submission.getLicenceClass() + ".\n"
                         + "Số báo danh: " + candidate.getCandidateNumber() + ".\n\n"
+                        + "Nội dung thi: " + candidate.getExamParticipationLabel() + ".\n"
                         + "Trung tâm sát hạch sẽ cập nhật phiên thi chính thức và thông báo các nội dung tiếp theo.";
                 if (emailService.sendTextEmail(candidate.getEmail(),
                         "Thông báo danh sách sát hạch chính thức", body)) candidateSent++;

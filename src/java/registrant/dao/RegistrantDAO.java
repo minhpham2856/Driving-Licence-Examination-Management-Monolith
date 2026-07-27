@@ -60,6 +60,18 @@ public interface RegistrantDAO {
     /** True nếu hồ sơ đã có nguyện vọng ngày thi active cho hạng (LicenceId) này. */
     boolean hasActivePreferredExamDate(int profileId, int licenceId);
 
+    /**
+     * True nếu hạng này từng có nguyện vọng bị hủy (RegistrationDates IsActive=0)
+     * và hiện không còn nguyện vọng active — dùng banner gợi ý đăng ký lại.
+     */
+    boolean hasCancelledPreferredExamDateWithoutActive(int profileId, int licenceId);
+
+    /**
+     * True nếu profile có ít nhất một hạng từng bị hủy nguyện vọng và không còn active —
+     * dùng CTA dashboard gợi ý đăng ký lại.
+     */
+    boolean hasAnyCancelledPreferredExamDateWithoutActive(int profileId);
+
     // =========================================================================
     // REGION: Danh sách đăng ký thi (dashboard / hồ sơ)  (~L71)
     // =========================================================================
@@ -110,6 +122,12 @@ public interface RegistrantDAO {
     String findProfileDocumentRegistrationStatus(int profileId);
 
     /**
+     * Lý do từ chối hồ sơ gốc do managing staff nhập (Notes MESSAGE=...),
+     * null nếu không Rejected hoặc không có lý do.
+     */
+    String findProfileDocumentRejectionReason(int profileId);
+
+    /**
      * Các mã hạng UI (A1/A/B1/…) đã được ban quản lý duyệt hồ sơ kèm hạng đó
      * (ER Approved: #PROFILE_DOC#, #LICENCE_DOC# hoặc #SUPPLEMENT_DOC#).
      */
@@ -119,10 +137,12 @@ public interface RegistrantDAO {
     boolean hasOpenSupplementPending(int profileId);
 
     /** Tạo dòng ExamRegistration mới cho workflow hồ sơ bổ sung. */
-    int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes);
+    int insertSupplementDocumentRegistration(int profileId, int licenceId, String status, String notes,
+            boolean isRetake);
 
     /** Xin duyệt thêm hạng với hồ sơ đã duyệt (tái sử dụng, không upload lại). */
-    int insertLicenceDocumentRegistration(int profileId, int licenceId, String status, String notes);
+    int insertLicenceDocumentRegistration(int profileId, int licenceId, String status, String notes,
+            boolean isRetake);
 
     /** Map ExamRegistrationId bổ sung → RegistrationStatus. */
     Map<Integer, String> mapSupplementRegistrationStatuses(int profileId);
@@ -135,6 +155,13 @@ public interface RegistrantDAO {
      * hạng thí sinh gửi duyệt (để managing staff biết hạng đang xét).
      */
     boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId);
+
+    /**
+     * Như syncProfileDocumentRegistration(..., licenceId) và ghi ExamRegistration.IsRetake
+     * (thi lần đầu / thi lại) khi thí sinh gửi yêu cầu duyệt.
+     */
+    boolean syncProfileDocumentRegistration(int profileId, String status, String notes, int licenceId,
+            boolean isRetake);
 
     // =========================================================================
     // REGION: Theo dõi hồ sơ (track-profile)  (~L147)
