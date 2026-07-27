@@ -50,6 +50,12 @@ public class RegistrantMyExamRow {
     /** True = nguyện vọng ngày thi (RegistrationDates), chưa phải kỳ chính thức. */
     private boolean preferredDate;
 
+    /** True = nguyện vọng đã bị hủy (RegistrationDates.IsActive=0). */
+    private boolean preferredCancelled;
+
+    /** Lý do hủy ngày thi dự kiến từ ExamDates.CancelReason (nếu có). */
+    private String cancelReason;
+
     public int getCandidateId() {
         return candidateId;
     }
@@ -328,5 +334,21 @@ public class RegistrantMyExamRow {
 
     public void setPreferredDate(boolean preferredDate) {
         this.preferredDate = preferredDate;
+    }
+
+    public boolean isPreferredCancelled() {
+        return preferredCancelled;
+    }
+
+    public void setPreferredCancelled(boolean preferredCancelled) {
+        this.preferredCancelled = preferredCancelled;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 }
