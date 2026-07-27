@@ -1,6 +1,7 @@
 package admin.dao.impl;
 
 import shared.dbconnection.DBContext;
+import shared.enums.RoleType;
 import admin.dao.AccountManageDAO;
 import admin.model.AccountView;
 import admin.model.RoleOption;
@@ -12,15 +13,25 @@ import auth.util.PasswordUtil;
 
 public class AccountManageDAOImpl extends DBContext implements AccountManageDAO {
 
+    /**
+     * Quản lý Tài khoản của Admin không áp dụng cho vai trò Thí sinh (Candidate):
+     * đây là người thi bằng Số báo danh tại kiosk phòng thi, không có tài khoản
+     * đăng nhập thật nên Admin không tạo/thấy vai trò này ở đây.
+     * Người đăng ký thi (Registrant) vẫn có tài khoản thật (tự đăng ký ở trang chủ)
+     * nên vẫn thuộc phạm vi hiển thị/tạo của Admin như bình thường.
+     */
+    private static final String EXCLUDED_ROLES = "N'" + RoleType.CANDIDATE.getValue() + "'";
+
     private static final String BASE =
             "SELECT u.UserId, u.Username, u.Email, u.RoleId, r.RoleName, u.IsActive, u.MustChangePassword, " +
             "       p.FullName, p.PhoneNumber, p.Sex, p.GovernmentIdNumber, p.Address, p.DateOfBirth " +
             "FROM [User] u JOIN [Role] r ON r.RoleId = u.RoleId " +
-            "LEFT JOIN Profile p ON p.UserId = u.UserId ";
+            "LEFT JOIN Profile p ON p.UserId = u.UserId " +
+            "WHERE r.RoleName NOT IN (" + EXCLUDED_ROLES + ") ";
 
     @Override
     public List<AccountView> search(String keyword, Integer roleId, Boolean active) {
-        StringBuilder sql = new StringBuilder(BASE).append(" WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder(BASE).append(" AND 1=1 ");
         List<Object> ps = new ArrayList<>();
         if (keyword != null && !keyword.isBlank()) {
             sql.append(" AND (u.Username LIKE ? OR u.Email LIKE ? OR p.FullName LIKE ? OR p.PhoneNumber LIKE ?) ");
@@ -39,7 +50,7 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
 
     @Override
     public AccountView findById(int userId) {
-        try (PreparedStatement st = getConnection().prepareStatement(BASE + " WHERE u.UserId = ?")) {
+        try (PreparedStatement st = getConnection().prepareStatement(BASE + " AND u.UserId = ?")) {
             st.setInt(1, userId);
             try (ResultSet rs = st.executeQuery()) { if (rs.next()) return map(rs); }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -49,7 +60,8 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
     @Override
     public List<RoleOption> listRoles() {
         List<RoleOption> list = new ArrayList<>();
-        try (PreparedStatement st = getConnection().prepareStatement("SELECT RoleId, RoleName FROM [Role] ORDER BY RoleId");
+        try (PreparedStatement st = getConnection().prepareStatement(
+                "SELECT RoleId, RoleName FROM [Role] WHERE RoleName NOT IN (" + EXCLUDED_ROLES + ") ORDER BY RoleId");
              ResultSet rs = st.executeQuery()) {
             while (rs.next()) {
                 RoleOption o = new RoleOption();
@@ -154,7 +166,8 @@ public class AccountManageDAOImpl extends DBContext implements AccountManageDAO 
 
     @Override
     public int countAll() {
-        try (PreparedStatement st = getConnection().prepareStatement("SELECT COUNT(*) FROM [User]");
+        try (PreparedStatement st = getConnection().prepareStatement(
+                "SELECT COUNT(*) FROM [User] u JOIN [Role] r ON r.RoleId=u.RoleId WHERE r.RoleName NOT IN (" + EXCLUDED_ROLES + ")");
              ResultSet rs = st.executeQuery()) { if (rs.next()) return rs.getInt(1); }
         catch (SQLException e) { e.printStackTrace(); }
         return 0;

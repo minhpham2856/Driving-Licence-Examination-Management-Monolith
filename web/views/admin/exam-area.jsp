@@ -101,7 +101,6 @@
             </table></div>
         </section>
     </main>
-    <jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include>
 </div>
 
 <form id="delForm" action="${ctx}/admin/exam-area" method="POST" style="display:none;">

@@ -1,6 +1,7 @@
 package admin.dao.impl;
 
 import shared.dbconnection.DBContext;
+import shared.enums.RoleType;
 import admin.dao.AdminStatsDAO;
 
 import java.sql.PreparedStatement;
@@ -26,8 +27,10 @@ public class AdminStatsDAOImpl extends DBContext implements AdminStatsDAO {
 
     @Override
     public int countActiveAccounts() {
-        // Bảng [User] dùng cột IsActive, không có cột Status
-        String sql = "SELECT COUNT(*) FROM [User] WHERE IsActive = 1";
+        // Không đếm Thí sinh (Candidate): thi bằng SBD tại kiosk, không có tài khoản thật.
+        // Người đăng ký thi (Registrant) vẫn có tài khoản thật nên vẫn được tính.
+        String sql = "SELECT COUNT(*) FROM [User] u JOIN [Role] r ON r.RoleId = u.RoleId " +
+                "WHERE u.IsActive = 1 AND r.RoleName != N'" + RoleType.CANDIDATE.getValue() + "'";
         try (PreparedStatement st = getConnection().prepareStatement(sql);
              ResultSet rs = st.executeQuery()) { if (rs.next()) return rs.getInt(1); }
         catch (SQLException e) { e.printStackTrace(); }

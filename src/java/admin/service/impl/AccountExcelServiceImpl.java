@@ -36,12 +36,12 @@ public class AccountExcelServiceImpl implements AccountExcelService {
     /** Cột của file import — thứ tự này phải khớp với readImport(). */
     private static final String[] IMPORT_HEADERS = {
         "Tên đăng nhập *", "Email *", "Vai trò *", "Họ và tên *", "Số điện thoại *",
-        "Ngày sinh (dd/mm/yyyy) *", "Giới tính *", "Số CCCD/CMND *", "Địa chỉ", "Trạng thái"
+        "Ngày sinh (dd/mm/yyyy) *", "Giới tính *", "Số CCCD (12 số) *", "Địa chỉ", "Trạng thái"
     };
 
     private static final String[] EXPORT_HEADERS = {
         "STT", "Tên đăng nhập", "Họ và tên", "Email", "Số điện thoại",
-        "Vai trò", "Giới tính", "Ngày sinh", "Số CCCD/CMND", "Địa chỉ", "Trạng thái"
+        "Vai trò", "Giới tính", "Ngày sinh", "Số CCCD (12 số)", "Địa chỉ", "Trạng thái"
     };
 
     private static final String SHEET_IMPORT = "Danh sách tài khoản";
@@ -58,6 +58,8 @@ public class AccountExcelServiceImpl implements AccountExcelService {
             CellStyle noteStyle = noteStyle(wb);
             CellStyle headerStyle = headerStyle(wb);
             CellStyle sampleStyle = dataStyle(wb, false);
+            CellStyle sampleTextStyle = textFormatStyle(wb, false); // giữ số 0 đầu, tránh ký hiệu khoa học
+            CellStyle sampleCenterTextStyle = textFormatStyle(wb, true);
 
             Row titleRow = sheet.createRow(0);
             titleRow.setHeightInPoints(28);
@@ -67,12 +69,14 @@ public class AccountExcelServiceImpl implements AccountExcelService {
             sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, IMPORT_HEADERS.length - 1));
 
             Row noteRow = sheet.createRow(1);
-            noteRow.setHeightInPoints(32);
+            noteRow.setHeightInPoints(46);
             Cell note = noteRow.createCell(0);
             note.setCellValue("Điền dữ liệu từ dòng 4. Cột có dấu * là bắt buộc. "
-                    + "Vai trò hợp lệ: " + roleNames(roles)
-                    + ". Giới tính: Nam / Nữ. Trạng thái: Hoạt động / Khóa (bỏ trống = Hoạt động). "
-                    + "Mật khẩu do hệ thống tự sinh và gửi về email của từng tài khoản.");
+                    + "Vai trò hợp lệ: " + roleNames(roles) + ". Giới tính: Nam / Nữ. "
+                    + "Trạng thái: Hoạt động / Khóa (bỏ trống = Hoạt động). "
+                    + "Số CCCD phải đúng 12 chữ số. Nếu Excel tự đổi Số điện thoại/CCCD thành dạng số khoa học (vd 1.23E+11), "
+                    + "hãy bôi đen cột đó rồi vào Format Cells > Text trước khi nhập lại. "
+                    + "Mật khẩu do hệ thống tự sinh (6 số) và gửi về email của từng tài khoản.");
             note.setCellStyle(noteStyle);
             sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, IMPORT_HEADERS.length - 1));
 
@@ -89,10 +93,16 @@ public class AccountExcelServiceImpl implements AccountExcelService {
                 "nguyenvana", "nguyenvana@example.com", firstRole, "Nguyễn Văn A", "0901234567",
                 "01/01/1995", "Nam", "012345678901", "Hà Nội", "Hoạt động"
             };
+            // Cột 0=Username, 4=SĐT, 7=CCCD giữ định dạng văn bản; các cột khác canh giữa hoặc trái như bình thường
+            CellStyle[] sampleColStyles = {
+                sampleTextStyle, sampleStyle, sampleStyle, sampleStyle, sampleCenterTextStyle,
+                sampleStyle, sampleStyle, sampleCenterTextStyle, sampleStyle, sampleStyle
+            };
             for (int i = 0; i < sampleData.length; i++) {
-                writeCell(sample, i, sampleData[i], sampleStyle);
+                writeCell(sample, i, sampleData[i], sampleColStyles[i]);
             }
 
+            sheet.createFreezePane(0, 3);
             autoSize(sheet, IMPORT_HEADERS.length);
             wb.write(out);
         }
@@ -123,6 +133,8 @@ public class AccountExcelServiceImpl implements AccountExcelService {
             CellStyle headerStyle = headerStyle(wb);
             CellStyle textStyle = dataStyle(wb, false);
             CellStyle centerStyle = dataStyle(wb, true);
+            // SĐT/CCCD giữ định dạng Văn bản để không mất số 0 đầu hoặc bị đổi thành ký hiệu khoa học khi sửa lại
+            CellStyle centerTextStyle = textFormatStyle(wb, true);
 
             Row titleRow = sheet.createRow(0);
             titleRow.setHeightInPoints(30);
@@ -148,7 +160,7 @@ public class AccountExcelServiceImpl implements AccountExcelService {
                     writeCell(row, 1, safe(a.getUsername()), textStyle);
                     writeCell(row, 2, safe(a.getFullName()), textStyle);
                     writeCell(row, 3, safe(a.getEmail()), textStyle);
-                    writeCell(row, 4, safe(a.getPhone()), centerStyle);
+                    writeCell(row, 4, safe(a.getPhone()), centerTextStyle);
                     writeCell(row, 5, safe(a.getRole()), textStyle);
                     writeCell(row, 6, a.isSexMale() ? "Nam" : "Nữ", centerStyle);
                     writeCell(row, 7, a.getDateOfBirth() == null ? "-" : df.format(a.getDateOfBirth()), centerStyle);
@@ -314,6 +326,17 @@ public class AccountExcelServiceImpl implements AccountExcelService {
         s.setVerticalAlignment(VerticalAlignment.CENTER);
         s.setWrapText(true);
         border(s);
+        return s;
+    }
+
+    /**
+     * Định dạng ô kiểu Văn bản (@) — dùng cho SĐT, CCCD, Tên đăng nhập.
+     * Nếu để định dạng Chung (General) mặc định, Excel sẽ tự hiểu chuỗi toàn số là số:
+     * mất số 0 ở đầu (SĐT) hoặc đổi thành ký hiệu khoa học khi đủ dài (CCCD 12 số).
+     */
+    private CellStyle textFormatStyle(Workbook wb, boolean center) {
+        CellStyle s = dataStyle(wb, center);
+        s.setDataFormat(wb.createDataFormat().getFormat("@"));
         return s;
     }
 
