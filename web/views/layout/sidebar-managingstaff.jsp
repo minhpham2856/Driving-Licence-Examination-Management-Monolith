@@ -166,6 +166,28 @@
     </nav>
 
     <div class="side-nav-bar__footer" data-node-id="manager:90">
+        <a href="${ctx}/managingstaff/profile"
+           class="side-nav-bar__logout${activeSidebar eq 'profile' ? ' is-active' : ''}"
+           style="margin-bottom:6px">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M4 21a8 8 0 0 1 16 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Hồ sơ cá nhân</span>
+        </a>
+        <a href="${ctx}/managingstaff/change-password"
+           class="side-nav-bar__logout${activeSidebar eq 'change-password' ? ' is-active' : ''}"
+           style="margin-bottom:6px">
+            <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="side-nav-bar__logout-label">Đổi mật khẩu</span>
+        </a>
         <a href="${ctx}/logout" class="side-nav-bar__logout" data-node-id="manager:91">
             <span class="side-nav-bar__icon side-nav-bar__icon--xs" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">

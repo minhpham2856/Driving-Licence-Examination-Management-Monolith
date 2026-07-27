@@ -424,6 +424,22 @@
                                         <p class="upload-licence-picker__hint">Hạng A1 / A / B1 đều chỉ cần 4 giấy tờ bắt buộc. Hồ sơ khác là tùy chọn; hồ sơ đã duyệt có thể tái sử dụng khi thi hạng khác.</p>
                                     </div>
 
+                                    <fieldset class="upload-retake-fieldset" style="margin:0 0 12px;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem 1rem;">
+                                        <legend style="font-size:0.875rem;font-weight:600;padding:0 0.25rem;">
+                                            Bạn gửi duyệt để thi lần đầu hay thi lại? <span class="profile-edit-required">*</span>
+                                        </legend>
+                                        <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.875rem;">
+                                            <label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;">
+                                                <input type="radio" name="isRetake" value="0" checked style="margin-top:0.2rem;">
+                                                <span>Thi lần đầu</span>
+                                            </label>
+                                            <label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;">
+                                                <input type="radio" name="isRetake" value="1" style="margin-top:0.2rem;">
+                                                <span>Thi lại </span>
+                                            </label>
+                                        </div>
+                                    </fieldset>
+
                                     <label class="p-input-label" for="request-note">Ghi chú gửi ban quản lý (tùy chọn)</label>
                                     <textarea id="request-note" name="requestNote" class="upload-card__reason" rows="2"
                                               placeholder="${profileApproved ? 'Ví dụ: Đã bổ sung hồ sơ cho hạng B1, nhờ ban quản lý xem xét.' : 'Ví dụ: Đã đủ giấy tờ hạng A1, nhờ ban quản lý xem xét.'}"></textarea>

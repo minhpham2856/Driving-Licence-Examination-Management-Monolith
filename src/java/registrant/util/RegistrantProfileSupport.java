@@ -210,12 +210,19 @@ public final class RegistrantProfileSupport {
     /** Như trên, kèm hạng GPLX thí sinh chọn khi gửi duyệt. */
     public static boolean updateRegistrationStatus(int profileId, String status,
             List<RegistrantDocumentView> docs, RegistrantDAO registrantdao, int licenceId) {
+        return updateRegistrationStatus(profileId, status, docs, registrantdao, licenceId, false);
+    }
+
+    /** Như trên, kèm hạng GPLX và cờ thi lại (IsRetake) khi gửi yêu cầu duyệt. */
+    public static boolean updateRegistrationStatus(int profileId, String status,
+            List<RegistrantDocumentView> docs, RegistrantDAO registrantdao, int licenceId, boolean isRetake) {
         if (profileId <= 0 || status == null || status.isBlank()) {
             return false;
         }
         String notes = deriveRegistrationNotes(docs, status.trim());
         boolean written = licenceId > 0
-                ? registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes, licenceId)
+                ? registrantdao.syncProfileDocumentRegistration(
+                        profileId, status.trim(), notes, licenceId, isRetake)
                 : registrantdao.syncProfileDocumentRegistration(profileId, status.trim(), notes);
         if (!written) {
             LOG.log(Level.WARNING, "Không cập nhật RegistrationStatus profile {0} → {1}",

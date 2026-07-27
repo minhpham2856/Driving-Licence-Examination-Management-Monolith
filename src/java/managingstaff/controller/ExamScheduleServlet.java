@@ -15,12 +15,8 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.sql.Date;
 import java.sql.Time;
-import java.time.LocalDate;
-import managingstaff.dao.impl.LicenceDAOImpl;
 import managingstaff.dao.impl.TentativeExamDateDAOImpl;
-import shared.model.Licence;
 import managingstaff.service.EmailService;
 import managingstaff.service.impl.EmailServiceImpl;
 import managingstaff.dto.ExamRegistrationDTO;
@@ -92,34 +88,24 @@ public class ExamScheduleServlet extends HttpServlet {
             SessionDTO dto = new SessionDTO();
             dto.setId(parseInt(request.getParameter("sessionId"), 0));
             dto.setCentreName(trim(request.getParameter("centreName")));
-            dto.setLicenceId(parseInt(request.getParameter("licenceId"), 0));
             dto.setSourceExamDateId(parseInt(request.getParameter("sourceExamDateId"), 0));
-            LocalDate date = LocalDate.parse(trim(request.getParameter("examDate")));
-            dto.setExamDate(Date.valueOf(date));
             dto.setShiftStartTime(Time.valueOf(trim(request.getParameter("startTime")) + ":00"));
-            Licence licence = new LicenceDAOImpl().findById(dto.getLicenceId());
-            if (licence == null || dto.getCentreName().length() < 3)
+            if (dto.getCentreName().length() < 3) {
                 throw new IllegalArgumentException("Vui lòng nhập đầy đủ thông tin phiên thi.");
-            dto.setLicenseCode(licence.getLicenceClass());
-            SessionDTO previous=dto.getId()>0?sessionDAO.findById(dto.getId()):null;
-            if(previous!=null&&previous.getRegisteredCount()>0){dto.setLicenceId(previous.getLicenceId());dto.setLicenseCode(previous.getLicenseCode());licence=new LicenceDAOImpl().findById(dto.getLicenceId());}
+            }
             int id = dto.getId() > 0 ? (sessionDAO.update(dto) ? dto.getId() : 0) : sessionDAO.create(dto);
-            int rescheduleEmails=previous!=null&&!previous.getExamDate().equals(dto.getExamDate())
-                    ? sendRescheduleEmails(previous,dto) : 0;
             int officialCandidateCount = dto.getId() > 0 ? 0 : sessionDAO.getCandidates(id).size();
             httpSession.setAttribute("scheduleSuccess", dto.getId() > 0
-                    ? "Đã cập nhật phiên thi"+(rescheduleEmails>0?" và gửi "+rescheduleEmails+" email lịch mới.":".")
+                    ? "Đã cập nhật giờ bắt đầu và trung tâm tổ chức."
                     : "Đã tạo phiên thi và tự động tiếp nhận " + officialCandidateCount
                     + " thí sinh từ danh sách chính thức của CSGT.");
             AuditLogHelper.persist(httpSession, dto.getId() > 0 ? "UPDATE SESSION" : "CREATE SESSION",
-                    (dto.getId() > 0 ? "Cập nhật" : "Tạo") + " phiên thi " + licence.getLicenceClass(), id);
+                    (dto.getId() > 0 ? "Cập nhật" : "Tạo") + " phiên thi hạng " + dto.getLicenseCode(), id);
         } catch (Exception ex) {
             httpSession.setAttribute("scheduleError", ex.getMessage() == null ? "Dữ liệu phiên thi không hợp lệ." : ex.getMessage());
         }
         response.sendRedirect(request.getContextPath() + "/manager/exam-schedules");
     }
-    private int sendRescheduleEmails(SessionDTO old,SessionDTO updated){EmailService mail=new EmailServiceImpl();if(!mail.isConfigured())return 0;int sent=0;String oldDate=old.getExamDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),newDate=updated.getExamDate().toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));for(ExamRegistrationDTO c:sessionDAO.getCandidates(old.getId())){String body="Xin chào "+c.getFullName()+",\n\nLịch sát hạch của bạn đã được chuyển từ "+oldDate+" sang "+newDate+" tại "+updated.getCentreName()+".\nSố báo danh của bạn được giữ nguyên: "+c.getSbd()+".";if(mail.sendTextEmail(c.getEmail(),"Thông báo thay đổi lịch sát hạch",body))sent++;}return sent;}
-
     private void updateStatus(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         int sessionId = parseInt(request.getParameter("sessionId"), 0);
@@ -148,9 +134,7 @@ public class ExamScheduleServlet extends HttpServlet {
         int page=Math.min(Math.max(1,parseInt(request.getParameter("page"),1)),pages);
         List<SessionDTO> sessions=sessionDAO.findPage(tab,years,page,PAGE_SIZE);
         request.setAttribute("sessions", sessions);
-        request.setAttribute("licences", new LicenceDAOImpl().findAll());
         request.setAttribute("policeCompletedDates", new TentativeExamDateDAOImpl().findPoliceCompletedUnlinked());
-        request.setAttribute("today", LocalDate.now().toString());
         request.setAttribute("activeTab",tab);request.setAttribute("selectedYears",years);
         request.setAttribute("availableYears",sessionDAO.findAvailableYears());
         request.setAttribute("currentPage",page);request.setAttribute("totalPages",pages);request.setAttribute("totalSessions",total);
