@@ -436,6 +436,12 @@
                         </div>
                         </c:if>
 
+                        <c:if test="${not empty preferredDateCancelledNotice}">
+                        <div class="p-alert-banner" role="status" style="margin-top:12px;background:#eff6ff;border:1px solid #93c5fd;color:#1e3a8a;padding:0.75rem 1rem;border-radius:8px;font-size:0.875rem;">
+                            <c:out value="${preferredDateCancelledNotice}"/>
+                        </div>
+                        </c:if>
+
                         <button type="submit" class="payment-submit-btn" id="btn-submit-registration"
                                 ${not sessionChosen or not canRegisterExam or not selectedLicenceDocumentAllowed or empty canConfirmRegistration or not canConfirmRegistration ? 'disabled' : ''}>
                             Xác nhận đăng ký
