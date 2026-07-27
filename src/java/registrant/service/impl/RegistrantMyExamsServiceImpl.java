@@ -5,6 +5,7 @@ import registrant.dao.impl.RegistrantDAOImpl;
 import registrant.dto.RegistrantMyExamRow;
 import auth.dto.UserDTO;
 import registrant.service.RegistrantMyExamsService;
+import registrant.util.RegistrantExamSupport;
 import registrant.util.RegistrantFilterSupport;
 import registrant.util.RegistrantFilterSupport.ExamListFilterState;
 import registrant.util.RegistrantListFilter;
@@ -60,10 +61,10 @@ public class RegistrantMyExamsServiceImpl implements RegistrantMyExamsService {
         return exams.stream().filter(e -> "approved".equals(e.getStatusClass())).count();
     }
 
-    /** Đếm số ca sắp tới / nguyện vọng / chờ ngày thi. */
+    /** Đếm số ca sắp tới / nguyện vọng active / chờ ngày thi (loại nguyện vọng đã hủy). */
     private static long countUpcoming(List<RegistrantMyExamRow> exams) {
         return exams.stream()
-                .filter(e -> e.isPreferredDate()
+                .filter(e -> RegistrantExamSupport.isActivePreferredMyExam(e)
                         || RegistrantFilterSupport.matchesMyExamStatus(e, "approved_waiting")
                         || RegistrantFilterSupport.matchesMyExamStatus(e, "pending"))
                 .filter(e -> e.getExamDate() != null)

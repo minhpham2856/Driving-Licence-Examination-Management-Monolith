@@ -32,6 +32,12 @@ BEGIN TRY
     IF COL_LENGTH('dbo.ExamEnrollment', 'ExamRegistrationId') IS NULL
         THROW 50004, N'DB chưa có ExamEnrollment.ExamRegistrationId. Hãy chạy DDL mới trước.', 1;
 
+    IF COL_LENGTH('dbo.ExamRegistration', 'IsRetake') IS NULL
+        THROW 50006, N'DB chưa có ExamRegistration.IsRetake. Hãy chạy DDL mới trước.', 1;
+
+    IF COL_LENGTH('dbo.OfficialExamCandidate', 'ExamParticipationType') IS NULL
+        THROW 50007, N'DB chưa có OfficialExamCandidate.ExamParticipationType. Hãy chạy DDL mới trước.', 1;
+
     DECLARE @PasswordHash NVARCHAR(255) =
         N'$2a$10$E8ocGIv4gRp6xZurl5egNuxir.0zn/5BUJMO5kIjdz38csrH3s7Cm';
 
@@ -85,6 +91,31 @@ BEGIN TRY
 
     DECLARE @PoliceUserId INT =
         (SELECT UserId FROM [User] WHERE Username = N'police123');
+
+    IF NOT EXISTS (
+        SELECT 1 FROM Profile
+        WHERE UserId = (SELECT UserId FROM [User] WHERE Username = N'qly123')
+    )
+    BEGIN
+        INSERT INTO Profile
+            (FullName, DateOfBirth, PhoneNumber, Sex,
+             GovernmentIdNumber, Address, UserId)
+        VALUES
+            (N'Nguyễn Thị Quản Lý', '1986-01-10', N'0908000003', 0,
+             N'001086011099', N'Trung tâm sát hạch Lái Vui, Hà Nội',
+             (SELECT UserId FROM [User] WHERE Username = N'qly123'));
+    END;
+
+    IF NOT EXISTS (SELECT 1 FROM Profile WHERE UserId = @PoliceUserId)
+    BEGIN
+        INSERT INTO Profile
+            (FullName, DateOfBirth, PhoneNumber, Sex,
+             GovernmentIdNumber, Address, UserId)
+        VALUES
+            (N'Nguyễn Văn Cảnh Sát', '1987-02-20', N'0908000007', 1,
+             N'001087022099', N'Phòng Cảnh sát giao thông, Hà Nội',
+             @PoliceUserId);
+    END;
 
     DECLARE @RegistrantRoleId INT =
         (SELECT RoleId FROM [Role] WHERE RoleName = N'Người đăng ký thi');
@@ -220,7 +251,7 @@ BEGIN TRY
         )
         BEGIN
             INSERT INTO ExamRegistration
-                (RegistrationStatus, Notes, ProfileId, LicenceId)
+                (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
             VALUES
                 (@RegistrationStatus,
                  CASE
@@ -231,7 +262,9 @@ BEGIN TRY
                     ELSE N'#MS_LARGE# Hồ sơ đã được Managing Staff duyệt'
                  END,
                  @ProfileId,
-                 @LicenceId);
+                 @LicenceId,
+                 CASE WHEN @RegistrationStatus = N'Duyệt' AND @i % 8 = 0
+                      THEN 1 ELSE 0 END);
         END;
 
         DECLARE @RegistrationId INT = (
@@ -399,6 +432,84 @@ BEGIN TRY
     CLOSE demo_cursor;
     DEALLOCATE demo_cursor;
 
+    DECLARE @RetakePendingRegistrationId INT = (
+        SELECT TOP (1) rd.ExamRegistrationId
+        FROM RegistrationDates rd
+        JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
+        WHERE rd.IsActive=1
+          AND rd.PoliceStatus=N'PENDING'
+          AND ed.PoliceStatus=N'PENDING'
+        ORDER BY rd.RegistrationDateId
+    );
+    UPDATE ExamRegistration
+    SET IsRetake=1,
+        Notes=CONCAT(COALESCE(Notes + N'; ',N''),
+                     N'#RETAKE_REQUEST# Thí sinh đề nghị thi lại')
+    WHERE ExamRegistrationId=@RetakePendingRegistrationId
+      AND IsRetake=0;
+
+    DECLARE @RetakeOfficialRegistrationId INT = (
+        SELECT TOP (1) rd.ExamRegistrationId
+        FROM RegistrationDates rd
+        JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
+        WHERE rd.IsActive=1
+          AND rd.PoliceStatus=N'APPROVED'
+          AND ed.PoliceStatus=N'COMPLETED'
+          AND ed.ExamDate>CAST(GETDATE() AS DATE)
+        ORDER BY rd.RegistrationDateId
+    );
+    UPDATE ExamRegistration
+    SET IsRetake=1,
+        Notes=CONCAT(COALESCE(Notes + N'; ',N''),
+                     N'#RETAKE_REQUEST# CSGT cho phép chỉ thi lại thực hành')
+    WHERE ExamRegistrationId=@RetakeOfficialRegistrationId
+      AND IsRetake=0;
+
+    ;WITH approved AS (
+        SELECT rd.ExamDateId,er.ExamRegistrationId,ed.LicenceId,
+               p.FullName,CAST(p.DateOfBirth AS DATE) DateOfBirth,
+               p.GovernmentIdNumber,p.PhoneNumber,u.Email,er.IsRetake,
+               ROW_NUMBER() OVER (
+                   PARTITION BY rd.ExamDateId
+                   ORDER BY rd.RegistrationDateId
+               ) CandidateOrder
+        FROM RegistrationDates rd
+        JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
+        JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
+        JOIN Profile p ON p.ProfileId=er.ProfileId
+        JOIN [User] u ON u.UserId=p.UserId
+        WHERE ed.PoliceStatus=N'COMPLETED'
+          AND rd.IsActive=1
+          AND rd.PoliceStatus=N'APPROVED'
+    )
+    INSERT INTO OfficialExamCandidate
+        (ExamDateId,ExamRegistrationId,LicenceId,CandidateNumber,
+         FullName,DateOfBirth,GovernmentIdNumber,PhoneNumber,Email,
+         SourceUnitCode,SourceUnitName,ExamParticipationType)
+    SELECT approved.ExamDateId,approved.ExamRegistrationId,approved.LicenceId,
+           RIGHT(N'000' + CONVERT(NVARCHAR(10),approved.CandidateOrder),3),
+           approved.FullName,approved.DateOfBirth,approved.GovernmentIdNumber,
+           approved.PhoneNumber,approved.Email,N'LAIVUI',
+           N'Trung tâm sát hạch Lái Vui',
+           CASE WHEN approved.IsRetake=1
+                THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END
+    FROM approved
+    WHERE NOT EXISTS (
+        SELECT 1 FROM OfficialExamCandidate official
+        WHERE official.ExamDateId=approved.ExamDateId
+          AND official.GovernmentIdNumber=approved.GovernmentIdNumber
+    );
+
+    UPDATE official
+    SET ExamParticipationType=
+        CASE WHEN registration.IsRetake=1
+             THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END
+    FROM OfficialExamCandidate official
+    JOIN ExamRegistration registration
+      ON registration.ExamRegistrationId=official.ExamRegistrationId
+    JOIN ExamDates date ON date.ExamDateId=official.ExamDateId
+    WHERE date.PoliceStatus=N'COMPLETED';
+
     -- Sáu lựa chọn đã bị hủy để test lịch sử hủy và số lượng bị ảnh hưởng.
     DECLARE @CancelledDateId INT =
         (SELECT ExamDateId FROM ExamDates WHERE ExamDate = '2026-08-19');
@@ -442,6 +553,36 @@ BEGIN TRY
         SELECT 1 FROM RegistrationDates rd
         WHERE rd.ExamRegistrationId = p.ExamRegistrationId
           AND rd.ExamDateId = @PastDateId
+    );
+
+    INSERT INTO OfficialExamCandidate
+        (ExamDateId, ExamRegistrationId, LicenceId, CandidateNumber,
+         FullName, DateOfBirth, GovernmentIdNumber, PhoneNumber, Email,
+         SourceUnitCode, SourceUnitName, ExamParticipationType)
+    SELECT
+        @PastDateId,
+        p.ExamRegistrationId,
+        @A,
+        RIGHT(N'000' + CONVERT(NVARCHAR(3), 700 + p.RowNo), 3),
+        profile.FullName,
+        CAST(profile.DateOfBirth AS DATE),
+        profile.GovernmentIdNumber,
+        profile.PhoneNumber,
+        account.Email,
+        N'LAIVUI',
+        N'Trung tâm sát hạch Lái Vui',
+        CASE WHEN registration.IsRetake = 1
+             THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END
+    FROM @PastApproved p
+    JOIN ExamRegistration registration
+      ON registration.ExamRegistrationId = p.ExamRegistrationId
+    JOIN Profile profile ON profile.ProfileId = registration.ProfileId
+    JOIN [User] account ON account.UserId = profile.UserId
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM OfficialExamCandidate official
+        WHERE official.ExamDateId = @PastDateId
+          AND official.GovernmentIdNumber = profile.GovernmentIdNumber
     );
 
     IF NOT EXISTS (SELECT 1 FROM Exam WHERE ExamCode = N'POLICE-A-20260617')

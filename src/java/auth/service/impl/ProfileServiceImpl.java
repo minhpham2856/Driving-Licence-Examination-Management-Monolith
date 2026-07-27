@@ -100,9 +100,14 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         Profile existing = profileDAO.getByUserId(userId);
-        if (existing == null) {
+        boolean creatingProfile = existing == null;
+        if (creatingProfile && input.getDateOfBirth() == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Chưa có hồ sơ cá nhân gắn với tài khoản này.");
+                    "Ngày sinh không được để trống.");
+        }
+        if (creatingProfile) {
+            existing = new Profile();
+            existing.setUserId(userId);
         }
 
         User usernameOwner = userDAO.getByUsername(username);
@@ -143,7 +148,10 @@ public class ProfileServiceImpl implements ProfileService {
             existing.setSex(input.getSex());
         }
 
-        if (!profileDAO.update(existing)) {
+        boolean profileSaved = creatingProfile
+                ? profileDAO.insert(existing)
+                : profileDAO.update(existing);
+        if (!profileSaved) {
             return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED,
                     "Không lưu được hồ sơ. Vui lòng thử lại.");
         }

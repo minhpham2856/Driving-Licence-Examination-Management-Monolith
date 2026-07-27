@@ -85,12 +85,22 @@ public class UploadDocumentsServlet extends HttpServlet {
                 user,
                 request.getParameter("requestNote"),
                 request.getParameter("approvalLicenceCode"),
+                parseIsRetakeParam(request.getParameter("isRetake")),
                 request.getSession());
         if (error != null) {
             renderPage(user, request, response, error);
             return;
         }
         response.sendRedirect(request.getContextPath() + "/registrant/upload-documents?success=request");
+    }
+
+    /** isRetake=1/true/on → thi lại; mặc định thi lần đầu. */
+    private static boolean parseIsRetakeParam(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return false;
+        }
+        String value = raw.trim();
+        return "1".equals(value) || "true".equalsIgnoreCase(value) || "on".equalsIgnoreCase(value);
     }
 
     private void handleDeleteDocument(UserDTO user, HttpServletRequest request, HttpServletResponse response)

@@ -8,6 +8,15 @@
 USE DLEM_DB_2;
 GO
 
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET QUOTED_IDENTIFIER ON;
+SET NUMERIC_ROUNDABORT OFF;
+GO
+
 DELETE FROM Audit;
 DELETE FROM DeductionRecord;
 DELETE FROM ScoreDeduction;
@@ -23,7 +32,6 @@ DELETE FROM ExamEnrollment;
 DELETE FROM Candidate;
 DELETE FROM OfficialExamCandidate;
 DELETE FROM RegistrationDates;
-DELETE FROM ExamDates;
 DELETE FROM ExamRegistration;
 DELETE FROM Document;
 DELETE FROM DocumentType;
@@ -36,6 +44,7 @@ DELETE FROM QuestionCategory;
 DELETE FROM ExamDevice;
 DELETE FROM ExamSection;
 DELETE FROM Exam;
+DELETE FROM ExamDates;
 DELETE FROM ExamArea;
 DELETE FROM ExamZone;
 DELETE FROM Fee;
@@ -150,18 +159,20 @@ GO
 -- ============================================
 -- 6. HỒ SƠ ĐĂNG KÝ THI
 -- ============================================
-INSERT INTO ExamRegistration (RegistrationStatus, Notes, ProfileId, LicenceId) VALUES
-(N'Duyệt',       N'Đủ hồ sơ, đủ điều kiện sức khỏe', 8,  (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Đã xác minh căn cước và giấy khám sức khỏe', 9, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Chờ duyệt',   N'Chờ cán bộ quản lý duyệt hồ sơ', 10, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'Duyệt',       N'Đăng ký thi cấp mới hạng A1', 11, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'Duyệt',       N'Nâng hạng từ A1 lên A', 12, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A')),
-(N'Duyệt',       N'Đăng ký thi cấp mới hạng B1 (mô tô ba bánh)', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Hồ sơ hoàn chỉnh', 14, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Chờ duyệt',   N'Chờ bổ sung ảnh chân dung', 15, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1')),
-(N'Loại',        N'Không đủ điều kiện sức khỏe theo quy định', 16, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Duyệt',       N'Đã thu học phí và lệ phí thi', 17, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1')),
-(N'Loại',        N'Cần bổ sung giấy xác nhận cư trú', 18, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'));
+INSERT INTO ExamRegistration
+    (RegistrationStatus, Notes, ProfileId, LicenceId, IsRetake)
+VALUES
+(N'Duyệt',       N'Đủ hồ sơ, đủ điều kiện sức khỏe', 8,  (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Đã xác minh căn cước và giấy khám sức khỏe', 9, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Chờ duyệt',   N'Chờ cán bộ quản lý duyệt hồ sơ', 10, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), 0),
+(N'Duyệt',       N'Đăng ký thi cấp mới hạng A1', 11, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), 0),
+(N'Duyệt',       N'Đăng ký thi lại; chờ CSGT quyết định nội dung thi', 12, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'), 1),
+(N'Duyệt',       N'Đăng ký thi cấp mới hạng B1 (mô tô ba bánh)', 13, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Hồ sơ hoàn chỉnh', 14, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Chờ duyệt',   N'Chờ bổ sung ảnh chân dung', 15, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), 0),
+(N'Loại',        N'Không đủ điều kiện sức khỏe theo quy định', 16, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Duyệt',       N'Đã thu học phí và lệ phí thi', 17, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0),
+(N'Loại',        N'Cần bổ sung giấy xác nhận cư trú', 18, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), 0);
 GO
 
 -- ExamDates / RegistrationDates: không seed — managing staff tạo ngày thi dự kiến trên hệ thống.
