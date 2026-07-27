@@ -97,7 +97,9 @@ CREATE TABLE ExamRegistration (
     RegistrationStatus NVARCHAR(50) NOT NULL,
     Notes NVARCHAR(MAX),
     ProfileId INT NOT NULL REFERENCES Profile(ProfileId),
-    LicenceId INT NOT NULL REFERENCES Licence(LicenceId)
+    LicenceId INT NOT NULL REFERENCES Licence(LicenceId),
+
+    IsRetake BIT NOT NULL DEFAULT 0
 );
 GO
 
@@ -181,6 +183,7 @@ CREATE TABLE OfficialExamCandidate (
     Email NVARCHAR(255) NOT NULL,
     SourceUnitCode NVARCHAR(50) NOT NULL,
     SourceUnitName NVARCHAR(255) NOT NULL,
+    ExamParticipationType NVARCHAR(30) NOT NULL DEFAULT N'FULL_EXAM',
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UNIQUE (ExamDateId, GovernmentIdNumber)
 );
