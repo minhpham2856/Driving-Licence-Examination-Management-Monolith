@@ -27,7 +27,7 @@ import java.util.List;
  * - SLOT_SELECT — ca phân công theo kỳ: ExaminerSchedule JOIN ExamArea
  *       (text block đầy đủ, không ghép runtime) → map ExaminerSlotDTO
  * Dùng cho màn /examstaff/examiner-allocation và điều kiện auto-allocate
- * (chỉ phân thí sinh vào phòng/sân đã có giám khảo).
+ * (chỉ phân thí sinh vào phòng/sân đã có sát hạch viên).
  */
 public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssignmentDAO {
 

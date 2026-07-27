@@ -74,7 +74,7 @@
 
                         <c:if test="${currentStep eq '1'}">
                             <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
-                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 1: Tra cứu, đối chiếu và sửa đổi hồ sơ học viên</h3>
+                                <h3 style="font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0;">Bước 1: Tra cứu, đối chiếu và sửa đổi hồ sơ thí sinh</h3>
                             </div>
 
                             <c:if test="${requestScope.profileUpdatedAlert eq 'true'}">
@@ -84,7 +84,7 @@
                                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                     </svg>
                                     <span>
-                                        <strong>Đã ghi nhận thay đổi kiểm toán:</strong> Sửa đổi thông tin nhân thân của học viên thành công! Dữ liệu đã được cập nhật vào phiên làm việc và ghi nhận lịch sử thay đổi.
+                                        <strong>Đã ghi nhận thay đổi kiểm toán:</strong> Sửa đổi thông tin nhân thân của thí sinh thành công! Dữ liệu đã được cập nhật vào phiên làm việc và ghi nhận lịch sử thay đổi.
                                     </span>
                                 </div>
                             </c:if>
@@ -239,7 +239,7 @@
 
                             <c:if test="${profile.paymentCompleted and not requestScope.paymentJustCompleted}">
                                 <div style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 10px 12px; margin-bottom: 1rem; font-size: 0.82rem; color: #047857;">
-                                    Thí sinh này đã có bản ghi thanh toán trong hệ thống. Bấm <strong>Chuyển học viên tiếp theo</strong> để tiếp tục hàng đợi.
+                                    Thí sinh này đã có bản ghi thanh toán trong hệ thống. Bấm <strong>Chuyển thí sinh tiếp theo</strong> để tiếp tục hàng đợi.
                                 </div>
                             </c:if>
 
@@ -386,7 +386,7 @@
 
                     <div class="report-pane" style="height: fit-content;">
                         <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
-                            <h3 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0;">Sơ đồ tóm tắt học viên</h3>
+                            <h3 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0;">Sơ đồ tóm tắt thí sinh</h3>
                         </div>
 
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 1rem 0;">
@@ -432,7 +432,7 @@
                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span style="font-weight: 700; font-size: 1rem; color: #334155; display: block; margin-bottom: 0.5rem;">Bàn làm thủ tục trống</span>
-                    Chưa có học viên nào được chọn làm thủ tục.
+                    Chưa có thí sinh nào được chọn làm thủ tục.
                     <p style="font-size: 0.82rem; color: #94a3b8; max-width: 420px; margin: 0.5rem auto 1.5rem;">Chọn thí sinh từ danh sách bên dưới, hoặc bấm <strong>Tiến hành lập hồ sơ</strong> / <strong>Hồ sơ</strong> ở hàng đợi phía trên.</p>
 
                     <div style="max-width: 520px; margin: 1.5rem auto 0; padding: 1.5rem; background: rgba(255, 255, 255, 0.9); border: 1.5px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); backdrop-filter: blur(8px);">
@@ -450,7 +450,7 @@
                                 <select id="emptySbdInput" name="sbd"
                                         onchange="this.form.submit()"
                                         class="procedure-empty-sbd-select">
-                                    <option value="">-- Click để chọn học viên đã được gọi --</option>
+                                    <option value="">-- Click để chọn thí sinh đã được gọi --</option>
                                     <c:forEach var="c" items="${activeCallQueue}">
                                         <option value="${c.sbd}">
                                                 ${c.sbd} - ${c.name} (Hạng ${c.clazz})

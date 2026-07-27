@@ -43,7 +43,7 @@ import java.util.Set;
  * Được ExaminerAllocationDeskServiceImpl (gán thủ công) và
  * AllocationActionServiceImpl (auto sau thủ tục) sử dụng.
  *
- * Phân công giám khảo (CRUD):
+ * Phân công sát hạch viên (CRUD):
  * - getActiveExaminers / getAssignmentsByExamId — đọc danh sách
  * - assignExaminer / removeAssignment — ghi slot qua DAO
  * - getAvailableAreasForExam — khu gắn kỳ; fallback theo loại LT+TH nếu chưa gắn
@@ -85,8 +85,8 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Danh sách giám khảo đang active để chọn phân công.
-     * @return danh sách UserDTO giám khảo
+     * Danh sách sát hạch viên đang active để chọn phân công.
+     * @return danh sách UserDTO sát hạch viên
      */
     public List<UserDTO> getActiveExaminers() {
         return assignmentDAO.getActiveExaminers();
@@ -122,7 +122,7 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Các slot phân công giám khảo hiện có của kỳ thi.
+     * Các slot phân công sát hạch viên hiện có của kỳ thi.
      * @param examId mã kỳ thi
      * @return danh sách slot
      */
@@ -131,7 +131,7 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Gán giám khảo vào một slot (kỳ + khu vực + phần thi).
+     * Gán sát hạch viên vào một slot (kỳ + khu vực + phần thi).
      * @param slot thông tin phân công
      * @return true nếu lưu thành công
      */
@@ -140,7 +140,7 @@ public class ExaminerAllocationServiceImpl {
     }
 
     /**
-     * Gỡ phân công giám khảo theo khóa slot.
+     * Gỡ phân công sát hạch viên theo khóa slot.
      * @param slotKey khóa slot
      * @return true nếu gỡ thành công
      */

@@ -180,7 +180,7 @@
 
                                 <c:otherwise>
                                     <div class="active-calling-card">
-                                        <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Học viên đang gọi lên bàn:</span>
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Thí sinh đang gọi lên bàn:</span>
                                         <div style="font-family: monospace; font-size: 2.25rem; font-weight: 900; color: #0f172a; letter-spacing: 0.02em; line-height: 1.1;">
                                             ${callingCandidate.sbd}
                                         </div>
