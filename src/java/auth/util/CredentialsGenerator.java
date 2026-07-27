@@ -25,13 +25,30 @@ public final class CredentialsGenerator {
     }
 
     public static String randomPassword(int length) {
-        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz1234567890";
-        StringBuilder password = new StringBuilder(length);
+        int size = Math.max(length, 8);
+        String upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        String lower = "abcdefghjkmnpqrstuvwxyz";
+        String digits = "23456789";
+        String special = "!@#$%&*";
+        String all = upper + lower + digits + special;
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        for (int i = 0; i < length; i++) {
-            password.append(chars.charAt(random.nextInt(chars.length())));
+        char[] password = new char[size];
+        // Bắt buộc có hoa, thường, số, ký tự đặc biệt
+        password[0] = upper.charAt(random.nextInt(upper.length()));
+        password[1] = lower.charAt(random.nextInt(lower.length()));
+        password[2] = digits.charAt(random.nextInt(digits.length()));
+        password[3] = special.charAt(random.nextInt(special.length()));
+        for (int i = 4; i < size; i++) {
+            password[i] = all.charAt(random.nextInt(all.length()));
         }
-        return password.toString();
+        // Xáo trộn để không cố định vị trí
+        for (int i = size - 1; i > 0; i--) {
+            int j = random.nextInt(i + 1);
+            char tmp = password[i];
+            password[i] = password[j];
+            password[j] = tmp;
+        }
+        return new String(password);
     }
 
     private static String randomDigits(int count) {

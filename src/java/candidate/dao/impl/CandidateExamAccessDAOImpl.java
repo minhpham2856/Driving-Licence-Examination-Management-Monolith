@@ -119,6 +119,12 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 WHERE ee.ExamId = ?
                   AND (c.CandidateNumber = ? OR (? IS NOT NULL AND TRY_CAST(c.CandidateNumber AS INT) = ?))
                   AND c.IsAbsent = 0 AND c.IsSuspended = 0
+                  AND c.PhotoImageUrl IS NOT NULL AND LTRIM(RTRIM(c.PhotoImageUrl)) <> N''
+                  AND EXISTS (
+                      SELECT 1 FROM Payment pay
+                      WHERE pay.ExamEnrollmentId = ee.ExamEnrollmentId
+                        AND pay.PaymentStatus = N'Hoàn tất'
+                  )
                   AND e.Status = ?
                   AND es.SectionType = ?
                   AND COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) IS NOT NULL
@@ -412,8 +418,16 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
     private Question mapQuestion(ResultSet rs) throws SQLException {
         Question q = new Question();
         q.setQuestionId(rs.getInt("QuestionId"));
-        q.setQuestionNumber(rs.getInt("QuestionNumber"));
-        q.setImageUrl(rs.getString("ImageUrl"));
+        int questionNumber = rs.getInt("QuestionNumber");
+        q.setQuestionNumber(questionNumber);
+        String imageUrl = rs.getString("ImageUrl");
+        if (imageUrl != null) {
+            imageUrl = imageUrl.trim();
+            if (imageUrl.isEmpty()) {
+                imageUrl = null;
+            }
+        }
+        q.setImageUrl(imageUrl);
         q.setCorrectAnswer(rs.getString("CorrectAnswer"));
         q.setCritical(rs.getBoolean("IsCritical"));
         q.setQuestionCategoryId(rs.getInt("QuestionCategoryId"));
@@ -460,6 +474,8 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         }
     }
 
+    private static final int THEORY_PASS_CORRECT = 21;
+
     private CandidateExamResultDTO grade(List<Question> questions, Map<Integer, String> answers) {
         CandidateExamResultDTO result = new CandidateExamResultDTO();
         for (Question question : questions) {
@@ -476,8 +492,11 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 result.setCriticalFailed(true);
             }
         }
-        int required = 21;
-        result.setPassed(result.getCorrect() >= required && !result.isCriticalFailed());
+        result.setPassed(result.getCorrect() >= THEORY_PASS_CORRECT && !result.isCriticalFailed());
+        // Sai câu điểm liệt: điểm hiển thị = 0
+        if (result.isCriticalFailed()) {
+            result.setCorrect(0);
+        }
         return result;
     }
 

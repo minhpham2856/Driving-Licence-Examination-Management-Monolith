@@ -32,6 +32,7 @@
                         <jsp:param name="label" value="Điểm"/>
                     </jsp:include>
                     <th>Điểm danh</th>
+                    <th>Gọi</th>
                     <th>Đình chỉ</th>
                     <th>In</th>
                     <th>Hoàn thành</th>
@@ -45,7 +46,7 @@
                     <%--case 1: empty list--%>
                     <c:when test="${empty candidates}">
                         <tr>
-                            <td colspan="8" class="table-empty">
+                            <td colspan="9" class="table-empty">
                                 ${searchActive ? 'Không tìm thấy thí sinh phù hợp.' : 'Chưa có thí sinh trong kỳ thi/phần thi này.'}
                             </td>
                         </tr>
@@ -109,6 +110,24 @@
                                             <button type="submit"
                                                     class="btn white compact">
                                                 Hủy điểm danh
+                                            </button>
+                                        </form>
+                                    </c:if>
+                                </td>
+
+                                <%--call--%>
+                                <td>
+                                    <c:if test="${candidate.sectionRequired and candidate.actionEligible}">
+                                        <form method="post"
+                                              action="${pageUrl}"
+                                              class="js-call-candidate"
+                                              data-sbd="${candidate.candidateNumber}"
+                                              data-name="${candidate.fullName}">
+                                            <input type="hidden" name="action" value="call">
+                                            <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
+                                            <button type="submit"
+                                                    class="btn blue compact">
+                                                Gọi
                                             </button>
                                         </form>
                                     </c:if>

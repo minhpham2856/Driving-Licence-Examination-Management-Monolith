@@ -33,7 +33,7 @@
                 <span class="material-symbols-outlined">tag</span>
                 <input id="examCode" name="examCode" type="text"
                        autocomplete="off" required autofocus
-                       placeholder="VD: A1-20260601-1000"
+                       placeholder="VD: A1-123"
                        value="<c:out value='${empty param.examCode ? param.examId : param.examCode}'/>">
             </div>
 

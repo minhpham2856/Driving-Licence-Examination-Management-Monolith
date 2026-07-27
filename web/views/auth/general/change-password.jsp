@@ -5,6 +5,11 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="useExamstaffShell" value="${requestScope.accountShell eq 'examstaff'}" />
 <c:set var="useExaminerShell" value="${requestScope.accountShell eq 'examiner'}" />
+<c:set var="useManagingShell" value="${requestScope.accountShell eq 'managingstaff'}" />
+<c:set var="usePoliceShell" value="${requestScope.accountShell eq 'police'}" />
+<c:set var="useAdminShell" value="${requestScope.accountShell eq 'admin'}" />
+<c:set var="useStaffPortalShell"
+       value="${useManagingShell or usePoliceShell or useAdminShell}" />
 
 <%--shell open--%>
 <c:choose>
@@ -63,7 +68,44 @@
                     <main class="main scroll">
                         <div class="account-page account-page--portal">
     </c:when>
-    <%--case 3: public shell--%>
+    <%--case 3: managing / police / admin portal shell--%>
+    <c:when test="${useStaffPortalShell}">
+        <!DOCTYPE html>
+        <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta http-equiv="Cache-Control"
+                      content="no-cache, no-store, must-revalidate">
+                <title>Đổi mật khẩu - Lái Vui</title>
+                <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+                <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
+                <link rel="stylesheet"
+                      href="${ctx}/assets/css/examstaff/account.css?v=20260714b">
+            </head>
+            <body class="has-side-nav-bar">
+                <c:choose>
+                    <c:when test="${useManagingShell}">
+                        <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
+                            <jsp:param name="activeSidebar" value="change-password" />
+                        </jsp:include>
+                    </c:when>
+                    <c:when test="${usePoliceShell}">
+                        <jsp:include page="/views/layout/sidebar-policestaff.jsp">
+                            <jsp:param name="activeSidebar" value="change-password" />
+                        </jsp:include>
+                    </c:when>
+                    <c:otherwise>
+                        <jsp:include page="/views/layout/sidebar-admin.jsp">
+                            <jsp:param name="activeSidebar" value="change-password" />
+                        </jsp:include>
+                    </c:otherwise>
+                </c:choose>
+                <div class="dashboard-shell">
+                    <main class="main-content">
+                        <div class="account-page account-page--portal">
+    </c:when>
+    <%--case 4: public shell--%>
     <c:otherwise>
         <jsp:include page="/views/layout/header.jsp">
             <jsp:param name="title" value="Lái Vui - Đổi mật khẩu" />
@@ -113,9 +155,11 @@
                        id="newPassword"
                        name="newPassword"
                        required
-                       minlength="6"
+                       minlength="8"
                        autocomplete="new-password">
-                <span class="account-field__hint">Tối thiểu 6 ký tự</span>
+                <span class="account-field__hint">
+                    Tối thiểu 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt
+                </span>
             </div>
             <div class="account-field">
                 <label class="account-field__label" for="confirmPassword">
@@ -126,7 +170,7 @@
                        id="confirmPassword"
                        name="confirmPassword"
                        required
-                       minlength="6"
+                       minlength="8"
                        autocomplete="new-password">
             </div>
             <div class="account-actions">
@@ -154,7 +198,18 @@
             </body>
         </html>
     </c:when>
-    <%--case 3: public shell--%>
+    <%--case 3: managing / police / admin portal shell--%>
+    <c:when test="${useStaffPortalShell}">
+                        </div>
+                    </main>
+                    <jsp:include page="/views/layout/footer.jsp">
+                        <jsp:param name="standalone" value="false" />
+                    </jsp:include>
+                </div>
+            </body>
+        </html>
+    </c:when>
+    <%--case 4: public shell--%>
     <c:otherwise>
         </main>
         <jsp:include page="/views/layout/footer.jsp" />

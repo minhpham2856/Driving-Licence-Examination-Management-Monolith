@@ -123,6 +123,25 @@ public final class ExaminerFlashMessages {
                     return "Không lưu được điểm thực hành SBD " + sbd + ".";
                 }
                 return "Không lưu được điểm thực hành.";
+            case "candidateNotCheckedIn":
+                if (notBlank(sbd)) {
+                    return "Thí sinh SBD " + sbd + " chưa được điểm danh.";
+                }
+                return "Thí sinh chưa được điểm danh.";
+            case "candidateNotEligibleForPractical":
+                return "Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.";
+            case "procedureIncomplete":
+                return "Thí sinh chưa hoàn tất thủ tục (thanh toán/ảnh) nên chưa điểm danh được.";
+            case "vehicleInvalid":
+                return "Xe/thiết bị không hợp lệ hoặc không thuộc khu vực thi hiện tại.";
+            case "areaMismatch":
+                return "Thí sinh không thuộc khu vực thi hiện tại.";
+            case "vehicleOccupied":
+                return "Xe đang được sử dụng bởi thí sinh khác.";
+            case "scoreAlreadySaved":
+                return "Điểm thực hành đã được lưu. Hãy dùng Sửa kết quả nếu cần chỉnh sửa.";
+            case "scorePayloadInvalid":
+                return "Dữ liệu lưu điểm không hợp lệ.";
             case "passwordIncorrect":
                 return "Mật khẩu xác nhận không đúng.";
             case "noSbd":
@@ -203,7 +222,7 @@ public final class ExaminerFlashMessages {
             case "practicalNotAllowed":
                 return "Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.";
             case "scoreEditNotAllowed":
-                return "Chỉ có thể sửa kết quả sau khi thí sinh đã hoàn tất phần thi thực hành.";
+                return "Chỉ có thể sửa kết quả khi thí sinh đã lưu điểm (chờ ký) hoặc đã hoàn tất phần thi.";
             default:
                 return null;
         }

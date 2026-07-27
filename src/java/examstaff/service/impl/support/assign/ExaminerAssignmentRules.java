@@ -227,6 +227,42 @@ public final class ExaminerAssignmentRules {
     }
 
     /**
+     * Lọc phòng lý thuyết trong danh sách khu vực gắn kỳ.
+     * @param rooms danh sách phòng nguồn
+     * @return phòng LT (rỗng nếu thiếu đầu vào)
+     */
+    public static List<ExamArea> filterTheoryRooms(List<ExamArea> rooms) {
+        if (rooms == null || rooms.isEmpty()) {
+            return List.of();
+        }
+        List<ExamArea> result = new java.util.ArrayList<>();
+        for (ExamArea room : rooms) {
+            if (isTheoryRoom(room)) {
+                result.add(room);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Lọc sân/phòng thực hành trong danh sách khu vực gắn kỳ.
+     * @param rooms danh sách phòng nguồn
+     * @return sân TH (rỗng nếu thiếu đầu vào)
+     */
+    public static List<ExamArea> filterPracticalRooms(List<ExamArea> rooms) {
+        if (rooms == null || rooms.isEmpty()) {
+            return List.of();
+        }
+        List<ExamArea> result = new java.util.ArrayList<>();
+        for (ExamArea room : rooms) {
+            if (isPracticalRoom(room)) {
+                result.add(room);
+            }
+        }
+        return result;
+    }
+
+    /**
      * Lọc phòng lý thuyết đã có sát hạch viên.
      * @param rooms          danh sách phòng nguồn
      * @param staffedAreaIds tập areaId đã staffed LT

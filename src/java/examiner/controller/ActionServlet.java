@@ -129,8 +129,16 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
                     return true;
                 }
-                if (!actionService.markPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=presentFailed&sbd="
+                examiner.dto.ServiceResult<Void> presentResult =
+                        actionService.markPresent(activeExamId, sbd, userId, sectionType);
+                if (!presentResult.isSuccess()) {
+                    String errorCode = presentResult.getMessage() != null
+                            && ("procedureIncomplete".equals(presentResult.getMessage().trim())
+                            || "candidateNotEligibleForPractical".equals(presentResult.getMessage().trim()))
+                            ? presentResult.getMessage().trim()
+                            : "presentFailed";
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCode) + "&sbd="
                             + RequestUtil.urlEncode(sbd));
                     return true;
                 }

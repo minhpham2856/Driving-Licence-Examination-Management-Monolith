@@ -199,7 +199,7 @@
 
                                 <%--edit result--%>
                                 <td>
-                                    <c:if test="${actionAllowed and candidate.status eq 'done'}">
+                                    <c:if test="${actionAllowed and (candidate.status eq 'done' or candidate.status eq 'awaiting')}">
                                         <a href="${ctx}/examiner/result-details-edit?sbd=${candidate.candidateNumber}&amp;from=action"
                                            class="btn white compact">
                                             Sửa kết quả
