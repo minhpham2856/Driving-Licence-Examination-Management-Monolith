@@ -360,19 +360,19 @@
                     <div class="chart-legend">
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #10b981;"></div>
-                            <span>Đạt (${passEx} học viên)</span>
+                            <span>Đạt (${passEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #ef4444;"></div>
-                            <span>Trượt (${failEx} học viên)</span>
+                            <span>Trượt (${failEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #f59e0b;"></div>
-                            <span>Vắng (${absentEx} học viên)</span>
+                            <span>Vắng (${absentEx} thí sinh)</span>
                         </div>
                         <div class="chart-legend__item">
                             <div class="chart-legend__color" style="background-color: #b91c1c;"></div>
-                            <span>Đình chỉ (${suspendedEx} học viên)</span>
+                            <span>Đình chỉ (${suspendedEx} thí sinh)</span>
                         </div>
                     </div>
                 </div>

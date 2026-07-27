@@ -36,8 +36,8 @@ public final class RegistrantExamSupport {
     /** Đã thi xong phần sát hạch, chưa có ExamResult công bố. */
     public static final String AWAITING_RESULT_STATUS_LABEL = "Đã thi — chờ công bố kết quả";
 
-    public static final int THEORY_MAX_QUESTIONS = 35;
-    public static final int THEORY_PASS_CORRECT = 32;
+    public static final int THEORY_MAX_QUESTIONS = 25;
+    public static final int THEORY_PASS_CORRECT = 21;
     public static final int PRACTICAL_MAX_SCORE = 100;
     public static final int PRACTICAL_PASS_SCORE = 80;
 

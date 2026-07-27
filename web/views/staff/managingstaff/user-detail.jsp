@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Chi tiết hồ sơ học viên - Lái Vui</title>
+    <title>Chi tiết hồ sơ thí sinh - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
     <style>
@@ -167,7 +167,7 @@
     <nav class="breadcrumbs">
         <a href="${ctx}/manager/dashboard">Dashboard</a>
         <span class="breadcrumbs__separator">/</span>
-        <a href="${ctx}/manager/registrants">Danh sách học viên</a>
+        <a href="${ctx}/manager/registrants">Danh sách thí sinh</a>
         <span class="breadcrumbs__separator">/</span>
         <span class="breadcrumbs__current">Chi tiết hồ sơ</span>
     </nav>
@@ -269,7 +269,7 @@
                             <c:if test="${empty dossiers}">
                                 <tr>
                                     <td colspan="7" style="padding:3rem;text-align:center;color:#64748b">
-                                        Chưa có tài khoản Registrant trong database.
+                                        Chưa có tài khoản thí sinh trong hệ thống.
                                     </td>
                                 </tr>
                             </c:if>

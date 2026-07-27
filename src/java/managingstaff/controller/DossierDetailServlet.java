@@ -34,7 +34,7 @@ public class DossierDetailServlet extends HttpServlet {
                 : userId > 0 ? dossierDAO.findByUserId(userId) : null;
 
         if ((userId > 0 || registrationId > 0) && dossier == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy hồ sơ học viên.");
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy hồ sơ thí sinh.");
             return;
         }
 

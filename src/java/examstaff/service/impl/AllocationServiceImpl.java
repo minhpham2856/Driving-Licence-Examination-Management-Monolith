@@ -53,7 +53,10 @@ public class AllocationServiceImpl implements AllocationService {
         // Mutate
         AllocationActionResultDTO data = actions.autoAllocateOnOverview(examId, stage);
         // Result
-        return ServiceResult.ok(data);
+        if (data != null && data.getErrorMsg() != null && !data.getErrorMsg().isBlank()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, data.getErrorMsg(), data);
+        }
+        return ServiceResult.ok(data, data != null ? data.getAlertMsg() : null);
     }
 
     /**

@@ -323,7 +323,7 @@
                                                             </li>
                                                             <li>
                                                                 <span class="registrant-score-card__stat-label">Điểm chuẩn</span>
-                                                                <strong class="registrant-score-card__stat-value">32/35</strong>
+                                                                <strong class="registrant-score-card__stat-value">21/25</strong>
                                                             </li>
                                                             <li>
                                                                 <span class="registrant-score-card__stat-label">Kết quả</span>
