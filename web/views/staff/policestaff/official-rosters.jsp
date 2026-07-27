@@ -99,7 +99,7 @@
 
                     <div style="overflow:auto">
                         <table class="table">
-                            <thead><tr><th>SBD</th><th>Họ tên</th><th>Ngày sinh</th><th>CCCD</th><th>Hạng</th><th>Liên hệ</th></tr></thead>
+                            <thead><tr><th>SBD</th><th>Họ tên</th><th>Ngày sinh</th><th>CCCD</th><th>Hạng</th><th>Nội dung thi</th><th>Liên hệ</th></tr></thead>
                             <tbody>
                             <c:forEach var="row" items="${officialCandidates}">
                                 <tr>
@@ -114,11 +114,12 @@
                                     <td><fmt:formatDate value="${row.dateOfBirth}" pattern="dd/MM/yyyy"/></td>
                                     <td><c:out value="${row.governmentIdNumber}"/></td>
                                     <td>${row.licenceClass}</td>
+                                    <td><strong><c:out value="${row.examParticipationLabel}"/></strong></td>
                                     <td><c:out value="${row.phoneNumber}"/><br><small><c:out value="${row.email}"/></small></td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty officialCandidates}">
-                                <tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">Chưa có hồ sơ nào được CSGT duyệt.</td></tr>
+                                <tr><td colspan="7" style="text-align:center;color:#64748b;padding:2rem">Chưa có hồ sơ nào được CSGT duyệt.</td></tr>
                             </c:if>
                             </tbody>
                         </table>
