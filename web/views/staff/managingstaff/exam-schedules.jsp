@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý phiên thi - Lái Vui</title>
+    <title>Quản lý kỳ thi - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
     <style>
@@ -134,12 +134,12 @@
         <nav class="breadcrumbs">
             <a href="${ctx}/manager/dashboard">Dashboard</a>
             <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Quản lý phiên thi</span>
+            <span class="breadcrumbs__current">Quản lý kỳ thi</span>
         </nav>
 
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Quản Lý Phiên Thi</h1>
+                <h1 class="page-title">Quản Lý Kỳ Thi</h1>
                 <p class="page-subtitle">
                     Managing Staff tạo phiên thi từ danh sách chính thức đã nhận và quản lý trạng thái các phiên.
                 </p>
