@@ -98,7 +98,40 @@
             </div>
         </form>
         </c:if>
-        <a href="${ctx}${layoutListPath}${allocationExtraQuery}"
+        <c:if test="${allocationStage eq 'overview'
+                      or allocationStage eq 'theory'
+                      or allocationStage eq 'practical'}">
+            <form method="post" action="${ctx}${layoutListPath}" class="allocation-auto-form">
+                <input type="hidden" name="action" value="autoAllocate">
+                <c:if test="${not empty layoutExamId}">
+                    <input type="hidden" name="examId" value="${layoutExamId}">
+                </c:if>
+                <button type="submit" class="allocation-search-btn allocation-auto-btn"
+                        title="Tự động phân thí sinh vào phòng/sân đã có sát hạch viên">
+                    <span>
+                        <c:choose>
+                            <c:when test="${allocationStage eq 'theory'}">Tự động phân phòng</c:when>
+                            <c:when test="${allocationStage eq 'practical'}">Tự động phân sân</c:when>
+                            <c:otherwise>Tự động phân phòng/sân</c:otherwise>
+                        </c:choose>
+                    </span>
+                </button>
+            </form>
+        </c:if>
+        <c:set var="allocationRefreshQuery" value="${allocationExtraQuery}" />
+        <c:if test="${fn:startsWith(allocationRefreshQuery, '&')}">
+            <c:set var="allocationRefreshQuery"
+                   value="?${fn:substring(allocationRefreshQuery, 1, fn:length(allocationRefreshQuery))}" />
+        </c:if>
+        <c:choose>
+            <c:when test="${empty allocationRefreshQuery}">
+                <c:set var="allocationRefreshQuery" value="?refresh=1" />
+            </c:when>
+            <c:otherwise>
+                <c:set var="allocationRefreshQuery" value="${allocationRefreshQuery}&amp;refresh=1" />
+            </c:otherwise>
+        </c:choose>
+        <a href="${ctx}${layoutListPath}${allocationRefreshQuery}"
            class="allocation-search-btn allocation-refresh-btn"
            title="Tải lại dữ liệu" aria-label="Tải lại dữ liệu">
             <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
