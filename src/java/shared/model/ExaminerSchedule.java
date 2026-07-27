@@ -48,13 +48,13 @@ public class ExaminerSchedule {
         this.examId = examId;
     }
 
-    /** @deprecated dùng getExamId() */
+    /** @deprecated dùng {@link #getExamId()} */
     @Deprecated
     public int getSessionId() {
         return examId;
     }
 
-    /** @deprecated dùng setExamId(int) */
+    /** @deprecated dùng {@link #setExamId(int)} */
     @Deprecated
     public void setSessionId(int sessionId) {
         this.examId = sessionId;

@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <c:set var="variant" value="${param.variant}" />
 <tr>
-    <th class="examiner-table__center" style="width: 56px;">STT</th>
+    <th class="table-center" style="width: 56px;">STT</th>
     <jsp:include page="/views/staff/examstaff/includes/examstaff-sort-th.jsp">
         <jsp:param name="sortColumn" value="sbd" />
         <jsp:param name="label" value="SBD" />

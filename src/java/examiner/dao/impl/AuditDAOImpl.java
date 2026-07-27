@@ -11,14 +11,32 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+// JDBC implementation for Audit; examiner module DAO layer only.
 public class AuditDAOImpl extends DBContext implements AuditDAO {
 
     private static final String BASE_SELECT
-            = "SELECT AuditId, UserId, Action, Reason, EntityName, EntityId, OldValue, NewValue, Details, CreatedAt "
-            + "FROM Audit";
+            = "SELECT a.AuditId, a.UserId, a.Action, a.Reason, a.EntityName, a.EntityId, a.OldValue, a.NewValue, a.Details, a.CreatedAt "
+            + "FROM Audit a";
 
+    // Match audit rows to an exam via enrollment candidate/device ids, or exam-session entity id.
+    private static final String EXAM_FILTER = " WHERE ("
+            + " EXISTS (SELECT 1 FROM ExamEnrollment e WHERE e.ExamId = ? "
+            + "AND TRY_CAST(a.EntityId AS INT) = e.CandidateId "
+            + "AND a.EntityId IS NOT NULL AND a.EntityId <> '0')"
+            + " OR EXISTS (SELECT 1 FROM ExamEnrollment e WHERE e.ExamId = ? "
+            + "AND TRY_CAST(a.EntityId AS INT) = e.ExamEnrollmentId "
+            + "AND a.EntityId IS NOT NULL AND a.EntityId <> '0')"
+            + " OR EXISTS (SELECT 1 FROM ExamDevice d "
+            + "INNER JOIN Exam_ExamArea sea ON sea.ExamAreaId = d.ExamAreaId "
+            + "WHERE sea.ExamId = ? "
+            + "AND TRY_CAST(a.EntityId AS INT) = d.ExamDeviceId "
+            + "AND a.EntityId IS NOT NULL AND a.EntityId <> '0')"
+            + " OR (TRY_CAST(a.EntityId AS INT) = ? AND a.EntityName = N'Ca thi')"
+            + ")";
+
+    // Inserts an audit log row and returns generated AuditId.
     @Override
-    public int insert(Audit audit) {
+    public int add(Audit audit) {
         if (audit == null) {
             return 0;
         }
@@ -53,28 +71,31 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         return 0;
     }
 
+    // Returns the most recent audit rows across the system.
     @Override
     public List<Audit> getRecentLogs(int limit) {
         int safeLimit = limit > 0 ? limit : 50;
-        String sql = BASE_SELECT + " ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = BASE_SELECT + " ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
         return queryList(sql, ps -> ps.setInt(1, safeLimit));
     }
 
+    // Returns paginated audit rows scoped to one exam with optional text search.
     @Override
-    public List<Audit> getLogsForExamPaginated(int examId, int page, int pageSize, String searchQuery) {
+    public List<Audit> getAllByExam(int examId, int page, int pageSize, String searchQuery) {
         int safePage = Math.max(page, 1);
         int safeSize = pageSize > 0 ? pageSize : 20;
         int offset = (safePage - 1) * safeSize;
-        StringBuilder sql = new StringBuilder(BASE_SELECT)
-                .append(" WHERE EntityId LIKE ?");
-        String pattern = "%" + examId + "-%";
+        StringBuilder sql = new StringBuilder(BASE_SELECT).append(EXAM_FILTER);
         if (searchQuery != null && !searchQuery.isBlank()) {
-            sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
+            sql.append(" AND (a.Reason LIKE ? OR a.NewValue LIKE ? OR a.Details LIKE ?)");
         }
-        sql.append(" ORDER BY CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append(" ORDER BY a.CreatedAt DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         return queryList(sql.toString(), ps -> {
             int idx = 1;
-            ps.setString(idx++, pattern);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
             if (searchQuery != null && !searchQuery.isBlank()) {
                 String q = "%" + searchQuery.trim() + "%";
                 ps.setString(idx++, q);
@@ -86,16 +107,19 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         });
     }
 
+    // Returns total audit row count for one exam with optional text search.
     @Override
-    public int getLogsCountForExam(int examId, String searchQuery) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Audit WHERE EntityId LIKE ?");
-        String pattern = "%" + examId + "-%";
+    public int countAllByExam(int examId, String searchQuery) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Audit a").append(EXAM_FILTER);
         if (searchQuery != null && !searchQuery.isBlank()) {
-            sql.append(" AND (Reason LIKE ? OR NewValue LIKE ? OR Details LIKE ?)");
+            sql.append(" AND (a.Reason LIKE ? OR a.NewValue LIKE ? OR a.Details LIKE ?)");
         }
         try (PreparedStatement ps = getConnection().prepareStatement(sql.toString())) {
             int idx = 1;
-            ps.setString(idx++, pattern);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
+            ps.setInt(idx++, examId);
             if (searchQuery != null && !searchQuery.isBlank()) {
                 String q = "%" + searchQuery.trim() + "%";
                 ps.setString(idx++, q);
@@ -113,8 +137,9 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         return 0;
     }
 
+    // Returns recent violation-related audit rows for one exam.
     @Override
-    public List<Audit> getViolationLogsForExam(int examId, int limit) {
+    public List<Audit> getAllViolationsByExam(int examId, int limit) {
         int safeLimit = limit > 0 ? limit : 20;
         String sql = "SELECT a.AuditId, a.UserId, a.Action, a.Reason, a.EntityName, a.EntityId, "
                 + "a.OldValue, a.NewValue, a.Details, a.CreatedAt "
@@ -129,15 +154,16 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         });
     }
 
+    // Searches audit rows by keyword across all entities.
     @Override
-    public List<Audit> searchAll(String keyword, int limit) {
+    public List<Audit> getFiltered(String keyword, int limit) {
         int safeLimit = limit > 0 ? limit : 100;
         StringBuilder sql = new StringBuilder(BASE_SELECT);
         if (keyword != null && !keyword.isBlank()) {
-            sql.append(" WHERE Action LIKE ? OR EntityName LIKE ? OR NewValue LIKE ? "
-                    + "OR Details LIKE ? OR Reason LIKE ?");
+            sql.append(" WHERE a.Action LIKE ? OR a.EntityName LIKE ? OR a.NewValue LIKE ? "
+                    + "OR a.Details LIKE ? OR a.Reason LIKE ?");
         }
-        sql.append(" ORDER BY CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append(" ORDER BY a.CreatedAt DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY");
         return queryList(sql.toString(), ps -> {
             int idx = 1;
             if (keyword != null && !keyword.isBlank()) {
@@ -152,9 +178,10 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         });
     }
 
+    // Returns audit rows for one user, optionally filtered to one calendar day.
     @Override
-    public List<Audit> getLogsByUser(int userId, String dateFilter) {
-        StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE UserId = ?");
+    public List<Audit> getAllByUser(int userId, String dateFilter) {
+        StringBuilder sql = new StringBuilder(BASE_SELECT).append(" WHERE a.UserId = ?");
 
         Timestamp startTime = null;
         Timestamp endTime = null;
@@ -164,7 +191,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
                 java.sql.Date day = java.sql.Date.valueOf(dateFilter.trim());
                 startTime = new Timestamp(day.getTime());
                 endTime = new Timestamp(day.getTime() + (24L * 60 * 60 * 1000) - 1);
-                sql.append(" AND CreatedAt >= ? AND CreatedAt <= ?");
+                sql.append(" AND a.CreatedAt >= ? AND a.CreatedAt <= ?");
             } catch (IllegalArgumentException ex) {
                 // Invalid date format; ignore date filter.
             }
@@ -173,7 +200,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         final Timestamp start = startTime;
         final Timestamp end = endTime;
 
-        sql.append(" ORDER BY CreatedAt DESC");
+        sql.append(" ORDER BY a.CreatedAt DESC");
 
         return queryList(sql.toString(), ps -> {
             int idx = 1;
@@ -186,6 +213,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         });
     }
 
+    // Private helper: query list.
     private List<Audit> queryList(String sql, StatementBinder binder) {
         List<Audit> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -201,6 +229,7 @@ public class AuditDAOImpl extends DBContext implements AuditDAO {
         return list;
     }
 
+    // Private helper: map.
     private static Audit map(ResultSet rs) throws SQLException {
         Audit audit = new Audit();
         audit.setAuditId(rs.getLong("AuditId"));

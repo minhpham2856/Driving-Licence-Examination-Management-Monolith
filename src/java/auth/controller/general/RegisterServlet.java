@@ -5,7 +5,7 @@ import shared.Attributes;
 import shared.model.Profile;
 import auth.service.AuthService;
 import auth.service.impl.AuthServiceImpl;
-import static auth.util.FormatUtil.formatString;
+import static shared.util.FormatUtil.formatString;
 import auth.dto.ServiceResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import auth.util.AuthFlashUtil;
 import auth.util.ValidationUtil;
 
 @WebServlet("/register")
@@ -135,8 +136,7 @@ public class RegisterServlet extends HttpServlet {
     // forward back to register page with an error
     private void forwardWithError(HttpServletRequest request, HttpServletResponse response, String errorMessage)
             throws ServletException, IOException {
-        request.setAttribute(Attributes.Request.ERROR, errorMessage);
-        request.getRequestDispatcher("/views/auth/general/register.jsp").forward(request, response);
+        AuthFlashUtil.forwardWithError(request, response, "/views/auth/general/register.jsp", errorMessage);
     }
 }
 

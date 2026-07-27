@@ -11,7 +11,7 @@ skills-lock.json
 sources.txt
 .agents/
 .cursor/
-.claude (hoặc .agents)/
+.claude/
 memory/
 private/
 build/

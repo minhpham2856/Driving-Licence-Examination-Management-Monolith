@@ -2,49 +2,45 @@ package examiner.dao.impl;
 
 import shared.dbconnection.DBContext;
 import shared.enums.SectionType;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import examiner.dao.ExaminerViewDAO;
+import shared.model.ExamArea;
 
+// JDBC implementation for ExaminerView; examiner module DAO layer only.
 public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
 
-    @Override
-    public String findLicenceClassByExamId(int examId) {
-        String sql = """
-                SELECT l.LicenceClass
-                FROM Exam e
-                JOIN Licence l ON l.LicenceId = e.LicenceId
-                WHERE e.ExamId = ?
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString("LicenceClass");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return "-";
-    }
 
+    // Returns the first exam area linked to one exam (Exam_ExamArea).
     @Override
-    public Integer findPrimaryExamAreaId(int examId) {
-        String sql = "SELECT TOP 1 ExamAreaId FROM Exam_ExamArea WHERE ExamId = ? ORDER BY ExamAreaId";
+    public ExamArea getIfPrimaryByExam(int examId) {
+        String sql = "SELECT TOP 1 ea.ExamAreaId, ea.AreaName, ea.AreaType, ea.Capacity, ea.Location, ea.ExamZoneId "
+                + "FROM Exam_ExamArea eea "
+                + "JOIN ExamArea ea ON ea.ExamAreaId = eea.ExamAreaId "
+                + "WHERE eea.ExamId = ? ORDER BY ea.ExamAreaId";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("ExamAreaId");
+                    ExamArea area = new ExamArea();
+                    area.setExamAreaId(rs.getInt("ExamAreaId"));
+                    area.setAreaName(rs.getString("AreaName"));
+                    area.setAreaType(rs.getString("AreaType"));
+                    int cap = rs.getInt("Capacity");
+                    if (rs.wasNull()) {
+                        area.setCapacity(null);
+                    } else {
+                        area.setCapacity(cap);
+                    }
+                    area.setLocation(rs.getString("Location"));
+                    area.setExamZoneId(rs.getInt("ExamZoneId"));
+                    return area;
                 }
             }
         } catch (SQLException e) {
@@ -53,25 +49,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return null;
     }
 
+    // Batch-loads theory answer stats [correct, wrong, unanswered] per enrollment.
     @Override
-    public List<Integer> findExamAreaIds(int examId) {
-        List<Integer> ids = new ArrayList<>();
-        String sql = "SELECT ExamAreaId FROM Exam_ExamArea WHERE ExamId = ? ORDER BY ExamAreaId";
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ids.add(rs.getInt("ExamAreaId"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return ids;
-    }
-
-    @Override
-    public Map<Integer, int[]> loadTheoryStatsByExam(int examId) {
+    public Map<Integer, int[]> getAllTheoryStatsByExam(int examId) {
         Map<Integer, int[]> stats = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId,
@@ -80,16 +60,18 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                        SUM(CASE WHEN ca.Answer IS NULL OR ca.Answer = '' THEN 1 ELSE 0 END) AS unansweredCount
                 FROM ExamEnrollment ec
                 LEFT JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentId = ec.ExamEnrollmentId
-                LEFT JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
-                    AND es.SectionType = N'Lý thuyết'
+                LEFT JOIN ExamSection sec ON sec.ExamSectionId = ees.ExamSectionId
+                    AND sec.SectionType = ?
                 LEFT JOIN TheoryPaper tp ON tp.ExamEnrollmentSectionId = ees.ExamEnrollmentSectionId
+                    AND sec.ExamSectionId IS NOT NULL
                 LEFT JOIN CandidateAnswer ca ON ca.TheoryPaperId = tp.TheoryPaperId
                 LEFT JOIN Question q ON q.QuestionId = ca.QuestionId
                 WHERE ec.ExamId = ?
                 GROUP BY ec.ExamEnrollmentId
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, examId);
+            ps.setString(1, SectionType.THEORY.getValue());
+            ps.setInt(2, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     stats.put(rs.getInt("ExamEnrollmentId"), new int[]{
@@ -105,8 +87,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return stats;
     }
 
+    // Batch-loads section scores per enrollment for one exam and section type.
     @Override
-    public Map<Integer, Double> loadSectionScoresByExam(int examId, String sectionName) {
+    public Map<Integer, Double> getAllSectionScoresByExam(int examId, String sectionType) {
         Map<Integer, Double> scores = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId, es.Score
@@ -116,13 +99,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                 JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
                 WHERE ec.ExamId = ?
                 """;
-        if (sectionName != null && !sectionName.isBlank()) {
+        if (sectionType != null && !sectionType.isBlank()) {
             sql += " AND sec.SectionType = ?";
         }
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examId);
-            if (sectionName != null && !sectionName.isBlank()) {
-                ps.setString(2, sectionName);
+            if (sectionType != null && !sectionType.isBlank()) {
+                ps.setString(2, sectionType);
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -135,8 +118,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return scores;
     }
 
+    // Batch-loads overall pass flags per enrollment for one exam.
     @Override
-    public Map<Integer, Boolean> loadPassFlagsByExam(int examId) {
+    public Map<Integer, Boolean> getAllPassFlagsByExam(int examId) {
         Map<Integer, Boolean> flags = new HashMap<>();
         String sql = """
                 SELECT ec.ExamEnrollmentId, er.IsPassed
@@ -157,8 +141,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return flags;
     }
 
+    // Batch-loads device id to device name for devices used in one exam.
     @Override
-    public Map<Integer, String> loadDeviceNamesByExam(int examId) {
+    public Map<Integer, String> getAllDeviceNamesByExam(int examId) {
         Map<Integer, String> names = new HashMap<>();
         String sql = """
                 SELECT ed.ExamDeviceId, ed.DeviceName
@@ -179,8 +164,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return names;
     }
 
+    // Loads score deduction rules for one section type and exam licence.
     @Override
-    public List<Map<String, Object>> loadScoreDeductionRules(String sectionName, int examId) {
+    public List<Map<String, Object>> getAllScoreDeductionRulesByExam(String sectionType, int examId) {
         List<Map<String, Object>> list = new ArrayList<>();
         String sql = """
                 SELECT sd.ScoreDeductionId, sd.Reason, sd.Points, sd.IsCritical
@@ -190,11 +176,11 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                   AND (? <= 0 OR sd.LicenceId = (
                       SELECT LicenceId FROM Exam WHERE ExamId = ?
                   ))
-                ORDER BY sd.ScoreDeductionId
+                ORDER BY sd.IsCritical ASC, sd.ScoreDeductionId ASC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, sectionName != null && !sectionName.isBlank()
-                    ? sectionName.trim() : SectionType.LAYOUT.getValue());
+            ps.setString(1, sectionType != null && !sectionType.isBlank()
+                    ? sectionType.trim() : SectionType.LAYOUT.getValue());
             ps.setInt(2, examId);
             ps.setInt(3, examId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -215,8 +201,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return list;
     }
 
+    // Loads deduction occurrence counts keyed by ScoreDeductionId for one candidate/exam.
     @Override
-    public Map<Integer, int[]> loadDeductionOccurrences(int candidateId, int examId) {
+    public Map<Integer, int[]> getAllDeductionOccurrencesByExam(int candidateId, int examId) {
         Map<Integer, int[]> occurrences = new HashMap<>();
         String sql = """
                 SELECT dr.ScoreDeductionId, dr.OccurrenceCount
@@ -241,36 +228,9 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         return occurrences;
     }
 
+    // Loads current score and critical-disqualification flag for one candidate section.
     @Override
-    public Map<Integer, java.util.Date> loadDeductionRecordedAt(int candidateId, int examId) {
-        Map<Integer, java.util.Date> recordedAt = new HashMap<>();
-        String sql = """
-                SELECT dr.ScoreDeductionId, dr.RecordedAt
-                FROM ExamEnrollment ee
-                JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
-                JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
-                JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
-                WHERE ee.CandidateId = ? AND ee.ExamId = ?
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, candidateId);
-            ps.setInt(2, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Timestamp ts = rs.getTimestamp("RecordedAt");
-                    if (ts != null) {
-                        recordedAt.put(rs.getInt("ScoreDeductionId"), new java.util.Date(ts.getTime()));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return recordedAt;
-    }
-
-    @Override
-    public Map<String, Object> loadScoreSummary(int candidateId, int examId, String sectionName) {
+    public Map<String, Object> getIfScoreSummaryByCandidateAndExam(int candidateId, int examId, String sectionType) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("currentScore", 100);
         summary.put("scoreDisqualified", false);
@@ -298,8 +258,8 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, candidateId);
             ps.setInt(2, examId);
-            ps.setString(3, sectionName != null && !sectionName.isBlank()
-                    ? sectionName.trim() : SectionType.LAYOUT.getValue());
+            ps.setString(3, sectionType != null && !sectionType.isBlank()
+                    ? sectionType.trim() : SectionType.LAYOUT.getValue());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     summary.put("currentScore", (int) Math.round(rs.getDouble("Score")));

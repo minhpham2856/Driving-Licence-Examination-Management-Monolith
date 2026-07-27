@@ -1,4 +1,4 @@
-.examiner-card {
+.card {
     background-color: #ffffff;
     border: 1px solid #c3c6d6;
     border-radius: 8px;
@@ -6,7 +6,7 @@
     overflow: hidden;
 }
 
-.examiner-card--dashboard-table {
+.card.table-fill {
     flex: 1;
     min-height: 0;
     display: flex;
@@ -15,16 +15,16 @@
     box-sizing: border-box;
 }
 
-.examiner-card--dashboard-table .examiner-table-wrap {
+.card.table-fill .table-wrap {
     flex: 1;
     min-height: 0;
     overflow: auto;
 }
 
-.examiner-card--dashboard-table .examiner-card__head {
+.card.table-fill .card-head {
     flex-shrink: 0;
 }
-.examiner-card__head {
+.card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -33,7 +33,7 @@
     border-bottom: 1px solid #c3c6d6;
 }
 
-.examiner-card__title {
+.card-title {
     margin: 0;
     font-size: 18px;
     line-height: 24px;
@@ -41,7 +41,7 @@
     color: #171c1f;
 }
 
-.examiner-card__badge {
+.badge {
     padding: 4px 12px;
     border-radius: 12px;
     background-color: rgba(0, 61, 155, 0.1);
@@ -51,22 +51,22 @@
     color: #003d9b;
 }
 
-.examiner-card--messages {
+.card.messages {
     margin-bottom: 0;
 }
 
-.examiner-flash-container {
+.flash-wrap {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin: 0;
 }
 
-.examiner-flash-container:not(:has(.examiner-flash-bar)) {
+.flash-wrap:not(:has(.flash-bar)) {
     display: none;
 }
 
-.examiner-flash-bar {
+.flash-bar {
     margin: 0;
     padding: 12px 16px;
     border-radius: 8px;
@@ -75,39 +75,39 @@
     font-weight: 500;
 }
 
-.examiner-flash-bar--success {
+.flash-bar.green {
     background-color: #ecfdf3;
     color: #027a48;
     border: 1px solid #abefc6;
 }
 
-.examiner-flash-bar--error {
+.flash-bar.red {
     background-color: #fef3f2;
     color: #b42318;
     border: 1px solid #fecdca;
 }
 
-.examiner-card__body--messages {
+.card-body.messages {
     padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.examiner-alert {
+.alert {
     margin: 0;
     padding: 12px 16px;
     border-radius: 8px;
     font-size: 14px;
 }
 
-.examiner-alert--success {
+.alert.green {
     background: #ecfdf3;
     color: #027a48;
     border: 1px solid #abefc6;
 }
 
-.examiner-alert--error {
+.alert.red {
     background: #fef3f2;
     color: #b42318;
     border: 1px solid #fecdca;
