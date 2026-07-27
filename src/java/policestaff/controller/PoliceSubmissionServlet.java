@@ -46,7 +46,8 @@ public class PoliceSubmissionServlet extends HttpServlet {
             String decision = value(req.getParameter("decision"));
             if (!List.of("APPROVED", "REJECTED").contains(decision))
                 throw new IllegalArgumentException("Quyết định thẩm định không hợp lệ.");
-            if (!service.review(rowId, decision, req.getParameter("reason")))
+            if (!service.review(rowId, decision, req.getParameter("reason"),
+                    value(req.getParameter("participationType"))))
                 throw new IllegalArgumentException("Hồ sơ đã được xử lý hoặc danh sách đã hoàn tất.");
             req.getSession().setAttribute("policeSuccess",
                     "Đã lưu kết quả thẩm định và gửi email thông báo cho thí sinh.");
