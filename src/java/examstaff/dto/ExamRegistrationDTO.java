@@ -62,6 +62,7 @@ public class ExamRegistrationDTO {
     private String theoryPassed = "none";
     private String practicalPassed = "none";
     private Integer theoryScore;
+    private boolean wrongCriticalTheory;
     private Integer practicalScore;
     private String licenseCode;
 
@@ -338,6 +339,15 @@ public class ExamRegistrationDTO {
     }
 
     /** Điểm phần thực hành (null nếu chưa có kết quả). */
+    /** True when at least one critical theory question is wrong or unanswered. */
+    public boolean hasWrongCriticalTheory() {
+        return wrongCriticalTheory;
+    }
+
+    public void setWrongCriticalTheory(boolean wrongCriticalTheory) {
+        this.wrongCriticalTheory = wrongCriticalTheory;
+    }
+
     public Integer getPracticalScore() {
         return practicalScore;
     }

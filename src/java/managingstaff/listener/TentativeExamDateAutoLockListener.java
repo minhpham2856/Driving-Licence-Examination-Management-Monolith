@@ -34,7 +34,9 @@ public class TentativeExamDateAutoLockListener implements ServletContextListener
         try {
             int locked = autoLockService.lockDueDates();
             if (locked > 0) {
-                LOG.log(Level.INFO, "Đã tự động khóa {0} ngày thi dự kiến.", locked);
+                LOG.log(Level.INFO,
+                        "Đã tự động xử lý {0} ngày thi dự kiến đến hạn (khóa hoặc hủy do thiếu người).",
+                        locked);
             }
         } catch (RuntimeException ex) {
             LOG.log(Level.SEVERE, "Tự động khóa ngày thi dự kiến thất bại.", ex);

@@ -84,7 +84,7 @@
             <span class="side-nav-bar__label" data-node-id="manager:21">Quản lý thí sinh</span>
         </a>
 
-        <%-- Chi tiết hồ sơ học viên --%>
+        <%-- Chi tiết hồ sơ thí sinh --%>
         <a href="${ctx}/manager/dossier-detail"
            class="side-nav-bar__link${activeSidebar eq 'chi-tiet-hoc-vien' ? ' is-active' : ''}"
            data-node-id="manager:25"
@@ -132,7 +132,7 @@
                     <path d="M8 2v4M16 2v4M3 10h18M8 15h3M14 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>
             </span>
-            <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý phiên thi</span>
+            <span class="side-nav-bar__label" data-node-id="manager:46">Quản lý kỳ thi</span>
         </a>
 
         <%-- SC-035: Báo cáo quản lý --%>

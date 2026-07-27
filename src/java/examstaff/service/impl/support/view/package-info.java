@@ -9,7 +9,7 @@
  *   ExamStaffViewServiceImpl (consolidator)
  *        ├── ExamStaffSelectionServiceImpl  — resolve/ensure examId, processSelection
  *        ├── ExamStaffPageServiceImpl       — picker, page context, queue refresh
- *        ├── ExamStaffDashboardServiceImpl  — KPI giám khảo đã phân công
+ *        ├── ExamStaffDashboardServiceImpl  — KPI sát hạch viên đã phân công
  *        ├── CandidateDossierServiceImpl    — hồ sơ thí sinh (phí, hạng, ảnh)
  *        ├── CandidatePhotoServiceImpl      — chuẩn hoá / stream ảnh chân dung
  *        ├── ExamReportStatsServiceImpl     — thống kê đỗ/trượt theo hạng

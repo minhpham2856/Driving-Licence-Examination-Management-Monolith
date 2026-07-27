@@ -4,8 +4,10 @@ import auth.service.EmailService;
 import shared.ConfigManager;
 import jakarta.mail.*;
 import jakarta.mail.Session;
+import jakarta.mail.internet.AddressException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,22 +58,28 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public boolean sendTextEmail(String to, String subject, String content) {
-        return sendEmail(to, subject, content, false);
+        return sendEmailAndGetError(to, subject, content, false) == null;
+    }
+
+    @Override
+    public String sendTextEmailAndGetError(String to, String subject, String content) {
+        return sendEmailAndGetError(to, subject, content, false);
     }
 
     public boolean sendHtmlEmail(String to, String subject, String htmlContent) {
-        return sendEmail(to, subject, htmlContent, true);
+        return sendEmailAndGetError(to, subject, htmlContent, true) == null;
     }
 
-    private boolean sendEmail(String to, String subject, String body, boolean isHtml) {
+    /** @return null nếu gửi thành công; mô tả ngắn gọn lý do thất bại nếu không. */
+    private String sendEmailAndGetError(String to, String subject, String body, boolean isHtml) {
         loadConfiguration();
         if (!isConfigured()) {
             LOG.warning("Email skipped: MAIL_SENDER_USERNAME or MAIL_SENDER_PASSWORD is not configured.");
-            return false;
+            return "Chưa cấu hình MAIL_SENDER_USERNAME/MAIL_SENDER_PASSWORD trong file .env (còn để giá trị mẫu).";
         }
         if (to == null || to.isBlank()) {
             LOG.warning("Email skipped: recipient address is empty.");
-            return false;
+            return "Địa chỉ email người nhận đang trống.";
         }
         Authenticator auth = new Authenticator() {
             @Override
@@ -91,11 +99,37 @@ public class EmailServiceImpl implements EmailService {
                 msg.setText(body, "UTF-8");
             }
             Transport.send(msg);
-            return true;
+            return null;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to send email to " + to + ": " + e.getMessage(), e);
-            return false;
+            return describeFailure(e);
         }
+    }
+
+    /** Dịch exception JavaMail thành 1 câu tiếng Việt dễ hiểu để hiện cho Admin, thay vì chỉ log lặng lẽ. */
+    private String describeFailure(Exception e) {
+        String raw = e.getMessage() == null ? "" : e.getMessage();
+        if (e instanceof AuthenticationFailedException) {
+            return "Sai tài khoản Gmail hoặc App Password (Google từ chối xác thực). "
+                    + "Kiểm tra lại MAIL_SENDER_USERNAME/MAIL_SENDER_PASSWORD trong .env — "
+                    + "lưu ý PHẢI dùng App Password 16 ký tự, không dùng mật khẩu Gmail thường.";
+        }
+        if (e instanceof AddressException) {
+            return "Địa chỉ email không hợp lệ: " + raw;
+        }
+        Throwable cause = e.getCause();
+        if (cause instanceof UnknownHostException || raw.contains("UnknownHostException")) {
+            return "Không phân giải được máy chủ SMTP (kiểm tra MAIL_SMTP_HOST hoặc kết nối mạng).";
+        }
+        if (raw.toLowerCase().contains("timeout") || raw.toLowerCase().contains("timed out")) {
+            return "Kết nối tới máy chủ SMTP bị quá thời gian chờ (firewall/mạng có thể đang chặn cổng "
+                    + props.getProperty("mail.smtp.port") + ").";
+        }
+        if (raw.toLowerCase().contains("could not connect")) {
+            return "Không kết nối được tới máy chủ SMTP " + props.getProperty("mail.smtp.host")
+                    + ":" + props.getProperty("mail.smtp.port") + ".";
+        }
+        return "Lỗi gửi email: " + (raw.isBlank() ? e.getClass().getSimpleName() : raw);
     }
 
     private static String normalize(String value) {

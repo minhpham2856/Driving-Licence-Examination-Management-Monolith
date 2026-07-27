@@ -180,7 +180,7 @@
 
                                 <c:otherwise>
                                     <div class="active-calling-card">
-                                        <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Học viên đang gọi lên bàn:</span>
+                                        <span style="font-size: 0.72rem; font-weight: 800; color: #0052cc; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Thí sinh đang gọi lên bàn:</span>
                                         <div style="font-family: monospace; font-size: 2.25rem; font-weight: 900; color: #0f172a; letter-spacing: 0.02em; line-height: 1.1;">
                                             ${callingCandidate.sbd}
                                         </div>
@@ -318,11 +318,20 @@
                     </c:otherwise>
                 </c:choose>
 
-                <c:set var="doneCount" value="${fn:length(requestScope.procedureDoneCandidates)}" />
-                <c:if test="${doneCount > 0}">
+                <c:set var="doneFilteredCount" value="${fn:length(requestScope.procedureDoneCandidates)}" />
+                <c:set var="doneTotalCount" value="${requestScope.procedureDoneTotalCount}" />
+                <c:if test="${empty doneTotalCount}">
+                    <c:set var="doneTotalCount" value="${doneFilteredCount}" />
+                </c:if>
+                <c:if test="${doneTotalCount > 0}">
                     <div class="procedure-done-panel">
                         <div class="procedure-done-panel__header">
-                            <h4 class="procedure-done-panel__title">Đã xong thủ tục (${doneCount})</h4>
+                            <h4 class="procedure-done-panel__title">
+                                Đã xong thủ tục (${doneTotalCount})
+                                <c:if test="${not empty param.doneQ}">
+                                    <span class="procedure-done-panel__filter-count">· tìm thấy ${doneFilteredCount}</span>
+                                </c:if>
+                            </h4>
                             <p class="procedure-done-panel__hint">Sửa hồ sơ, in phiếu xác nhận, đình chỉ hoặc xóa để làm lại thủ tục.</p>
                         </div>
                         <div class="procedure-done-panel__toolbar">
@@ -354,40 +363,51 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <c:forEach var="candidate" items="${requestScope.procedureDoneCandidates}">
-                                            <tr class="procedure-done-row"
-                                                data-sbd="${fn:toLowerCase(candidate.sbd)}"
-                                                data-name="${fn:toLowerCase(candidate.name)}">
-                                                <td class="procedure-done-sbd">${candidate.sbd}</td>
-                                                <td class="procedure-done-name">${candidate.name}</td>
-                                                <td style="text-align: center;">
-                                                    <span class="role-badge role-badge--coi" style="font-size: 0.68rem; padding: 2px 6px;">${candidate.clazz}</span>
-                                                </td>
-                                                <td>
-                                                    <div class="procedure-done-actions">
-                                                        <c:if test="${not requestScope.examMutationsLocked}">
-                                                            <a href="procedure?sbd=${candidate.sbd}&amp;step=1#procedure-desk"
-                                                               class="procedure-done-btn procedure-done-btn--edit"
-                                                               title="Sửa hồ sơ thủ tục">Sửa</a>
-                                                        </c:if>
-                                                        <a href="candidate-dossier?sbd=${candidate.sbd}&amp;print=true"
-                                                           target="_blank"
-                                                           class="procedure-done-btn procedure-done-btn--print"
-                                                           title="In phiếu hồ sơ">In</a>
-                                                        <c:if test="${not requestScope.examMutationsLocked}">
-                                                            <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
-                                                               class="procedure-done-btn procedure-done-btn--suspend"
-                                                               title="Đình chỉ thi"
-                                                               onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
-                                                            <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
-                                                               class="procedure-done-btn procedure-done-btn--delete"
-                                                               title="Xóa hồ sơ thủ tục, làm lại từ đầu"
-                                                               onclick="return confirm('Xóa hồ sơ thủ tục của ${candidate.sbd}? Ảnh và thanh toán sẽ bị hủy để làm lại.');">Xóa</a>
-                                                        </c:if>
-                                                    </div>
+                                    <c:choose>
+                                        <c:when test="${doneFilteredCount eq 0}">
+                                            <tr>
+                                                <td colspan="4" class="procedure-done-empty">
+                                                    Không tìm thấy thí sinh khớp &quot;<c:out value="${param.doneQ}"/>&quot; trong mục đã xong thủ tục.
                                                 </td>
                                             </tr>
-                                    </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:forEach var="candidate" items="${requestScope.procedureDoneCandidates}">
+                                                <tr class="procedure-done-row"
+                                                    data-sbd="${fn:toLowerCase(candidate.sbd)}"
+                                                    data-name="${fn:toLowerCase(candidate.name)}">
+                                                    <td class="procedure-done-sbd">${candidate.sbd}</td>
+                                                    <td class="procedure-done-name">${candidate.name}</td>
+                                                    <td style="text-align: center;">
+                                                        <span class="role-badge role-badge--coi" style="font-size: 0.68rem; padding: 2px 6px;">${candidate.clazz}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="procedure-done-actions">
+                                                            <c:if test="${not requestScope.examMutationsLocked}">
+                                                                <a href="procedure?sbd=${candidate.sbd}&amp;step=1#procedure-desk"
+                                                                   class="procedure-done-btn procedure-done-btn--edit"
+                                                                   title="Sửa hồ sơ thủ tục">Sửa</a>
+                                                            </c:if>
+                                                            <a href="candidate-dossier?sbd=${candidate.sbd}&amp;print=true"
+                                                               target="_blank"
+                                                               class="procedure-done-btn procedure-done-btn--print"
+                                                               title="In phiếu hồ sơ">In</a>
+                                                            <c:if test="${not requestScope.examMutationsLocked}">
+                                                                <a href="candidatecall?action=permanentAbsent&amp;sbd=${candidate.sbd}"
+                                                                   class="procedure-done-btn procedure-done-btn--suspend"
+                                                                   title="Đình chỉ thi"
+                                                                   onclick="return confirm('Đình chỉ thí sinh ${candidate.sbd}? Thí sinh sẽ bị loại khỏi kỳ thi và không được gọi lại.');">Đình chỉ</a>
+                                                                <a href="procedure?sbd=${candidate.sbd}&amp;action=resetProcedure"
+                                                                   class="procedure-done-btn procedure-done-btn--delete"
+                                                                   title="Xóa hồ sơ thủ tục, làm lại từ đầu"
+                                                                   onclick="return confirm('Xóa hồ sơ thủ tục của ${candidate.sbd}? Ảnh và thanh toán sẽ bị hủy để làm lại.');">Xóa</a>
+                                                            </c:if>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </tbody>
                             </table>
                         </div>

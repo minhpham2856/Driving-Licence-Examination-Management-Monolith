@@ -122,6 +122,12 @@ public interface RegistrantDAO {
     String findProfileDocumentRegistrationStatus(int profileId);
 
     /**
+     * Lý do từ chối hồ sơ gốc do managing staff nhập (Notes MESSAGE=...),
+     * null nếu không Rejected hoặc không có lý do.
+     */
+    String findProfileDocumentRejectionReason(int profileId);
+
+    /**
      * Các mã hạng UI (A1/A/B1/…) đã được ban quản lý duyệt hồ sơ kèm hạng đó
      * (ER Approved: #PROFILE_DOC#, #LICENCE_DOC# hoặc #SUPPLEMENT_DOC#).
      */

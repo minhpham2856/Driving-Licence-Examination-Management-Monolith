@@ -76,7 +76,7 @@ public class ExaminerAllocationDeskServiceImpl {
         }
         view.setDayAssignments(dayAssignments);
 
-        // mutate: tách giám khảo available / busy
+        // mutate: tách sát hạch viên available / busy
         List<UserDTO> allExaminers = allocationService.getActiveExaminers();
         List<UserDTO> availableExaminers = new ArrayList<>();
         List<UserDTO> busyExaminers = new ArrayList<>();
@@ -134,7 +134,7 @@ public class ExaminerAllocationDeskServiceImpl {
     public ExaminerAllocationActionResultDTO assignExaminer(int targetExamId, int areaId,
             int examinerUserId, int staffId) {
         ExaminerAllocationActionResultDTO result = new ExaminerAllocationActionResultDTO();
-        // load kỳ / khu vực / giám khảo
+        // load kỳ / khu vực / sát hạch viên
         Map<Integer, UserDTO> examinerMap = buildExaminerMap();
 
         ExamSummaryDTO targetExam = allocationService.getExamById(targetExamId);
@@ -285,7 +285,7 @@ public class ExaminerAllocationDeskServiceImpl {
     }
 
     /**
-     * Nhãn hiển thị giám khảo từ slot (tên → username → userId).
+     * Nhãn hiển thị sát hạch viên từ slot (tên → username → userId).
      * @param slot slot phân công
      * @return nhãn hiển thị
      */
@@ -309,8 +309,8 @@ public class ExaminerAllocationDeskServiceImpl {
     }
 
     /**
-     * Tên đầy đủ hoặc username của giám khảo.
-     * @param examiner UserDTO giám khảo
+     * Tên đầy đủ hoặc username của sát hạch viên.
+     * @param examiner UserDTO sát hạch viên
      * @return tên hiển thị
      */
     private static String resolveExaminerName(UserDTO examiner) {

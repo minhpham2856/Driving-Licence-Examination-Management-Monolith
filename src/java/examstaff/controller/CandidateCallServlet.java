@@ -280,13 +280,18 @@ public class CandidateCallServlet extends HttpServlet {
         if (current == null && examId > 0) {
             current = viewService.representativeExam(viewService.listAllExams(), examId);
         }
-        String doneQ = request.getParameter("doneQ");
-        List<ExamRegistrationDTO> done = snapshot.getProcedureDone();
-        if (doneQ != null && !doneQ.trim().isEmpty()) {
-            done = filterProcedureDoneCandidates(done, doneQ);
-        }
+        List<ExamRegistrationDTO> fullDone = snapshot.getProcedureDone() != null
+                ? snapshot.getProcedureDone()
+                : List.of();
         ExamStaffPageBinder.publishQueue(request, session, snapshot.getFullQueue(), snapshot.getActiveQueue(),
-                done, examId, examId, current);
+                fullDone, examId, examId, current);
+        request.setAttribute("procedureDoneTotalCount", fullDone.size());
+
+        String doneQ = request.getParameter("doneQ");
+        if (doneQ != null && !doneQ.trim().isEmpty()) {
+            request.setAttribute(ExamStaffSessionKeys.PROCEDURE_DONE_CANDIDATES,
+                    filterProcedureDoneCandidates(fullDone, doneQ));
+        }
     }
 
     /**

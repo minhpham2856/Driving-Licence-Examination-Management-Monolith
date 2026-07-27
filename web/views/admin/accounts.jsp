@@ -17,7 +17,8 @@
         <a href="${ctx}/admin/dashboard">Quản trị</a><span class="breadcrumbs__separator">/</span>
         <span class="breadcrumbs__current" aria-current="page">Tài khoản</span></nav>
 
-    <c:if test="${not empty sessionScope.flashMessage}">
+    <%-- Chỉ hiển thị banner này nếu KHÔNG PHẢI lỗi từ modal Tạo tài khoản (lỗi đó hiện trong modal) --%>
+    <c:if test="${not empty sessionScope.flashMessage && sessionScope.reopenModal ne 'account'}">
         <c:choose>
             <c:when test="${sessionScope.flashType eq 'success'}"><c:set var="flashBg" value="rgba(16,185,129,.08)"/><c:set var="flashBd" value="rgba(16,185,129,.25)"/><c:set var="flashFg" value="#047857"/></c:when>
             <c:when test="${sessionScope.flashType eq 'warning'}"><c:set var="flashBg" value="#fffbeb"/><c:set var="flashBd" value="#fcd34d"/><c:set var="flashFg" value="#92400e"/></c:when>
@@ -43,7 +44,7 @@
         <div class="stat-card"><div class="stat-icon stat-icon--blue" style="background:rgba(13,148,136,.08);color:#0d9488;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 22s2-4 10-4 10 4 10 4M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="currentColor" stroke-width="2"/></svg></div>
             <div class="stat-info"><span class="stat-number">${empty coiThiCount ? 0 : coiThiCount}</span><span class="stat-label">Cán bộ coi thi</span><span class="stat-trend stat-trend--up" style="color:#0d9488;">Giám sát phòng thi</span></div></div>
         <div class="stat-card"><div class="stat-icon stat-icon--blue" style="background:rgba(124,58,237,.08);color:#7c3aed;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v8" stroke="currentColor" stroke-width="2"/></svg></div>
-            <div class="stat-info"><span class="stat-number">${empty chamThiCount ? 0 : chamThiCount}</span><span class="stat-label">Giám khảo chấm thi</span><span class="stat-trend stat-trend--up" style="color:#7c3aed;">Đánh giá sát hạch</span></div></div>
+            <div class="stat-info"><span class="stat-number">${empty chamThiCount ? 0 : chamThiCount}</span><span class="stat-label">Sát hạch viên</span><span class="stat-trend stat-trend--up" style="color:#7c3aed;">Đánh giá sát hạch</span></div></div>
     </section>
 
     <section class="filter-panel"><h2 class="filter-title">Bộ lọc tìm kiếm</h2>
@@ -137,7 +138,7 @@
         <div class="pagination-nav"><button class="page-btn page-btn--wide disabled" disabled>Trước</button><button class="page-btn active">1</button><button class="page-btn page-btn--wide disabled" disabled>Sau</button></div></footer>
     </section>
 </main>
-<jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include></div>
+</div>
 
 <form id="lockForm" action="${ctx}/admin/accounts" method="POST" style="display:none;"><input type="hidden" name="action" value="lock"><input type="hidden" name="id" id="lockId"><input type="hidden" name="lock" id="lockVal"></form>
 <form id="resetForm" action="${ctx}/admin/accounts" method="POST" style="display:none;"><input type="hidden" name="action" value="reset"><input type="hidden" name="id" id="resetId"></form>
@@ -159,12 +160,15 @@
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0;}.modal-head h3{margin:0;font-size:1.1rem;font-weight:800;color:#0f172a;}
 .modal-close{border:none;background:transparent;font-size:1.5rem;color:#94a3b8;cursor:pointer;}.modal-body{padding:1.5rem;}
 .modal-foot{display:flex;gap:12px;justify-content:flex-end;padding:1rem 1.5rem;border-top:1px solid #e2e8f0;}
+.modal-err{display:none;margin-bottom:1rem;padding:.7rem .9rem;border-radius:8px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#b91c1c;font-size:.85rem;font-weight:600;}
+.modal-err.show{display:block;}
 </style>
 
 <div id="accModal" class="modal-overlay" onclick="if(event.target===this)closeAccModal()"><div class="modal-card">
     <form action="${ctx}/admin/accounts" method="POST">
-        <div class="modal-head"><h3>Tạo tài khoản mới</h3><button type="button" class="modal-close" onclick="closeAccModal()">&times;</button></div>
+        <div class="modal-head"><h3 id="accTitle">Tạo tài khoản mới</h3><button type="button" class="modal-close" onclick="closeAccModal()">&times;</button></div>
         <div class="modal-body">
+            <div id="accErr" class="modal-err"></div>
             <div style="margin-bottom:1.1rem;padding:.6rem .9rem;border-radius:8px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:.82rem;">Mật khẩu tạm <b>6 số</b> do hệ thống sinh và <b>gửi thẳng về email</b> của tài khoản. Người dùng bắt buộc đổi ở lần đăng nhập đầu.</div>
             <div class="filter-grid" style="grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
                 <div class="input-group"><label class="input-label">Tên đăng nhập <span style="color:#dc2626;">*</span></label><input type="text" id="a_username" name="username" class="input-field" maxlength="50" required></div>
@@ -184,7 +188,7 @@
                 <div class="input-group"><label class="input-label">Trạng thái</label><select id="a_status" name="status" class="input-field"><option value="active">Hoạt động</option><option value="inactive">Khóa / Vô hiệu</option></select></div>
             </div>
             <div class="filter-grid" style="grid-template-columns:1fr 1.4fr;gap:1.25rem;">
-                <div class="input-group"><label class="input-label">Số CCCD/CMND <span style="color:#dc2626;">*</span></label><input type="text" id="a_govId" name="govId" class="input-field" maxlength="12" required></div>
+                <div class="input-group"><label class="input-label">Số CCCD (đúng 12 số) <span style="color:#dc2626;">*</span></label><input type="text" id="a_govId" name="govId" class="input-field" maxlength="12" minlength="12" pattern="\d{12}" title="Nhập đúng 12 chữ số" inputmode="numeric" required></div>
                 <div class="input-group"><label class="input-label">Địa chỉ</label><input type="text" id="a_address" name="address" class="input-field" maxlength="500"></div>
             </div>
         </div>
@@ -217,7 +221,8 @@
 
 <script>
 function openAccModal(){['a_username','a_email','a_role','a_fullName','a_phone','a_dob','a_sex','a_govId','a_address'].forEach(k=>document.getElementById(k).value='');
-    document.getElementById('a_status').value='active';document.getElementById('accModal').classList.add('is-open');}
+    document.getElementById('a_status').value='active';document.getElementById('accErr').classList.remove('show');
+    document.getElementById('accModal').classList.add('is-open');}
 function closeAccModal(){document.getElementById('accModal').classList.remove('is-open');}
 function openImportModal(){document.getElementById('importFile').value='';document.getElementById('importModal').classList.add('is-open');}
 function closeImportModal(){document.getElementById('importModal').classList.remove('is-open');}
@@ -277,4 +282,30 @@ function bulkDeleteFiltered(){
 }
 updateSel();
 </script>
+
+<c:if test="${sessionScope.reopenModal eq 'account'}">
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById('a_username').value = "${fn:escapeXml(sessionScope.f_username)}";
+    document.getElementById('a_email').value = "${fn:escapeXml(sessionScope.f_email)}";
+    document.getElementById('a_role').value = '${sessionScope.f_role}';
+    document.getElementById('a_fullName').value = "${fn:escapeXml(sessionScope.f_fullName)}";
+    document.getElementById('a_phone').value = "${fn:escapeXml(sessionScope.f_phone)}";
+    document.getElementById('a_dob').value = '${sessionScope.f_dateOfBirth}';
+    document.getElementById('a_sex').value = '${sessionScope.f_sex}';
+    document.getElementById('a_govId').value = "${fn:escapeXml(sessionScope.f_govId)}";
+    document.getElementById('a_address').value = "${fn:escapeXml(sessionScope.f_address)}";
+    document.getElementById('a_status').value = '${sessionScope.f_status}';
+
+    var errorDiv = document.getElementById('accErr');
+    errorDiv.textContent = "${fn:escapeXml(sessionScope.flashMessage)}";
+    errorDiv.classList.add('show');
+    document.getElementById('accModal').classList.add('is-open');
+});
+</script>
+<c:remove var="reopenModal" scope="session" />
+<c:remove var="flashMessage" scope="session" />
+<c:remove var="flashType" scope="session" />
+</c:if>
+
 </body></html>

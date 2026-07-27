@@ -57,6 +57,7 @@ public class ExamStaffCandidate {
     private Integer practicalAllocatedAreaId;
     private String practicalAllocatedAreaName;
     private Integer theoryScore;
+    private boolean wrongCriticalTheory;
     private Integer practicalScore;
 
     /** Mã thí sinh (Candidate.id) từ view JOIN. */
@@ -380,6 +381,15 @@ public class ExamStaffCandidate {
     }
 
     /** Điểm thực hành từ kết quả thi (null nếu chưa có). */
+    /** True when at least one critical theory question is wrong or unanswered. */
+    public boolean hasWrongCriticalTheory() {
+        return wrongCriticalTheory;
+    }
+
+    public void setWrongCriticalTheory(boolean wrongCriticalTheory) {
+        this.wrongCriticalTheory = wrongCriticalTheory;
+    }
+
     public Integer getPracticalScore() {
         return practicalScore;
     }

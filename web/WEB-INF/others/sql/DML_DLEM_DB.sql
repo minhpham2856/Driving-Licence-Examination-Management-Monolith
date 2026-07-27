@@ -183,6 +183,7 @@ GO
 -- ============================================
 INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], ExamPassword, LicenceId, StartTime, EndTime) VALUES
 (N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
+(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
 (N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
 (N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
 (N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
