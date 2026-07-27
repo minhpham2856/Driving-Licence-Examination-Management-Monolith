@@ -3,7 +3,7 @@
    Glyphs inherit `color` (like currentColor) and are sized
    with `font-size`, so each context just sets a size below.
    ======================================================== */
-.examiner-portal .material-symbols-outlined,
+.portal .material-symbols-outlined,
 .side-nav-bar--examiner .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     line-height: 1;
@@ -67,43 +67,43 @@
     gap: 8px;
     align-items: center;
 }
-.alert-box--error   { background-color: #fef2f2; border: 1px solid #fecaca; }
-.alert-box--error .alert-box__text   { font-size: 0.88rem; font-weight: 700; color: #991b1b; }
-.alert-box--success { background-color: #ecfdf5; border: 1px solid #10b981; }
-.alert-box--success .alert-box__text { font-size: 0.88rem; font-weight: 700; color: #065f46; }
-.alert-box--warning { background-color: #fffbeb; border: 1px solid #f59e0b; }
-.alert-box--warning .alert-box__text { font-size: 0.88rem; font-weight: 700; color: #b45309; }
-.alert-box__icon { flex-shrink: 0; }
+.alert-box-error   { background-color: #fef2f2; border: 1px solid #fecaca; }
+.alert-box-error .alert-box-text   { font-size: 0.88rem; font-weight: 700; color: #991b1b; }
+.alert-box.green { background-color: #ecfdf5; border: 1px solid #10b981; }
+.alert-box.green .alert-box-text { font-size: 0.88rem; font-weight: 700; color: #065f46; }
+.alert-box-warning { background-color: #fffbeb; border: 1px solid #f59e0b; }
+.alert-box-warning .alert-box-text { font-size: 0.88rem; font-weight: 700; color: #b45309; }
+.alert-box-icon { flex-shrink: 0; }
 
 /* Toolbar / action buttons */
-.examiner-btn .material-symbols-outlined {
+.btn .material-symbols-outlined {
     font-size: 18px;
 }
 
 /* Search field leading icon (absolutely positioned) */
-.examiner-search__icon.material-symbols-outlined {
+.search-icon.material-symbols-outlined {
     width: auto;
     height: auto;
     font-size: 18px;
 }
 
 /* Detail/section heading icons */
-.exr-section-title .material-symbols-outlined,
-.examiner-detail-section__icon.material-symbols-outlined {
+.section-title .material-symbols-outlined,
+.detail-section-icon.material-symbols-outlined {
     font-size: 16px;
 }
 
 /* Export page: round icon tiles (color per variant) + download buttons */
-.export-row__icon .material-symbols-outlined {
+.export-row-icon .material-symbols-outlined {
     font-size: 22px;
 }
-.export-row__icon--blue .material-symbols-outlined {
+.export-row-icon.blue .material-symbols-outlined {
     color: #3a56d4;
 }
-.export-row__icon--red .material-symbols-outlined {
+.export-row-icon-red .material-symbols-outlined {
     color: #ba1a1a;
 }
-.export-row__icon--gray .material-symbols-outlined {
+.export-row-icon-gray .material-symbols-outlined {
     color: #5f6368;
 }
 .export-btn .material-symbols-outlined {
@@ -121,23 +121,23 @@
 }
 
 /* Back button (detail pages) */
-.exr-back .material-symbols-outlined {
+.back .material-symbols-outlined {
     font-size: 16px;
 }
 
 /* Large candidate photo placeholder */
-.examiner-profile__photo .material-symbols-outlined {
+.profile-photo .material-symbols-outlined {
     font-size: 96px;
     color: #9aa1b1;
 }
 
 /* Result-edit page: warning banner, captcha refresh, confirm button */
-.exr-warning__icon.material-symbols-outlined {
+.warning-icon.material-symbols-outlined {
     font-size: 24px;
 }
-.exr-captcha__refresh .material-symbols-outlined {
+.captcha-refresh .material-symbols-outlined {
     font-size: 16px;
 }
-.exr-btn-confirm .material-symbols-outlined {
+.btn-confirm .material-symbols-outlined {
     font-size: 16px;
 }

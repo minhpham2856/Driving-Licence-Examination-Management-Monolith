@@ -4,17 +4,20 @@
 
 <jsp:useBean id="now" class="java.util.Date" scope="page" />
 
+<%--context / logo--%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="footerLogoUrl" value="${ctx}/assets/imgs/LOGO.jpeg" />
 
 <footer class="site-footer" role="contentinfo">
     <div class="site-footer__container">
-        <!-- Top content area -->
+        <%--top content--%>
         <div class="site-footer__top">
-            <!-- Left block: Logo + Brand statement -->
+            <%--brand block--%>
             <div class="site-footer__brand-group">
                 <div class="site-footer__logo-wrap">
-                    <img src="${footerLogoUrl}" alt="Lái Vui" class="site-footer__logo-img">
+                    <img src="${footerLogoUrl}"
+                         alt="Lái Vui"
+                         class="site-footer__logo-img">
                     <span class="site-footer__brand-title">Trung tâm sát hạch GPLX Lái Vui</span>
                 </div>
                 <p class="site-footer__brand-desc">
@@ -23,9 +26,9 @@
                 </p>
             </div>
 
-            <!-- Right block: Links grouped in columns -->
+            <%--link columns--%>
             <div class="site-footer__links-group">
-                <!-- Column 1: Dịch vụ -->
+                <%--services column--%>
                 <div class="site-footer__col">
                     <h4 class="site-footer__col-title">Dịch vụ</h4>
                     <nav class="site-footer__col-nav" aria-label="Liên kết Dịch vụ">
@@ -35,7 +38,7 @@
                     </nav>
                 </div>
 
-                <!-- Column 2: Hỗ trợ -->
+                <%--support column--%>
                 <div class="site-footer__col">
                     <h4 class="site-footer__col-title">Hỗ trợ</h4>
                     <nav class="site-footer__col-nav" aria-label="Liên kết Hỗ trợ">
@@ -47,7 +50,7 @@
             </div>
         </div>
 
-        <!-- Bottom copyright area -->
+        <%--bottom copyright--%>
         <div class="site-footer__bottom">
             <p class="site-footer__copyright">
                 &copy;
@@ -63,6 +66,7 @@
     </div>
 </footer>
 
+<%--case 1: close html when not standalone=false--%>
 <c:if test="${empty param.standalone or param.standalone ne 'false'}">
 </body>
 

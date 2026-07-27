@@ -1,8 +1,7 @@
 package shared.enums;
 
 public enum FileType {
-    EXCEL("excel"),
-    DOCX("docx");
+    EXCEL("excel");
 
     private final String value;
 

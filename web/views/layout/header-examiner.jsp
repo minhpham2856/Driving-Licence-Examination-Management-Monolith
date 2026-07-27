@@ -1,25 +1,25 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-<header class="examiner-header">
-    <div class="examiner-header__title examiner-header__crumb-row">
-        <span class="examiner-header__crumb-primary">
-            <c:out value="${not empty headerTitle ? headerTitle : 'Sát hạch viên'}" />
+<header class="header">
+    <div class="header-title crumb-row">
+        <span class="crumb-primary">
+            <c:out value="${not empty param.title ? param.title : 'Sát hạch viên'}" />
         </span>
     </div>
-    <div class="examiner-header__meta">
+    <div class="header-meta">
         <c:choose>
             <c:when test="${examinerHasActiveExam}">
-                <span class="examiner-header__meta-label">Phần thi</span>
-                <span class="examiner-tag examiner-tag--done">${examSectionName}</span>
+                <span class="header-meta-label">Phần thi</span>
+                <span class="tag tag-done">${examSectionName}</span>
             </c:when>
             <c:otherwise>
-                <span class="examiner-tag examiner-tag--pending">Chưa có ca</span>
-                <span class="examiner-header__meta-hint" title="${examinerExamMessage}">${examinerExamMessage}</span>
+                <span class="tag pending">Chưa có ca</span>
+                <span class="header-meta-hint" title="${examinerExamMessage}">${examinerExamMessage}</span>
             </c:otherwise>
         </c:choose>
     </div>
 </header>
-<c:if test="${not empty headerTitle}">
-<script>document.title = '<c:out value="${headerTitle}" /> - SÁT HẠCH';</script>
+<c:if test="${not empty param.title}">
+<script>document.title = '<c:out value="${param.title}" /> - SÁT HẠCH';</script>
 </c:if>

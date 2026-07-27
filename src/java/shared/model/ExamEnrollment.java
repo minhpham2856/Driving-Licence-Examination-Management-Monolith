@@ -1,12 +1,11 @@
 package shared.model;
 
+// One candidate enrolled in one exam day (status lives on ExamEnrollmentSection).
 public class ExamEnrollment {
 
     private int examEnrollmentId;
     private int candidateId;
     private int examId;
-    private String sectionStatus;
-    private boolean signaturePrinted;
     private Integer examDeviceId;
     private Integer allocatedExamAreaId;
     private Candidate candidate;
@@ -16,14 +15,13 @@ public class ExamEnrollment {
     public ExamEnrollment() {
     }
 
-    public ExamEnrollment(int examEnrollmentId, int candidateId, int examId, String sectionStatus,
-            boolean signaturePrinted, Integer examDeviceId) {
+    public ExamEnrollment(int examEnrollmentId, int candidateId, int examId, Integer examDeviceId,
+            Integer allocatedExamAreaId) {
         this.examEnrollmentId = examEnrollmentId;
         this.candidateId = candidateId;
         this.examId = examId;
-        this.sectionStatus = sectionStatus;
-        this.signaturePrinted = signaturePrinted;
         this.examDeviceId = examDeviceId;
+        this.allocatedExamAreaId = allocatedExamAreaId;
     }
 
     public int getExamEnrollmentId() {
@@ -56,22 +54,6 @@ public class ExamEnrollment {
 
     public void setSessionId(int sessionId) {
         this.examId = sessionId;
-    }
-
-    public String getSectionStatus() {
-        return sectionStatus;
-    }
-
-    public void setSectionStatus(String sectionStatus) {
-        this.sectionStatus = sectionStatus;
-    }
-
-    public boolean isSignaturePrinted() {
-        return signaturePrinted;
-    }
-
-    public void setSignaturePrinted(boolean signaturePrinted) {
-        this.signaturePrinted = signaturePrinted;
     }
 
     public Integer getExamDeviceId() {

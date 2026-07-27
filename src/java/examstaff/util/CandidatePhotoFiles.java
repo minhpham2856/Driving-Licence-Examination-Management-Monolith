@@ -12,6 +12,7 @@ import java.util.Set;
 
 /**
  * Utility thuần quản lý lưu/đọc ảnh thí sinh trên đĩa data runtime — không phụ thuộc webRoot.
+ * Mirror module examiner.util.CandidatePhotoFiles — giữ logic đọc đồng bộ.
  * Đồng bộ PhotoImageUrl trên CSDL với file thật dưới candidate-photos/.
  *
  * Vai trò trong luồng examstaff:
@@ -91,6 +92,19 @@ public final class CandidatePhotoFiles {
             return found.getAbsolutePath();
         }
         return trimmed;
+    }
+
+    /**
+     * Kiểm tra tham chiếu ảnh là URL http(s) từ xa.
+     * @param photoUrl tham chiếu DB / URL
+     * @return true nếu là URL từ xa
+     */
+    public static boolean isRemoteUrl(String photoUrl) {
+        if (photoUrl == null || photoUrl.isBlank()) {
+            return false;
+        }
+        String trimmed = photoUrl.trim();
+        return trimmed.startsWith("http://") || trimmed.startsWith("https://");
     }
 
     /**
