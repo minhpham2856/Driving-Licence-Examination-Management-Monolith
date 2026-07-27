@@ -4,15 +4,17 @@
     <jsp:param name="title" value="Lái Vui - Trang chủ" />
     <jsp:param name="activeNav" value="gioi-thieu" />
 </jsp:include>
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/landing.css">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/assets/css/landing/landing.css">
 
 <main class="public-main" style="padding: 0;">
-    <!-- Section 1: Hero / History & Vision -->
+    <%--hero / history & vision--%>
     <section class="landing-section">
         <div class="landing-container">
             <div class="hero-history-grid">
                 <div class="hero-history-image-wrap">
-                    <img class="hero-history-img" src="${pageContext.request.contextPath}/assets/imgs/history.png"
+                    <img class="hero-history-img"
+                         src="${pageContext.request.contextPath}/assets/imgs/history.png"
                          alt="Lái Vui History">
                 </div>
                 <div class="hero-history-content">
@@ -39,17 +41,19 @@
         </div>
     </section>
 
-    <!-- Section 2: Facilities Showcase -->
+    <%--facilities showcase--%>
     <section class="landing-section facilities-section">
         <div class="landing-container">
             <div class="facilities-header">
                 <h2 class="facilities-title">Cơ sở vật chất hiện đại</h2>
-                <p class="facilities-desc">Chúng tôi đầu tư không ngừng vào hạ tầng và trang thiết bị để mang lại
-                    trải nghiệm tốt nhất cho bạn.</p>
+                <p class="facilities-desc">
+                    Chúng tôi đầu tư không ngừng vào hạ tầng và trang thiết bị để mang lại
+                    trải nghiệm tốt nhất cho bạn.
+                </p>
             </div>
 
             <div class="bento-grid">
-                <!-- Large Left Item: Sân tập lái -->
+                <%--large left: driving track--%>
                 <div class="bento-left">
                     <div class="bento-bg"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/facilities_track.png');">
@@ -60,9 +64,9 @@
                     </div>
                 </div>
 
-                <!-- Twin Right Items column -->
+                <%--twin right items--%>
                 <div class="bento-right">
-                    <!-- Top Item: Cabin 3D simulator -->
+                    <%--cabin 3d simulator--%>
                     <div class="bento-card-small">
                         <div class="bento-bg"
                              style="background-image: url('${pageContext.request.contextPath}/assets/imgs/facilities_classroom.png');">
@@ -73,7 +77,7 @@
                         </div>
                     </div>
 
-                    <!-- Bottom Item: Car fleet -->
+                    <%--car fleet--%>
                     <div class="bento-card-small">
                         <div class="bento-bg"
                              style="background-image: url('${pageContext.request.contextPath}/assets/imgs/facilities_cars.png');">
@@ -88,7 +92,7 @@
         </div>
     </section>
 
-    <!-- Section 3: Instructor Team -->
+    <%--instructor team--%>
     <section class="landing-section">
         <div class="landing-container">
             <div class="instructors-header">
@@ -98,7 +102,7 @@
             </div>
 
             <div class="instructor-grid">
-                <!-- Instructor Card 1 -->
+                <%--instructor 1--%>
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_1.png');">
@@ -122,7 +126,7 @@
                     </div>
                 </div>
 
-                <!-- Instructor Card 2 -->
+                <%--instructor 2--%>
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_2.png');">
@@ -146,7 +150,7 @@
                     </div>
                 </div>
 
-                <!-- Instructor Card 3 -->
+                <%--instructor 3--%>
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_3.png');">
@@ -170,7 +174,7 @@
                     </div>
                 </div>
 
-                <!-- Instructor Card 4 -->
+                <%--instructor 4--%>
                 <div class="instructor-card">
                     <div class="instructor-img-wrap"
                          style="background-image: url('${pageContext.request.contextPath}/assets/imgs/instructor_4.png');">
@@ -197,7 +201,7 @@
         </div>
     </section>
 
-    <!-- Section 4: CTA Section -->
+    <%--cta section--%>
     <section class="landing-section landing-section--cta">
         <div class="landing-container">
             <div class="cta-container">
@@ -207,8 +211,10 @@
                 <p class="cta-desc">Gia nhập cộng đồng hơn 50.000 học viên đã tốt nghiệp tại Lái Vui và nhận chứng
                     chỉ lái xe an toàn ngay hôm nay.</p>
                 <div class="cta-buttons">
-                    <a href="${pageContext.request.contextPath}/register" class="btn-cta-primary">Đăng ký ngay</a>
-                    <a href="${pageContext.request.contextPath}/process#lien-he" class="btn-cta-secondary">Liên hệ tư vấn</a>
+                    <a href="${pageContext.request.contextPath}/register"
+                       class="btn-cta-primary">Đăng ký ngay</a>
+                    <a href="${pageContext.request.contextPath}/process#lien-he"
+                       class="btn-cta-secondary">Liên hệ tư vấn</a>
                 </div>
             </div>
         </div>

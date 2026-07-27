@@ -31,6 +31,7 @@ public class ExamSummaryDTO {
     private String licenseCode;
     private String examCode;
     private String examTypeName;
+    private String examPassword;
 
     /** Bản ghi rỗng — map từng cột từ DAO. */
     public ExamSummaryDTO() {
@@ -174,5 +175,15 @@ public class ExamSummaryDTO {
     /** Gán tên loại thi. */
     public void setExamTypeName(String examTypeName) {
         this.examTypeName = examTypeName;
+    }
+
+    /** Mật khẩu máy thi kiosk (Exam.ExamPassword). */
+    public String getExamPassword() {
+        return examPassword;
+    }
+
+    /** Gán mật khẩu máy thi. */
+    public void setExamPassword(String examPassword) {
+        this.examPassword = examPassword;
     }
 }

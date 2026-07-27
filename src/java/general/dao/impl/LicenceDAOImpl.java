@@ -15,10 +15,6 @@ public class LicenceDAOImpl implements LicenceDAO {
     private static final String BASE_SELECT =
         "SELECT l.LicenceId, l.LicenceClass, l.Description, l.MinimumAge, l.ValidForYears, l.UpgradeFromLicenceId "
       + "FROM Licence l ";
-    private static final String VEHICLE_TYPE_CASE =
-        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'moto-2' "
-      + "WHEN l.LicenceClass IN ('B1') THEN 'moto-3' "
-      + "ELSE 'other' END";
     private static final String DURATION_CASE =
         "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'duoi-3-thang' "
       + "WHEN l.LicenceClass IN ('B1') THEN 'tu-3-6-thang' "
@@ -80,9 +76,7 @@ public class LicenceDAOImpl implements LicenceDAO {
 
         String keyword = criteria.getKeyword();
         boolean hasKw = keyword != null && !keyword.isBlank();
-        List<String> types = criteria.getVehicleTypes();
         List<String> durations = criteria.getDurations();
-        boolean hasTypes = types != null && !types.isEmpty();
         boolean hasDurations = durations != null && !durations.isEmpty();
 
         String orderColumn = resolveSortColumn(criteria.getSortBy());
@@ -92,16 +86,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         sql.append("WHERE 1=1 ");
         if (hasKw) {
             sql.append("AND (l.LicenceClass LIKE ? OR l.Description LIKE ?) ");
-        }
-        if (hasTypes) {
-            sql.append("AND (").append(VEHICLE_TYPE_CASE).append(") IN (");
-            for (int i = 0; i < types.size(); i++) {
-                if (i > 0) {
-                    sql.append(",");
-                }
-                sql.append("?");
-            }
-            sql.append(") ");
         }
         if (hasDurations) {
             sql.append("AND (").append(DURATION_CASE).append(") IN (");
@@ -122,11 +106,6 @@ public class LicenceDAOImpl implements LicenceDAO {
                 String like = "%" + keyword.trim() + "%";
                 ps.setString(idx++, like);
                 ps.setString(idx++, like);
-            }
-            if (hasTypes) {
-                for (String type : types) {
-                    ps.setString(idx++, type);
-                }
             }
             if (hasDurations) {
                 for (String duration : durations) {

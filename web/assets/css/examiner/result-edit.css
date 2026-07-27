@@ -1,13 +1,13 @@
 /* ========================================================
    Result edit (Sửa kết quả) - Figma node 205:919
    ======================================================== */
-.exr-toolbar-left {
+.toolbar-left {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.exr-back {
+.back {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -22,7 +22,7 @@
     text-decoration: none;
 }
 
-.exr-grid {
+.edit-grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: start;
@@ -30,28 +30,28 @@
     width: 100%;
 }
 
-.exr-col-left {
+.col-left {
     grid-column: span 8;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-.exr-col-right {
+.col-right {
     grid-column: span 4;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-.exr-pair {
+.pair {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
     gap: 24px;
 }
 
-.exr-card {
+.card {
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -63,11 +63,11 @@
     box-sizing: border-box;
 }
 
-.exr-card--accent {
+.card-accent {
     border-left: 4px solid #c3c6d6;
 }
 
-.exr-section-title {
+.section-title {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -77,25 +77,25 @@
     letter-spacing: 0.6px;
 }
 
-.exr-section-title svg {
+.section-title svg {
     flex-shrink: 0;
     color: #434654;
 }
 
-.exr-id-grid {
+.id-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px 32px;
 }
 
-.exr-field {
+.field {
     display: flex;
     flex-direction: column;
     gap: 4px;
     align-items: flex-start;
 }
 
-.exr-field__label {
+.field-label {
     margin: 0;
     font-size: 12px;
     font-weight: 700;
@@ -103,7 +103,7 @@
     color: #737685;
 }
 
-.exr-field__value {
+.field-value {
     margin: 0;
     font-size: 16px;
     line-height: 24px;
@@ -111,19 +111,19 @@
     color: #171c1f;
 }
 
-.exr-field__value--sm {
+.field-value.sm {
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
 }
 
-.exr-field__value--bold {
+.field-value.bold {
     font-size: 14px;
     line-height: 20px;
     font-weight: 700;
 }
 
-.exr-chip {
+.chip {
     display: inline-block;
     padding: 4px 8px;
     background-color: #f0f4f8;
@@ -135,7 +135,7 @@
     color: #171c1f;
 }
 
-.exr-score-box {
+.score-box {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -145,13 +145,13 @@
     border-radius: 2px;
 }
 
-.exr-score-row {
+.score-row {
     display: flex;
     align-items: flex-end;
     gap: 4px;
 }
 
-.exr-score-current {
+.score-current {
     font-family: 'JetBrains Mono', Consolas, monospace;
     font-size: 32px;
     line-height: 32px;
@@ -159,14 +159,14 @@
     color: #ef4444;
 }
 
-.exr-score-total {
+.score-total {
     font-family: 'JetBrains Mono', Consolas, monospace;
     font-size: 16px;
     color: #434654;
     padding-bottom: 4px;
 }
 
-.exr-badge-fail {
+.badge-fail {
     margin-left: 8px;
     padding: 3px 9px;
     background-color: rgba(239, 68, 68, 0.1);
@@ -177,24 +177,24 @@
     line-height: 15px;
 }
 
-.exr-control {
+.control {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.exr-input-label {
+.input-label {
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.6px;
     color: #171c1f;
 }
 
-.exr-req {
+.req {
     color: #ef4444;
 }
 
-.exr-input {
+.input {
     width: 100%;
     height: 38px;
     padding: 9px 13px;
@@ -206,28 +206,28 @@
     box-sizing: border-box;
 }
 
-.exr-input::placeholder {
+.input::placeholder {
     color: #6b7280;
 }
 
-.exr-input--mono {
+.input-mono {
     font-family: 'JetBrains Mono', Consolas, monospace;
 }
 
-.exr-input--captcha {
+.input-captcha {
     text-transform: uppercase;
     letter-spacing: 1.4px;
 }
 
-.exr-input-suffix {
+.input-suffix {
     position: relative;
 }
 
-.exr-input-suffix .exr-input {
+.input-suffix .input {
     padding-right: 44px;
 }
 
-.exr-input-suffix__text {
+.input-suffix-text {
     position: absolute;
     right: 13px;
     top: 50%;
@@ -237,7 +237,7 @@
     color: #434654;
 }
 
-.exr-select {
+.select {
     width: 100%;
     padding: 9px 13px;
     border: 1px solid #c3c6d6;
@@ -248,7 +248,7 @@
     box-sizing: border-box;
 }
 
-.exr-textarea {
+.textarea {
     width: 100%;
     min-height: 80px;
     padding: 9px 13px;
@@ -263,11 +263,11 @@
     box-sizing: border-box;
 }
 
-.exr-textarea::placeholder {
+.textarea::placeholder {
     color: #6b7280;
 }
 
-.exr-warning {
+.warning {
     display: flex;
     gap: 12px;
     padding: 17px;
@@ -276,18 +276,18 @@
     border-radius: 4px;
 }
 
-.exr-warning__icon {
+.warning-icon {
     flex-shrink: 0;
     color: #ef4444;
 }
 
-.exr-warning__body {
+.warning-body {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
 
-.exr-warning__title {
+.warning-title {
     margin: 0;
     color: #ef4444;
     font-size: 12px;
@@ -295,14 +295,14 @@
     letter-spacing: 0.6px;
 }
 
-.exr-warning__text {
+.warning-text {
     margin: 0;
     color: #171c1f;
     font-size: 14px;
     line-height: 20px;
 }
 
-.exr-captcha {
+.captcha {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -312,7 +312,7 @@
     border-radius: 2px;
 }
 
-.exr-captcha__img {
+.captcha-img {
     flex-shrink: 0;
     width: 120px;
     height: 40px;
@@ -326,7 +326,7 @@
     color: #171c1f;
 }
 
-.exr-captcha__refresh {
+.captcha-refresh {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -335,7 +335,7 @@
     text-decoration: none;
 }
 
-.exr-confirm-wrap {
+.confirm-wrap {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -343,7 +343,7 @@
     border-top: 1px solid #c3c6d6;
 }
 
-.exr-btn-confirm {
+.btn-confirm {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -362,7 +362,7 @@
     cursor: pointer;
 }
 
-.exr-confirm-note {
+.confirm-note {
     margin: 0;
     color: #737685;
     font-size: 11px;
@@ -371,9 +371,105 @@
 }
 
 /* --spacing utilities for result-edit forms-- */
-.exr-control + .exr-control { margin-top: 20px; }
-.exr-card--mt { margin-top: 24px; }
-.exr-card__body { padding: 0 24px 24px 24px; }
-.exr-confirm-btn--full { width: 100%; height: 50px; }
-.exr-confirm-note--mt { margin-top: 10px; }
-.exr-warning--mt { margin-top: 24px; }
+.control + .control { margin-top: 20px; }
+.card-mt { margin-top: 24px; }
+.card-body { padding: 0 24px 24px 24px; }
+.confirm-btn-full { width: 100%; height: 50px; }
+.confirm-note-mt { margin-top: 10px; }
+.warning-mt { margin-top: 24px; }
+
+/* --new direct-score edit layout-- */
+.candidate-line {
+    margin: 0;
+    color: #171c1f;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+}
+
+.score-compare {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.score-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background-color: #f8fafc;
+    border: 1px solid #d5d9e7;
+    border-radius: 4px;
+}
+
+.score-panel-label {
+    margin: 0;
+    color: #434654;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
+.score-panel-value {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.score-number {
+    color: #003d9b;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 30px;
+}
+
+.score-number-fail {
+    color: #ef4444;
+}
+
+.score-max {
+    color: #434654;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.new-score-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.new-score-input {
+    flex: 1;
+}
+
+.fail-btn {
+    min-width: 86px;
+    height: 38px;
+}
+
+.error-text {
+    margin: 0;
+    min-height: 18px;
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.input-error {
+    border-color: #ef4444;
+}
+
+@media (max-width: 1080px) {
+    .col-left,
+    .col-right {
+        grid-column: span 12;
+    }
+
+    .score-compare {
+        grid-template-columns: 1fr;
+    }
+}

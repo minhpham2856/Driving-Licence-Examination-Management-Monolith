@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class ConfigManager {
@@ -14,7 +16,7 @@ public final class ConfigManager {
     private ConfigManager() {
     }
 
-//     OS env trước, rồi .env (project root = thư mục có src/ và .env)
+    // OS env first, then values from .env file.
     public static String get(String key) {
         String fromOs = System.getenv(key);
         if (fromOs != null && !fromOs.isBlank()) {
@@ -50,35 +52,80 @@ public final class ConfigManager {
 
     private static Map<String, String> loadDotEnv() {
         Map<String, String> map = new HashMap<>();
-        Path root = projectRoot();
-        if (root == null) {
-            return map;
-        }
-        Path envFile = root.resolve(".env");
-        if (!Files.isRegularFile(envFile)) {
-            return map;
-        }
-        try {
-            for (String line : Files.readAllLines(envFile)) {
-                String trimmed = line.trim();
-                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
-                    continue;
-                }
-                int eq = trimmed.indexOf('=');
-                if (eq <= 0) {
-                    continue;
-                }
-                String key = trimmed.substring(0, eq).trim();
-                String value = trimmed.substring(eq + 1).trim();
-                if ((value.startsWith("\"") && value.endsWith("\""))
-                        || (value.startsWith("'") && value.endsWith("'"))) {
-                    value = value.substring(1, value.length() - 1);
-                }
-                map.put(key, value);
+        for (Path path : candidatePaths()) {
+            if (!Files.isRegularFile(path)) {
+                continue;
             }
-        } catch (IOException ignored) {
+            try {
+                parseFile(path, map);
+                return map;
+            } catch (IOException ignored) {
+            }
         }
         return map;
+    }
+
+    private static List<Path> candidatePaths() {
+        List<Path> paths = new ArrayList<>();
+
+        String explicitPath = System.getenv("DLEM_ENV_FILE");
+        if (explicitPath != null && !explicitPath.isBlank()) {
+            paths.add(Paths.get(explicitPath.trim()));
+        }
+
+        explicitPath = System.getProperty("dlem.env.file");
+        if (explicitPath != null && !explicitPath.isBlank()) {
+            paths.add(Paths.get(explicitPath.trim()));
+        }
+
+        Path projectRoot = projectRoot();
+        if (projectRoot != null) {
+            paths.add(projectRoot.resolve(".env"));
+        }
+
+        Path userDir = Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
+        Path current = userDir;
+        for (int i = 0; i < 10 && current != null; i++) {
+            paths.add(current.resolve(".env"));
+            current = current.getParent();
+        }
+
+        String catalinaBase = System.getProperty("catalina.base");
+        if (catalinaBase != null && !catalinaBase.isBlank()) {
+            paths.add(Paths.get(catalinaBase, ".env"));
+            paths.add(Paths.get(catalinaBase, "conf", ".env"));
+            paths.add(Paths.get(catalinaBase, "webapps", "Driving-Licence-Examination-Management-Monolith", "WEB-INF", ".env"));
+        }
+
+        String catalinaHome = System.getProperty("catalina.home");
+        if (catalinaHome != null && !catalinaHome.isBlank()) {
+            paths.add(Paths.get(catalinaHome, ".env"));
+            paths.add(Paths.get(catalinaHome, "conf", ".env"));
+        }
+
+        return paths;
+    }
+
+    private static void parseFile(Path path, Map<String, String> map) throws IOException {
+        for (String line : Files.readAllLines(path)) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                continue;
+            }
+            int eq = trimmed.indexOf('=');
+            if (eq <= 0) {
+                continue;
+            }
+            String key = trimmed.substring(0, eq).trim();
+            String value = trimmed.substring(eq + 1).trim();
+            if ((value.startsWith("\"") && value.endsWith("\""))
+                    || (value.startsWith("'") && value.endsWith("'"))) {
+                value = value.substring(1, value.length() - 1);
+            }
+            if (!System.getenv().containsKey(key)) {
+                map.put(key, value);
+            }
+        }
     }
 
     private static Path projectRoot() {

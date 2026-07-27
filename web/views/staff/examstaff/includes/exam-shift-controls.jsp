@@ -9,6 +9,13 @@
 <c:set var="startEnabled" value="${shiftCanStart and examCanStartNow}" />
 <div class="exam-shift-chip__actions">
     <form action="exam-control" method="POST" class="exam-shift-chip__form"
+          onsubmit="return confirm('Tạo mật khẩu OTP 6 số mới cho máy thi kỳ ${param.examName}? Mật khẩu cũ sẽ bị thay thế.');">
+        <input type="hidden" name="action" value="generateExamPassword">
+        <input type="hidden" name="examId" value="${param.examId}">
+        <input type="hidden" name="redirect" value="${param.redirect}">
+        <button type="submit" class="btn-filter exam-shift-chip__btn">Tạo mật khẩu máy thi</button>
+    </form>
+    <form action="exam-control" method="POST" class="exam-shift-chip__form"
           onsubmit="if (this.querySelector('button[type=submit]').disabled) return false; return confirm('Bắt đầu kỳ thi ${param.examName}? Sát hạch viên đã phân công sẽ có thể đăng nhập.');">
         <input type="hidden" name="action" value="startExam">
         <input type="hidden" name="examId" value="${param.examId}">

@@ -6,12 +6,12 @@ import auth.service.AuditService;
 import auth.service.AuthService;
 import auth.service.impl.AuditServiceImpl;
 import auth.service.impl.AuthServiceImpl;
+import auth.util.AuthSessionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
@@ -28,7 +28,6 @@ public class ChangePasswordServlet extends HttpServlet {
 
     private final AuditService auditService = new AuditServiceImpl();
     private final AuthService authService = new AuthServiceImpl();
-    private static HttpSession session(HttpServletRequest req){ return req.getSession(false); }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -54,15 +53,11 @@ public class ChangePasswordServlet extends HttpServlet {
         ServiceResult<Void> result = authService.changePassword(
                 sessionUser.getUserId(), current, newPwd, confirm);
         if (result.isSuccess()) {
-            // tắt cờ bắt đổi mật khẩu lần đầu
-            new admin.dao.impl.UserSecurityDAOImpl().setMustChange(sessionUser.getUserId(), false);
-            session(request).removeAttribute("forceChangePassword");
-
             auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
                     "Đổi mật khẩu tài khoản", sessionUser.getUserId());
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "success");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.SUCCESS);
         } else {
-            request.setAttribute(Attributes.Request.MESSAGE_TYPE, "danger");
+            request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.DANGER);
         }
         request.setAttribute(Attributes.Request.MESSAGE, result.getMessage());
 
@@ -80,7 +75,6 @@ public class ChangePasswordServlet extends HttpServlet {
 
     // session user set by login; filter guarantees non-null here
     private static UserDTO sessionUser(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        return (UserDTO) session.getAttribute(Attributes.Session.USER);
+        return AuthSessionUtil.sessionUser(request);
     }
 }
