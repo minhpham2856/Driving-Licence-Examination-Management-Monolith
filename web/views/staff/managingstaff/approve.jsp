@@ -83,7 +83,7 @@
                                             <a class="btn-export js-document-preview"
                                                href="${ctx}/manager/document-view?id=${document.documentId}"
                                                data-document-label="${documentLabel}"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem bên phải</a>
+                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem ảnh</a>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>
@@ -101,7 +101,7 @@
                                             <a class="btn-export js-document-preview"
                                                href="${ctx}/manager/document-view?id=${document.documentId}"
                                                data-document-label="Giấy tốt nghiệp / chứng chỉ đào tạo"
-                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem bên phải</a>
+                                               style="display:inline-flex;text-decoration:none;margin-top:auto">Xem ảnh</a>
                                         </c:when>
                                         <c:otherwise>
                                             <span class="action-badge action-badge--warning">Còn thiếu</span>

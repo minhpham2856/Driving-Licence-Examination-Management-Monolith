@@ -756,7 +756,9 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
-                && practicalEntryAllowed);
+                && practicalEntryAllowed
+                && enrollment.isPaymentCompleted()
+                && enrollment.isValidCapturedPhoto());
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED);
@@ -766,6 +768,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setScoreEntryEligible(practicalSection
                 && sectionRequired
                 && practicalEntryAllowed
+                && enrollment.isPresent()
                 && !enrollment.isSuspended()
                 && (sectionStatus == CandidateStatus.NOT_STARTED || sectionStatus == CandidateStatus.IN_PROGRESS));
         if (!sectionRequired) {
@@ -858,6 +861,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setScoreEntryEligible(practicalSection
                 && sectionRequired
                 && practicalEntryAllowed
+                && enrollment.isPresent()
                 && !enrollment.isSuspended()
                 && (sectionStatus == CandidateStatus.NOT_STARTED || sectionStatus == CandidateStatus.IN_PROGRESS));
         row.setSectionRequired(sectionRequired);
@@ -873,10 +877,14 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone);
         row.setViolationEligible(sectionRequired && !enrollment.isSuspended());
         row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
+                && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
-                && practicalEntryAllowed);
+                && practicalEntryAllowed
+                && enrollment.isPaymentCompleted()
+                && enrollment.isValidCapturedPhoto());
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
-                && sectionStatus == CandidateStatus.IN_PROGRESS);
+                && enrollment.isPresent()
+                && sectionStatus == CandidateStatus.NOT_STARTED);
         row.setWrongInfoEligible(sectionRequired && !enrollment.isSuspended() && notDone);
         // Complete button is disabled only after the section is already completed.
         row.setCompleteEligible(sectionRequired && sectionStatus == CandidateStatus.AWAITING_SIGNATURE && resultPrinted);

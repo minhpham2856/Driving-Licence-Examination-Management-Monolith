@@ -183,7 +183,6 @@ GO
 -- ============================================
 INSERT INTO Exam (ExamCode, ExamDate, CentreName, [Status], ExamPassword, LicenceId, StartTime, EndTime) VALUES
 (N'A1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
-(N'A1-20260601-1000', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A1'), '2026-06-01 10:00:00', '2026-06-01 11:30:00'),
 (N'A-20260610',       '2026-06-10', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'A'),  '2026-06-10 07:30:00', NULL),
 (N'B1-20260601-0730', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Đang diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 07:30:00', '2026-06-01 09:00:00'),
 (N'B1-20260601-0930', '2026-06-01', N'Trung tâm Sát hạch Lái Vui – Hà Nội', N'Chưa diễn ra', NULL, (SELECT LicenceId FROM Licence WHERE LicenceClass = N'B1'), '2026-06-01 09:30:00', '2026-06-01 11:30:00'),
@@ -219,19 +218,23 @@ INSERT INTO ExamArea (AreaName, AreaType, Capacity, [Location], ExamZoneId) VALU
 (N'Phòng thủ tục 102',       N'Phòng thủ tục', 30, N'Tầng 1, Tòa A', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
 (N'Phòng thi LT 1',          N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
 (N'Phòng thi LT 2',          N'Phòng thi',     30, N'Tầng 2, Tòa B', (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu nhà điều hành')),
-(N'Sân thi mô tô',           N'Sân thi',       20, N'Sân số 1',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô')),
-(N'Sân thi mô tô ba bánh',   N'Sân thi',       12, N'Sân số 2',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô ba bánh'));
+(N'Sân TH 1',                N'Sân thi',       20, N'Sân số 1',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô')),
+(N'Sân TH 2',                N'Sân thi',       12, N'Sân số 2',       (SELECT ExamZoneId FROM ExamZone WHERE ZoneName = N'Khu sân thi mô tô ba bánh'));
 GO
 
 INSERT INTO Exam_ExamArea (ExamId, ExamAreaId) VALUES
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0930'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0930'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 1')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0930'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 2')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'A1-20260601-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260608-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1'));
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260608-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260608-0730'), (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2'));
 GO
 
 -- ============================================
--- 10. PHÂN CÔNG SÁT HẠCH VIÊN (demo B1; A1 chính → seed_a1_exam_500.sql)
+-- 10. PHÂN CÔNG SÁT HẠCH VIÊN (demo B1; A1 chính → seed_real.sql)
 -- ============================================
 INSERT INTO ExaminerSchedule (ExamId, ExamSectionId, ExamAreaId, ExaminerId, AssignedBy, AssignedAt) VALUES
 ((SELECT ExamId FROM Exam WHERE ExamCode = N'B1-20260601-0730'),
@@ -250,29 +253,34 @@ GO
 -- 11. THIẾT BỊ THI
 -- ============================================
 INSERT INTO ExamDevice (DeviceName, DeviceType, IsActive, ExamAreaId) VALUES
-(N'MT-LT-01', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-02', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-03', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-04', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-05', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-06', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-07', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-08', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-09', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-10', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
-(N'MT-LT-11', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-(N'MT-LT-12', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-(N'MT-LT-13', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-(N'MT-LT-14', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-(N'MT-LT-15', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
-(N'XM-A1-01', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-(N'XM-A1-02', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-(N'XM-A1-03', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-(N'XM-A1-DP', N'Mô tô', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô')),
-(N'XM3-B1-01', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
-(N'XM3-B1-02', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
-(N'XM3-B1-03', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh')),
-(N'XM3-B1-DP', N'Mô tô ba bánh', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân thi mô tô ba bánh'));
+(N'MT1',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT2',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT3',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT4',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT5',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT6',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT7',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT8',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT9',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT10', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 1')),
+(N'MT1',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT2',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT3',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT4',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT5',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT6',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT7',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT8',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT9',  N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'MT10', N'Máy tính', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Phòng thi LT 2')),
+(N'XM-A1-01', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 1')),
+(N'XM-A1-02', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 1')),
+(N'XM-A1-03', N'Mô tô', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 1')),
+(N'XM-A1-DP', N'Mô tô', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 1')),
+(N'XM3-B1-01', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 2')),
+(N'XM3-B1-02', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 2')),
+(N'XM3-B1-03', N'Mô tô ba bánh', 1, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 2')),
+(N'XM3-B1-DP', N'Mô tô ba bánh', 0, (SELECT ExamAreaId FROM ExamArea WHERE AreaName = N'Sân TH 2'));
 GO
 
 -- ============================================
@@ -334,9 +342,7 @@ GO
 
 -- ============================================
 -- 13–18. THÍ SINH / GHI DANH / THANH TOÁN / KẾT QUẢ
--- Chạy sau DML:
---   seed_candidate.sql   (500 Candidate SBD 001–500)
---   seed_a1_exam_500.sql (ghi danh A1-20260601-1000 + phân công SHV)
+-- Chạy sau DML: seed_real.sql (kỳ A1-123, 20 thí sinh + phân công SHV)
 -- ============================================
 GO
 
@@ -376,7 +382,7 @@ FROM (VALUES
 ) v(LicenceClass, Reason, Points, IsCritical)
 JOIN Licence l ON l.LicenceClass = v.LicenceClass
 JOIN Exam e ON e.LicenceId = l.LicenceId AND e.ExamCode = CASE v.LicenceClass
-    WHEN N'A1' THEN N'A1-20260601-1000'
+    WHEN N'A1' THEN N'A1-20260601-0730'
     WHEN N'A'  THEN N'A-20260610'
     ELSE N'B1-20260601-0730'
 END

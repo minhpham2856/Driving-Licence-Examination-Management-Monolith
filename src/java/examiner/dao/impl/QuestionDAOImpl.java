@@ -53,7 +53,14 @@ public class QuestionDAOImpl extends DBContext implements QuestionDAO {
         Question q = new Question();
         q.setQuestionId(rs.getInt("QuestionId"));
         q.setQuestionNumber(rs.getInt("QuestionNumber"));
-        q.setImageUrl(rs.getString("ImageUrl"));
+        String imageUrl = rs.getString("ImageUrl");
+        if (imageUrl != null) {
+            imageUrl = imageUrl.trim();
+            if (imageUrl.isEmpty()) {
+                imageUrl = null;
+            }
+        }
+        q.setImageUrl(imageUrl);
         q.setCorrectAnswer(rs.getString("CorrectAnswer"));
         q.setCritical(rs.getBoolean("IsCritical"));
         return q;

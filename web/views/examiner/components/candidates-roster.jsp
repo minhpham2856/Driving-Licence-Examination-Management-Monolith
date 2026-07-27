@@ -69,7 +69,7 @@
                                                 </a>
                                             </c:if>
                                             <%--case 2: edit layout result--%>
-                                            <c:if test="${not examinerSectionTheory and candidate.status eq 'done'}">
+                                            <c:if test="${not examinerSectionTheory and (candidate.status eq 'done' or candidate.status eq 'awaiting')}">
                                                 <a href="${ctx}/examiner/result-details-edit?sbd=${candidate.candidateNumber}"
                                                    class="btn white compact">
                                                     Sửa KQ
