@@ -5,9 +5,12 @@ import examstaff.dao.ExamAreaDAO;
 import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dao.impl.ExamAreaDAOImpl;
 import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
+import examstaff.util.ExamAreaTypeResolver;
 import shared.model.ExamArea;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -58,7 +61,7 @@ public class ExamAreaQueryServiceImpl {
             return List.of();
         }
         // load phòng gắn kỳ + tập areaId đã có SHV
-        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
+        List<ExamArea> examRooms = listExamAreasWithFallback(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedTheoryAreaIds(
                 assignmentDAO.getByExamId(examId));
         // result: chỉ phòng LT trong tập staffed
@@ -76,7 +79,7 @@ public class ExamAreaQueryServiceImpl {
             return List.of();
         }
         // load phòng gắn kỳ + tập areaId đã có SHV
-        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
+        List<ExamArea> examRooms = listExamAreasWithFallback(examId);
         Set<Integer> staffed = ExaminerAssignmentRules.staffedPracticalAreaIds(
                 assignmentDAO.getByExamId(examId));
         // result: chỉ sân TH trong tập staffed
@@ -90,5 +93,27 @@ public class ExamAreaQueryServiceImpl {
      */
     public ExamArea findById(int examAreaId) {
         return examAreaDAO.getById(examAreaId);
+    }
+
+    /**
+     * Ưu tiên khu vực gắn qua Exam_ExamArea; nếu kỳ cũ chưa có liên kết thì
+     * fallback về danh mục phòng/sân và vẫn lọc theo phân công sát hạch viên.
+     */
+    private List<ExamArea> listExamAreasWithFallback(int examId) {
+        List<ExamArea> linked = examAreaDAO.getAreasByExamId(examId);
+        if (linked != null && !linked.isEmpty()) {
+            return linked;
+        }
+        Map<Integer, ExamArea> byId = new LinkedHashMap<>();
+        for (String type : List.of(
+                ExamAreaTypeResolver.theoryAreaTypeLabel(),
+                ExamAreaTypeResolver.theoryAreaTypeAlias(),
+                ExamAreaTypeResolver.practicalAreaTypeLabel(),
+                ExamAreaTypeResolver.practicalAreaTypeAlias())) {
+            for (ExamArea area : examAreaDAO.getAvailableAreasByType(type)) {
+                byId.putIfAbsent(area.getExamAreaId(), area);
+            }
+        }
+        return List.copyOf(byId.values());
     }
 }

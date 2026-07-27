@@ -43,11 +43,15 @@ public class AllocationActionServiceImpl {
             return result;
         }
         int allocated = 0;
+        String error = null;
         // mutate: auto LT khi overview hoặc theory
         if (AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
                 || AllocationStageHelper.STAGE_THEORY.equals(stage)) {
             AllocationActionResultDTO theoryAlloc = examinerAllocationService.autoAllocateExam(examId);
             allocated += theoryAlloc.getAllocatedCount();
+            if (theoryAlloc.getErrorMsg() != null && !theoryAlloc.getErrorMsg().isBlank()) {
+                error = theoryAlloc.getErrorMsg();
+            }
         }
         // mutate: auto TH khi overview hoặc practical
         if (AllocationStageHelper.STAGE_OVERVIEW.equals(stage)
@@ -55,9 +59,20 @@ public class AllocationActionServiceImpl {
             AllocationActionResultDTO practicalAlloc =
                     examinerAllocationService.autoAllocatePracticalExam(examId);
             allocated += practicalAlloc.getAllocatedCount();
+            if (error == null && practicalAlloc.getErrorMsg() != null
+                    && !practicalAlloc.getErrorMsg().isBlank()) {
+                error = practicalAlloc.getErrorMsg();
+            }
         }
         // result
         result.setAllocatedCount(allocated);
+        if (allocated > 0) {
+            result.setAlertMsg("Đã tự động phân phòng/sân cho " + allocated + " thí sinh.");
+        } else if (error != null) {
+            result.setErrorMsg(error);
+        } else {
+            result.setAlertMsg("Không có thí sinh mới cần tự động phân phòng/sân.");
+        }
         return result;
     }
 
