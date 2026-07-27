@@ -74,11 +74,12 @@ public final class ExamStaffPageSupport {
         ExamStaffViewService v = view != null ? view : VIEW;
         applyUtf8Request(request);
         int urlExamId = ExamStaffHttpSupport.parseExamIdParam(request);
+        List<ExamSummaryDTO> allExams = v.listAllExams();
 
         // Đổi kỳ từ URL: clear cache/procedure theo cờ transition rồi persist
         if (urlExamId > 0 && session != null) {
             ExamTransitionResultDTO transition = v.preparePageTransition(
-                    buildPageTransitionInput(session, urlExamId, v));
+                    buildPageTransitionInput(session, urlExamId, allExams));
             if (transition.isClearCandidateCache()) {
                 ExamStaffPageBinder.clearCandidateCache(session);
             }
@@ -93,7 +94,7 @@ public final class ExamStaffPageSupport {
 
         // Service chuẩn bị context + bind UI
         ExamStaffPageCommand input = buildPagePrepareInput(request, session, webRoot, loadCandidates,
-                urlExamId, v);
+                urlExamId, allExams);
         ExamStaffPageContext ctx = v.preparePageContext(input);
 
         if (ExamStaffHttpSupport.parseExamIdParam(request) > 0 && ctx.getExamId() <= 0 && request != null) {
@@ -334,12 +335,12 @@ public final class ExamStaffPageSupport {
      * Build command chuẩn bị trang: URL/session/cache queue + call order.
      */
     private static ExamStaffPageCommand buildPagePrepareInput(HttpServletRequest request, HttpSession session,
-            String webRoot, boolean loadCandidates, int urlExamId, ExamStaffViewService view) {
+            String webRoot, boolean loadCandidates, int urlExamId, List<ExamSummaryDTO> allExams) {
         ExamStaffPageCommand input = new ExamStaffPageCommand();
         input.setUrlExamId(urlExamId);
         input.setWebRoot(webRoot);
         input.setLoadCandidates(loadCandidates);
-        input.setAllExams(view.listAllExams());
+        input.setAllExams(allExams);
         if (request != null) {
             input.setExamIdParam(request.getParameter("examId"));
         }
@@ -364,10 +365,10 @@ public final class ExamStaffPageSupport {
      * Build command cho bước transition đổi kỳ (chỉ URL + previous/loaded).
      */
     private static ExamStaffPageCommand buildPageTransitionInput(HttpSession session, int urlExamId,
-            ExamStaffViewService view) {
+            List<ExamSummaryDTO> allExams) {
         ExamStaffPageCommand input = new ExamStaffPageCommand();
         input.setUrlExamId(urlExamId);
-        input.setAllExams(view.listAllExams());
+        input.setAllExams(allExams);
         if (session != null) {
             input.setPreviousExamId(ExamStaffPageBinder.readSelectedExamId(session));
             input.setLoadedExamId(ExamStaffPageBinder.readLoadedExamId(session));

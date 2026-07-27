@@ -200,7 +200,7 @@ public class ExaminerAllocationServiceImpl {
         int effectiveExamId = examId > 0 ? examId : resolvedExamId;
 
         List<ExamArea> examRooms = effectiveExamId > 0
-                ? areaDAO.getAreasByExamId(effectiveExamId)
+                ? getAvailableAreasForExam(effectiveExamId)
                 : List.of();
         List<ExamArea> theoryRoomsForExam = examRooms.stream()
                 .filter(ExaminerAssignmentRules::isTheoryRoom)
@@ -305,7 +305,7 @@ public class ExaminerAllocationServiceImpl {
         int effectiveExamId = examId > 0 ? examId : resolvedExamId;
 
         List<ExamArea> examRooms = effectiveExamId > 0
-                ? areaDAO.getAreasByExamId(effectiveExamId)
+                ? getAvailableAreasForExam(effectiveExamId)
                 : List.of();
         List<ExamArea> practicalYards = examRooms.stream()
                 .filter(ExaminerAssignmentRules::isPracticalRoom)
