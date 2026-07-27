@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import shared.enums.RoleType;
 
+// JDBC implementation for User; examiner module DAO layer only.
 public class UserDAOImpl extends DBContext implements UserDAO {
     private static final Logger LOG = Logger.getLogger(UserDAOImpl.class.getName());
     private static final String USER_SELECT = """
@@ -28,8 +29,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
                      	IsActive
                      from [User]
                      """;
+    // Loads one user row by primary key.
     @Override
-    public User getById(int id) {
+    public User get(int id) {
         String sql = USER_SELECT + " where UserId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -43,6 +45,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+    // Loads one user row by username.
     @Override
     public User getByUsername(String username) {
         String sql = USER_SELECT + " where Username = ?";
@@ -58,6 +61,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+    // Loads one user by username, email, or linked profile government id.
     @Override
     public User getByIdentifier(String identifier) {
         String sql = USER_SELECT + """
@@ -81,6 +85,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+    // Loads one user row by email address.
     @Override
     public User getByEmail(String email) {
         String sql = USER_SELECT + " where Email = ?";
@@ -96,8 +101,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return null;
     }
+    // Inserts a new user row.
     @Override
-    public boolean insert(User user) {
+    public boolean add(User user) {
         Connection conn = getConnection();
         if (conn == null) {
             LOG.severe("Cannot insert user: database connection is unavailable.");
@@ -133,6 +139,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return false;
     }
+    // Updates password hash for one user.
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
         String sql = """
@@ -149,6 +156,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return false;
     }
+    // Private helper: map result set to user.
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("UserId"));
@@ -159,6 +167,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         user.setRoleId(rs.getInt("RoleId"));
         return user;
     }
+    // Batch-loads user rows for a list of user ids.
     @Override
     public List<User> getAllByIds(List<Integer> ids) {
         if (ids == null || ids.isEmpty()) {
@@ -187,8 +196,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return list;
     }
+    // Lists active users with the examiner role.
     @Override
-    public List<User> findActiveExaminers() {
+    public List<User> getAllActiveExaminers() {
         String sql = "SELECT u.UserId, u.Username, u.Email, u.PasswordHash, u.RoleId, u.IsActive "
                 + "FROM [User] u "
                 + "INNER JOIN Role r ON r.RoleId = u.RoleId "
@@ -207,6 +217,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         }
         return list;
     }
+    // Returns total count of user rows.
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM [User]";
@@ -219,8 +230,9 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return 0;
     }
 
+    // Searches users for admin screens with optional role and status filters.
     @Override
-    public List<User> searchForAdmin(String keyword, String roleFilter, String statusFilter) {
+    public List<User> getFilteredForAdmin(String keyword, String roleFilter, String statusFilter) {
         StringBuilder sql = new StringBuilder(
                 "SELECT u.UserId, u.Username, u.Email, u.PasswordHash, u.RoleId, u.IsActive "
                 + "FROM [User] u INNER JOIN Role r ON r.RoleId = u.RoleId WHERE 1=1");
@@ -266,6 +278,7 @@ public class UserDAOImpl extends DBContext implements UserDAO {
         return list;
     }
 
+    // Maps admin UI role filter keys to database RoleName values.
     private static String mapRoleFilterToDbName(String filter) {
         if ("admin".equals(filter)) {
             return RoleType.ADMIN.getValue();

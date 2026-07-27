@@ -198,8 +198,8 @@
                     <span class="room-badge room-badge--orange">Chờ gọi (${waitingCount})</span>
                 </div>
 
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
+                <div class="table-wrap">
+                    <table class="table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
                         <thead>
                             <tr>
                                 <th style="text-align: left;">SBD</th>
@@ -249,8 +249,8 @@
                     <span class="room-badge room-badge--blue">Đang xử lý</span>
                 </div>
 
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
+                <div class="table-wrap">
+                    <table class="table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
                         <thead>
                             <tr>
                                 <th style="text-align: left;">SBD</th>
@@ -300,8 +300,8 @@
                     <span class="room-badge room-badge--green">${examOutcomeCount} thí sinh</span>
                 </div>
 
-                <div class="examiner-table-wrap">
-                    <table class="examiner-table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
+                <div class="table-wrap">
+                    <table class="table allocation-results-table allocation-table--fill" style="font-size: 0.78rem;">
                         <thead>
                             <tr>
                                 <th style="text-align: left;">SBD</th>

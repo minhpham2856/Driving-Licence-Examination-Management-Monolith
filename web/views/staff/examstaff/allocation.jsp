@@ -55,11 +55,11 @@
         <div class="allocation-overview-search__head">
             <span class="allocation-overview-search__count">${fn:length(allocationOverviewHits)} thí sinh</span>
         </div>
-        <div class="examiner-table-wrap">
-            <table class="examiner-table allocation-stage-table allocation-table--fill">
+        <div class="table-wrap">
+            <table class="table allocation-stage-table allocation-table--fill">
                 <thead>
                     <tr>
-                        <th class="examiner-table__center" style="width: 56px;">STT</th>
+                        <th class="table-center" style="width: 56px;">STT</th>
                         <th>SBD</th>
                         <th>Họ tên</th>
                         <th>Hạng</th>
@@ -77,7 +77,7 @@
                             </c:if>
                         </c:url>
                         <tr>
-                            <td class="examiner-table__center">${st.count}</td>
+                            <td class="table-center">${st.count}</td>
                             <td><strong>${c.sbd}</strong></td>
                             <td>${c.name}</td>
                             <td>${c.clazz}</td>

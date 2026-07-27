@@ -154,21 +154,21 @@
                     </a>
                 </div>
             </div>
-            <div class="examiner-table-wrap examstaff-list-wrap">
-                <table class="examiner-table examstaff-audit-table audit-table allocation-results-table allocation-table--fill">
+            <div class="table-wrap examstaff-list-wrap">
+                <table class="table examstaff-audit-table audit-table allocation-results-table allocation-table--fill">
                     <thead>
                         <tr>
-                            <th scope="col" class="examiner-table__center">STT</th>
+                            <th scope="col" class="table-center">STT</th>
                             <th scope="col">Thời gian</th>
                             <th scope="col">Nghiệp vụ</th>
                             <th scope="col">Chi tiết thao tác</th>
-                            <th scope="col" class="examiner-table__center">Trạng thái</th>
+                            <th scope="col" class="table-center">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
                         <c:forEach var="log" items="${requestScope.personalLogs}" varStatus="status">
                             <tr>
-                                <td class="examiner-table__center">${rowStart + status.count}</td>
+                                <td class="table-center">${rowStart + status.count}</td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${not empty log.changedAt}">
@@ -182,7 +182,7 @@
                                     <span class="examstaff-audit-action">${log.actionLabelVi}</span>
                                 </td>
                                 <td class="examstaff-audit-details">${log.displayDetails}</td>
-                                <td class="examiner-table__center">
+                                <td class="table-center">
                                     <span class="allocation-stage-status allocation-stage-status--logged">Ghi nhận</span>
                                 </td>
                             </tr>

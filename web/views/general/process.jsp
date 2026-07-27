@@ -5,19 +5,24 @@
     <jsp:param name="activeNav" value="quy-trinh" />
 </jsp:include>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/landing/process.css">
+<link rel="stylesheet"
+      href="${pageContext.request.contextPath}/assets/css/landing/process.css">
 
 <main class="public-main process-page">
+    <%--hero--%>
     <section class="process-hero">
         <div class="hero-glow hero-glow--left" aria-hidden="true"></div>
         <div class="hero-glow hero-glow--right" aria-hidden="true"></div>
         <div class="process-container hero-content">
             <h1 class="hero-title">Từ đăng ký đến nhận bằng</h1>
-            <p class="hero-subtitle">Lộ trình đăng ký thi sát hạch GPLX tại hệ thống Lái Vui - năm bước rõ ràng, theo dõi online.</p>
+            <p class="hero-subtitle">
+                Lộ trình đăng ký thi sát hạch GPLX tại hệ thống Lái Vui - năm bước rõ ràng, theo dõi online.
+            </p>
             <a href="#lien-he" class="hero-contact-link">Liên hệ trung tâm ↓</a>
         </div>
     </section>
 
+    <%--timeline steps--%>
     <section class="process-section timeline-section" id="quy-trinh">
         <div class="process-container">
             <div class="timeline-wrapper">
@@ -70,7 +75,8 @@
 
                     <div class="timeline-step">
                         <div class="step-icon-container">
-                            <span class="material-symbols-outlined step-icon" aria-hidden="true">workspace_premium</span>
+                            <span class="material-symbols-outlined step-icon"
+                                  aria-hidden="true">workspace_premium</span>
                         </div>
                         <div class="step-content">
                             <span class="step-number">BƯỚC 05</span>
@@ -83,17 +89,22 @@
         </div>
     </section>
 
+    <%--why choose us--%>
     <section class="process-section bento-section">
         <div class="process-container">
             <h2 class="bento-heading">Tại sao nên chọn chúng tôi?</h2>
 
             <div class="bento-grid">
                 <div class="bento-card bento-card--left">
-                    <div class="bento-card-bg" style="background-image: url('${pageContext.request.contextPath}/assets/imgs/training_car.png')"></div>
+                    <div class="bento-card-bg"
+                         style="background-image: url('${pageContext.request.contextPath}/assets/imgs/training_car.png')">
+                    </div>
                     <div class="bento-card-overlay">
                         <div class="bento-card-content">
                             <h3 class="bento-card-title">Hệ thống thi hiện đại</h3>
-                            <p class="bento-card-desc">Gọi thí sinh, chấm điểm và cập nhật kết quả realtime.</p>
+                            <p class="bento-card-desc">
+                                Gọi thí sinh, chấm điểm và cập nhật kết quả realtime.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -103,23 +114,29 @@
                         <h3 class="bento-card-stat">Minh bạch 100%</h3>
                     </div>
                     <div class="right-card-body">
-                        <p class="bento-card-desc">Theo dõi trạng thái hồ sơ và lịch thi rõ ràng trên tài khoản của bạn.</p>
+                        <p class="bento-card-desc">
+                            Theo dõi trạng thái hồ sơ và lịch thi rõ ràng trên tài khoản của bạn.
+                        </p>
                     </div>
                     <div class="right-card-footer">
-                        <a href="${pageContext.request.contextPath}/register" class="btn-bento-action">Đăng ký ngay</a>
+                        <a href="${pageContext.request.contextPath}/register"
+                           class="btn-bento-action">Đăng ký ngay</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+    <%--contact strip--%>
     <section class="process-section contact-section" id="lien-he">
         <div class="process-container">
             <div class="contact-strip">
                 <div class="contact-strip__intro">
                     <p class="contact-strip__eyebrow">Liên hệ trung tâm</p>
                     <h2 class="contact-strip__title">Cần hỗ trợ đăng ký hoặc lịch thi?</h2>
-                    <p class="contact-strip__desc">Gọi hoặc gửi email - đội ngũ tư vấn phản hồi trong giờ hành chính.</p>
+                    <p class="contact-strip__desc">
+                        Gọi hoặc gửi email - đội ngũ tư vấn phản hồi trong giờ hành chính.
+                    </p>
                 </div>
                 <div class="contact-strip__channels">
                     <div class="contact-channel contact-channel--static">

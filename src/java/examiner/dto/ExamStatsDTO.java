@@ -1,5 +1,6 @@
 package examiner.dto;
 
+// Data transfer object for examiner exam stats views.
 public class ExamStatsDTO {
 
     private int total;
@@ -9,6 +10,8 @@ public class ExamStatsDTO {
     private int passed;
     private int failed;
     private String examCode;
+    private String examDate;
+    private String licenceClass;
 
     public int getTotal() {
         return total;
@@ -64,5 +67,21 @@ public class ExamStatsDTO {
 
     public void setExamCode(String examCode) {
         this.examCode = examCode;
+    }
+
+    public String getExamDate() {
+        return examDate;
+    }
+
+    public void setExamDate(String examDate) {
+        this.examDate = examDate;
+    }
+
+    public String getLicenceClass() {
+        return licenceClass;
+    }
+
+    public void setLicenceClass(String licenceClass) {
+        this.licenceClass = licenceClass;
     }
 }

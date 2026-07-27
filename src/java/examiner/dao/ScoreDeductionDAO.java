@@ -2,8 +2,9 @@ package examiner.dao;
 
 import shared.model.ScoreDeduction;
 
+// DAO contract for ScoreDeduction persistence; examiner module SQL boundary.
 public interface ScoreDeductionDAO {
 
-    ScoreDeduction getById(int scoreDeductionId);
+    // Loads one score deduction rule row by primary key.
+    ScoreDeduction get(int scoreDeductionId);
 }
-

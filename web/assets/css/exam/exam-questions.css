@@ -1,289 +1,334 @@
-html, body {
+:root {
+    --exam-primary: #0052cc;
+    --exam-accent: #fe6b00;
+    --exam-bg: #ffffff;
+    --exam-card: #ffffff;
+    --exam-border: #dbe3f0;
+    --exam-text: #131b2e;
+    --exam-muted: #64748b;
+    --exam-danger: #dc2626;
+    --exam-header-height: 88px;
+    --exam-footer-height: 118px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
     margin: 0;
     min-height: 100%;
-    background: #f8fafc;
-    color: #131b2e;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    overflow: hidden; /* Guarantee no scrolling on /exam pages */
-}
-
-@media (max-height: 600px) {
-    html, body {
-        overflow-y: auto; /* Fallback for accessibility */
-    }
-}
-
-body {
-    min-height: 100vh;
-}
-
-.questions-page {
-    min-height: 100vh;
-    padding-top: 64px;
-    padding-bottom: 108px; /* 64px footer + 44px progress bar */
-    box-sizing: border-box;
-    background: #f8fafc;
-}
-
-.questions-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) 320px;
-    height: calc(100vh - 64px - 108px); /* Take exactly the remaining viewport height */
-    box-sizing: border-box;
-}
-
-.question-stage {
-    min-width: 0;
-    background: #f8fafc;
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.question-stage__media-wrap {
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
-
-.question-stage__media {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-}
-
-.question-stage__image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Sticks to edges with no padding/margin */
-    display: block;
-}
-
-.question-sidebar {
-    width: 320px;
-    min-width: 320px;
-    background: #132033;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    box-sizing: border-box;
-}
-
-.question-sidebar-form {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-}
-
-.question-grid-area {
-    flex: 1 1 auto;
-    overflow-y: auto; /* Sleek vertical scrolling for table list */
-    padding: 16px;
-    box-sizing: border-box;
-}
-
-/* Premium custom scrollbar for grid area */
-.question-grid-area::-webkit-scrollbar {
-    width: 6px;
-}
-.question-grid-area::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
-}
-.question-grid-area::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-}
-.question-grid-area::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.question-table {
-    width: 100%;
-    border-collapse: collapse;
-    color: #ffffff;
-}
-
-.question-table th {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #94a3b8;
-    padding: 8px 4px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-}
-
-.question-table td {
-    padding: 10px 4px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    vertical-align: middle;
-}
-
-.question-table tr:hover {
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.question-table tr.active-row {
-    background: rgba(56, 189, 248, 0.1);
-}
-
-.question-link {
-    color: #ffffff;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    display: block;
-    text-align: left;
-    padding-left: 8px;
-    transition: color 0.2s;
-}
-
-.question-link:hover {
-    color: #38bdf8;
-}
-
-/* Checkbox styling */
-.question-table input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.question-table input[type="checkbox"]:checked {
-    background: #ff6b00;
-    border-color: #ff6b00;
-}
-
-.question-table input[type="checkbox"]:checked::after {
-    content: "✓";
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 900;
-}
-
-.question-table input[type="checkbox"]:hover {
-    border-color: #ff6b00;
-}
-
-.question-table label {
-    display: none; /* Hide default label since columns indicate index */
-}
-
-.submit-panel {
-    flex: 0 0 93px;
-    box-sizing: border-box;
-    padding: 17px 16px 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: #132033;
-}
-
-.submit-panel__button {
-    width: 100%;
-    height: 60px;
-    border: 0;
-    border-radius: 8px;
-    background: #ff6b00;
-    box-shadow: 0 10px 15px -3px rgba(124, 45, 18, 0.2), 0 4px 6px -4px rgba(124, 45, 18, 0.2);
-    color: #ffffff;
-    font-size: 20px;
-    font-weight: 800;
-    line-height: 28px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    cursor: pointer;
-    font-family: "Inter", sans-serif;
-}
-
-.questions-progress {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 64px; /* Lower down because footer is 64px */
-    z-index: 999;
-    height: 44px;
     background: #ffffff;
 }
 
-.questions-progress__track {
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    top: calc(50% + 1px);
-    height: 6px;
-    transform: translateY(-50%);
-    border-radius: 3px;
-    background: rgba(120, 120, 120, 0.2);
+.exam-paper-body {
+    min-height: 100vh;
+    background: #ffffff;
+    color: var(--exam-text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
-.questions-progress__filled {
-    position: absolute;
+.exam-paper-header {
+    position: fixed;
+    top: 0;
     left: 0;
-    top: 50%;
-    width: 6px;
-    height: 6px;
-    transform: translateY(-50%);
-    border-radius: 3px;
-    background: #0088ff;
+    right: 0;
+    z-index: 30;
+    min-height: var(--exam-header-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 32px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--exam-border);
 }
 
-@media (max-width: 980px) {
-    .questions-page {
-        padding-bottom: 216px;
-        overflow-y: auto;
+.exam-paper-title {
+    min-width: 0;
+}
+
+.exam-paper-eyebrow {
+    margin: 0 0 8px;
+    color: var(--exam-primary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.exam-paper-candidate {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+.exam-paper-candidate strong {
+    font: 800 1.28rem/1 "JetBrains Mono", monospace;
+    color: var(--exam-text);
+}
+
+.exam-paper-candidate span {
+    color: var(--exam-text);
+    font-weight: 800;
+}
+
+.exam-paper-candidate span:last-child {
+    color: var(--exam-muted);
+    font-weight: 700;
+}
+
+.exam-paper-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 128px;
+    justify-content: center;
+    color: var(--exam-primary);
+    padding: 10px 0;
+}
+
+.exam-paper-timer strong {
+    font: 800 1.45rem/1 "JetBrains Mono", monospace;
+}
+
+.exam-paper-shell {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: calc(var(--exam-header-height) + 24px) 0 calc(var(--exam-footer-height) + 28px);
+}
+
+.exam-paper-form {
+    display: grid;
+    gap: 18px;
+}
+
+.exam-question-card {
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+    padding: 0 0 22px;
+    border-bottom: 1px solid var(--exam-border);
+}
+
+.exam-question-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.exam-question-card__head span {
+    font-weight: 800;
+    font-size: 1.05rem;
+}
+
+.exam-question-card__head em {
+    border-radius: 0;
+    background: transparent;
+    color: var(--exam-danger);
+    padding: 0;
+    font-style: normal;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.exam-question-card__image {
+    display: block;
+    max-width: 100%;
+    max-height: 460px;
+    object-fit: contain;
+    margin: 0 auto 18px;
+    border-radius: 0;
+    border: 0;
+    background: #ffffff;
+}
+
+.exam-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.exam-choice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    border: 1px solid var(--exam-border);
+    border-radius: 0;
+    background: #ffffff;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.exam-choice:has(input:checked) {
+    border-color: var(--exam-primary);
+    background: rgba(0, 82, 204, 0.08);
+    color: var(--exam-primary);
+}
+
+.exam-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.exam-choice span {
+    font: 800 1.1rem/1 "JetBrains Mono", monospace;
+}
+
+.exam-submit-bar {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 0;
+}
+
+.exam-submit-button {
+    width: min(100%, 360px);
+    min-height: 56px;
+    border: 0;
+    border-radius: 0;
+    background: var(--exam-accent);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 1rem;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.exam-paper-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    min-height: var(--exam-footer-height);
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    padding: 16px 32px;
+    border: 0;
+    border-top: 1px solid var(--exam-border);
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.exam-paper-footer__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 22px;
+    align-content: center;
+}
+
+.exam-paper-footer__meta div {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.exam-paper-footer__meta span {
+    display: inline-block;
+    min-width: 90px;
+    color: var(--exam-muted);
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.exam-paper-footer__meta strong {
+    color: var(--exam-text);
+    font-weight: 800;
+}
+
+.exam-paper-footer__agency {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 86px;
+    align-items: center;
+    gap: 16px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.exam-paper-footer__agency-text {
+    text-align: right;
+}
+
+.exam-paper-footer__agency-text span {
+    display: block;
+    color: var(--exam-text);
+    font-size: 0.9rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.exam-paper-footer__agency-text strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--exam-danger);
+    font-size: 1.08rem;
+    font-weight: 900;
+}
+
+.exam-paper-footer__agency img {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    border: 0;
+}
+
+@media (max-width: 760px) {
+    :root {
+        --exam-header-height: 142px;
+        --exam-footer-height: 210px;
     }
 
-    .questions-layout {
-        display: flex;
+    .exam-paper-header {
+        align-items: flex-start;
         flex-direction: column;
-        height: auto;
+        padding: 14px 18px;
     }
 
-    .question-stage__media-wrap {
-        height: auto;
-        aspect-ratio: 16 / 9;
-        max-width: none;
-    }
-
-    .question-stage__media {
-        height: 100%;
-        aspect-ratio: 16 / 9;
-    }
-
-    .question-stage__image {
-        position: relative;
+    .exam-paper-timer {
+        justify-content: flex-start;
         width: 100%;
-        height: auto;
     }
 
-    .question-sidebar {
-        width: 100%;
-        min-width: 0;
-        height: auto;
+    .exam-paper-shell {
+        width: min(100% - 28px, 1180px);
     }
 
-    .questions-progress {
-        bottom: 64px;
+    .exam-choice-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .exam-paper-footer {
+        grid-template-columns: 1fr;
+        padding: 14px 18px;
+    }
+
+    .exam-paper-footer__meta {
+        grid-template-columns: 1fr;
+    }
+
+    .exam-paper-footer__agency {
+        grid-template-columns: minmax(0, 1fr) 72px;
+    }
+
+    .exam-paper-footer__agency img {
+        width: 68px;
+        height: 68px;
     }
 }

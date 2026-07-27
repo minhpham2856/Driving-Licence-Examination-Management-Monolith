@@ -7,6 +7,7 @@ public class ExamRegistration {
     private String notes;
     private int profileId;
     private int licenceId;
+    private boolean isRetake;
     private Profile profile;
     private Licence licence;
 
@@ -60,6 +61,14 @@ public class ExamRegistration {
 
     public void setLicenceId(int licenceId) {
         this.licenceId = licenceId;
+    }
+
+    public boolean isRetake() {
+        return isRetake;
+    }
+
+    public void setRetake(boolean isRetake) {
+        this.isRetake = isRetake;
     }
 
     public Profile getProfile() {

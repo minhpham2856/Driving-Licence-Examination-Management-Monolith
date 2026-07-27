@@ -56,6 +56,11 @@ public class ExamControlServlet extends HttpServlet {
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         int examId = parseExamId(request);
+        if (examId <= 0) {
+            session.setAttribute("examControlError", "Chưa chọn kỳ thi.");
+            response.sendRedirect(request.getContextPath() + "/examstaff/dashboard");
+            return;
+        }
         int staffId = SessionUserHelper.resolveUserId(session);
         String redirect = buildRedirect(request, examId);
 
@@ -102,6 +107,15 @@ public class ExamControlServlet extends HttpServlet {
             } else {
                 session.setAttribute("examControlError", result.getMessage());
             }
+        } else if ("generateExamPassword".equals(action)) {
+            ServiceResult<String> result = controlService.generateExamPassword(examId);
+            if (result.isSuccess()) {
+                auditService.logAction(staffId, "UPDATE Exam",
+                        "Tạo mật khẩu máy thi kỳ " + examId, examId);
+                session.setAttribute("examControlMsg", result.getMessage());
+            } else {
+                session.setAttribute("examControlError", result.getMessage());
+            }
         }
 
         response.sendRedirect(redirect);
@@ -115,7 +129,7 @@ public class ExamControlServlet extends HttpServlet {
     }
 
     /**
-     * Đọc examId từ param; fallback selected session; mặc định 2 nếu thiếu.
+     * Đọc examId từ param; fallback selected session; 0 nếu thiếu.
      * @return examId
      */
     private int parseExamId(HttpServletRequest request) {
@@ -124,7 +138,7 @@ public class ExamControlServlet extends HttpServlet {
             return examId;
         }
         Integer selectedExamId = ExamStaffHttpSupport.readSelectedExamId(request);
-        return selectedExamId != null ? selectedExamId : 2;
+        return selectedExamId != null ? selectedExamId : 0;
     }
 
     /**
