@@ -13,6 +13,8 @@ public interface TentativeExamDateDAO {
     List<Integer> findAllRegistrationIds(int examDateId);
     int countRegistrations(int examDateId);
     int cancel(int examDateId, String reason, int cancelledByUserId);
+    List<TentativeExamDateDTO> findDeadlineReviewDates();
+    int autoCancelInsufficient(int examDateId, String reason);
     List<Integer> lockDueDates();
     int submitToPolice(int examDateId);
     List<TentativeExamDateDTO> findPoliceCompletedUnlinked();
