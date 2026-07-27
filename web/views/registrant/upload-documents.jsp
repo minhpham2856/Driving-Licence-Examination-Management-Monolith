@@ -268,8 +268,8 @@
                                                 <div class="upload-other-item__preview">
                                                     <c:choose>
                                                         <c:when test="${fn:contains(fn:toLowerCase(other.documentUrl), '.pdf')
-                                                                or fn:contains(fn:toLowerCase(other.fileName), '.pdf')}">
-                                                            <span class="upload-other-item__pdf">PDF</span>
+                                                                        or fn:contains(fn:toLowerCase(other.fileName), '.pdf')}">
+                                                                <span class="upload-other-item__pdf">PDF</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <img src="${other.documentUrl}" alt="">
@@ -412,7 +412,7 @@
                                                 <c:forEach var="licence" items="${approvalLicenceOptions}">
                                                     <option value="${licence.code}" title="${licence.name}">
                                                         Hạng ${licence.code}<c:if test="${not empty licence.name}"> — ${licence.name}</c:if>
-                                                    </option>
+                                                        </option>
                                                 </c:forEach>
                                             </select>
                                         </div>

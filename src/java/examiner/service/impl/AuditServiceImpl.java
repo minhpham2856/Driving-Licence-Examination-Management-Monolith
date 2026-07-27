@@ -36,6 +36,7 @@ public class AuditServiceImpl implements AuditService {
             Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     private static final SimpleDateFormat AUDIT_TIME_FMT = new SimpleDateFormat("HH:mm:ss");
     private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
+    private static final SimpleDateFormat AUDIT_TIMESTAMP_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
     // Writes a simple audit log entry without record id or reason.
     @Override
@@ -91,34 +92,16 @@ public class AuditServiceImpl implements AuditService {
         String message = firstNonBlank(log.getNewValue(), log.getDetails());
         String reason = normalizeReason(log);
         row.put("username", nullToDash(changerName));
-        row.put("actionLabel", action.getValue());
-        row.put("actionBadge", mapActionBadge(action));
-        row.put("entityName", entityLabelFromDb(log.getEntityName()));
-        row.put("sbd", sbd);
-        row.put("newValueClass", action == AuditAction.DELETE ? "audit-td-old" : "audit-td-new");
-        row.put("multiline", message != null && message.contains("\n"));
-        if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
-            row.put("info", buildChangeInfo(log, action, sbd));
-            row.put("oldValue", log.getOldValue());
-            row.put("newValue", nullToDash(message));
-            row.put("reason", nullToDash(reason));
-        } else {
-            row.put("info", message != null && !message.isBlank() ? message : buildChangeInfo(log, action, sbd));
-            row.put("oldValue", null);
-            row.put("newValue", nullToDash(message));
-            row.put("reason", nullToDash(reason));
-        }
+        row.put("actionLabel", actionLabelFromDb(log, action));
+        row.put("actionBadge", mapActionBadge(action, log.getAction()));
+        row.put("detail", buildDetailText(log, message, reason, sbd));
         Timestamp createdAt = log.getCreatedAt();
         if (createdAt != null) {
-            synchronized (AUDIT_TIME_FMT) {
-                row.put("time", AUDIT_TIME_FMT.format(createdAt));
-            }
-            synchronized (AUDIT_DATE_FMT) {
-                row.put("date", AUDIT_DATE_FMT.format(createdAt));
+            synchronized (AUDIT_TIMESTAMP_FMT) {
+                row.put("timestamp", AUDIT_TIMESTAMP_FMT.format(createdAt));
             }
         } else {
-            row.put("time", "-");
-            row.put("date", "-");
+            row.put("timestamp", "-");
         }
         return row;
     }
@@ -140,6 +123,76 @@ public class AuditServiceImpl implements AuditService {
             }
         }
         return "-";
+    }
+
+    // Maps raw DB action string to display label.
+    private static String actionLabelFromDb(Audit log, AuditAction action) {
+        if (log.getAction() != null && "CALL".equalsIgnoreCase(log.getAction().trim())) {
+            return "Gọi";
+        }
+        return action.getValue();
+    }
+
+    // Builds a single detail column for the audit table.
+    private String buildDetailText(Audit log, String message, String reason, String sbd) {
+        if (log.getOldValue() != null && !log.getOldValue().isBlank()) {
+            String newVal = firstNonBlank(log.getNewValue(), message);
+            return log.getOldValue().trim() + " -> " + (newVal != null ? newVal.trim() : "");
+        }
+        if (message != null && !message.isBlank() && !isTechnicalCallDetail(message)) {
+            return simplifyAuditMessage(message, sbd);
+        }
+        if (reason != null && !reason.isBlank() && !isTechnicalCallDetail(reason)) {
+            return simplifyAuditMessage(reason, sbd);
+        }
+        if (isTechnicalCallDetail(message) || isTechnicalCallDetail(reason)) {
+            return formatCallDetail(message, reason, sbd);
+        }
+        if (message != null && !message.isBlank()) {
+            return message;
+        }
+        return "-";
+    }
+
+    private static boolean isTechnicalCallDetail(String text) {
+        return text != null && text.contains("actionTo=") && text.contains("result=");
+    }
+
+    private String formatCallDetail(String message, String reason, String sbd) {
+        String source = firstNonBlank(message, reason);
+        String result = extractCallResult(source);
+        String sbdText = "-".equals(sbd) ? "" : " SBD " + sbd;
+        if (result != null && !result.isBlank()) {
+            if ("Calling".equalsIgnoreCase(result)) {
+                return "Gọi" + sbdText;
+            }
+            return "Gọi" + sbdText + ": " + result;
+        }
+        return "Gọi" + sbdText;
+    }
+
+    private static String extractCallResult(String text) {
+        if (text == null) {
+            return null;
+        }
+        int idx = text.indexOf("result=");
+        if (idx < 0) {
+            return null;
+        }
+        return text.substring(idx + 7).trim();
+    }
+
+    private String simplifyAuditMessage(String message, String sbd) {
+        if (message.startsWith("Thao tác SBD ")) {
+            return "Gọi SBD " + message.substring("Thao tác SBD ".length()).trim();
+        }
+        if (message.startsWith("Thao tác thủ tục SBD ")) {
+            int colon = message.indexOf(':');
+            if (colon > 0) {
+                return "Gọi " + message.substring("Thao tác thủ tục ".length(), colon).trim();
+            }
+        }
+        return message;
     }
 
     // Maps raw DB action string to AuditAction enum with UPDATE fallback.
@@ -211,6 +264,14 @@ public class AuditServiceImpl implements AuditService {
             default ->
                 "Cập nhật " + entity.toLowerCase() + sbdSuffix;
         };
+    }
+
+    // Private helper: map action badge.
+    private static String mapActionBadge(AuditAction action, String rawAction) {
+        if (rawAction != null && "CALL".equalsIgnoreCase(rawAction.trim())) {
+            return "audit-badge-insert";
+        }
+        return mapActionBadge(action);
     }
 
     // Private helper: map action badge.

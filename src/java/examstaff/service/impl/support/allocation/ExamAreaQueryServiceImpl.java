@@ -2,13 +2,10 @@ package examstaff.service.impl.support.allocation;
 import examstaff.service.impl.support.assign.ExaminerAssignmentRules;
 
 import examstaff.dao.ExamAreaDAO;
-import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dao.impl.ExamAreaDAOImpl;
-import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
 import shared.model.ExamArea;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Truy vấn khu vực thi đã có sát hạch viên phân công — phục vụ dropdown phân phòng thí sinh.
@@ -28,23 +25,20 @@ import java.util.Set;
 public class ExamAreaQueryServiceImpl {
 
     private final ExamAreaDAO examAreaDAO;
-    private final ExaminerAssignmentDAO assignmentDAO;
 
     /**
      * Wiring mặc định khi không inject từ composition root.
      */
     public ExamAreaQueryServiceImpl() {
-        this(new ExamAreaDAOImpl(), new ExaminerAssignmentDAOImpl());
+        this(new ExamAreaDAOImpl());
     }
 
     /**
      * Inject dependencies cho unit test / composition root.
-     * @param examAreaDAO    DAO khu vực thi
-     * @param assignmentDAO  DAO phân công sát hạch viên
+     * @param examAreaDAO DAO khu vực thi
      */
-    public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO, ExaminerAssignmentDAO assignmentDAO) {
+    public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO) {
         this.examAreaDAO = examAreaDAO;
-        this.assignmentDAO = assignmentDAO;
     }
 
     /**
@@ -57,12 +51,9 @@ public class ExamAreaQueryServiceImpl {
         if (examId <= 0) {
             return List.of();
         }
-        // load phòng gắn kỳ + tập areaId đã có SHV
+        // load phòng LT gắn kỳ (Exam_ExamArea), không lọc theo SHV
         List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
-        Set<Integer> staffed = ExaminerAssignmentRules.staffedTheoryAreaIds(
-                assignmentDAO.getByExamId(examId));
-        // result: chỉ phòng LT trong tập staffed
-        return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
+        return ExaminerAssignmentRules.filterTheoryRooms(examRooms);
     }
 
     /**
@@ -75,12 +66,9 @@ public class ExamAreaQueryServiceImpl {
         if (examId <= 0) {
             return List.of();
         }
-        // load phòng gắn kỳ + tập areaId đã có SHV
+        // load sân TH gắn kỳ (Exam_ExamArea), không lọc theo SHV
         List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
-        Set<Integer> staffed = ExaminerAssignmentRules.staffedPracticalAreaIds(
-                assignmentDAO.getByExamId(examId));
-        // result: chỉ sân TH trong tập staffed
-        return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);
+        return ExaminerAssignmentRules.filterPracticalRooms(examRooms);
     }
 
     /**

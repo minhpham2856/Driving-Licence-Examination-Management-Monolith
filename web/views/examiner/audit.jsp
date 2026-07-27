@@ -53,13 +53,8 @@
                                 <tr>
                                     <th>Người dùng</th>
                                     <th>Thao tác</th>
-                                    <th>Đối tượng</th>
-                                    <th>SBD</th>
-                                    <th>Thông tin</th>
-                                    <th>Cũ</th>
-                                    <th>Mới</th>
+                                    <th>Chi tiết</th>
                                     <th>Thời gian</th>
-                                    <th>Ngày</th>
                                 </tr>
                             </thead>
 
@@ -69,7 +64,7 @@
                                     <%--case 1: empty logs--%>
                                     <c:when test="${empty auditLogs}">
                                         <tr>
-                                            <td colspan="9" class="table-empty">Chưa có dữ liệu</td>
+                                            <td colspan="4" class="table-empty">Chưa có dữ liệu</td>
                                         </tr>
                                     </c:when>
 
@@ -83,15 +78,8 @@
                                                         ${log.actionLabel}
                                                     </span>
                                                 </td>
-                                                <td>${log.entityName}</td>
-                                                <td class="table-mono">${log.sbd}</td>
-                                                <td>${log.info}</td>
-                                                <td class="audit-td-old<c:if test='${log.multiline}'> audit-td-multiline</c:if>">
-                                                    <c:if test="${not empty log.oldValue}"><s>${log.oldValue}</s></c:if>
-                                                    </td>
-                                                    <td class="audit-td-new ${log.newValueClass}<c:if test='${log.multiline}'> audit-td-multiline</c:if>">${log.newValue}</td>
-                                                <td class="table-mono-md">${log.time}</td>
-                                                <td class="table-mono-md">${log.date}</td>
+                                                <td class="audit-td-detail">${log.detail}</td>
+                                                <td class="table-mono-md">${log.timestamp}</td>
                                             </tr>
                                         </c:forEach>
                                     </c:otherwise>

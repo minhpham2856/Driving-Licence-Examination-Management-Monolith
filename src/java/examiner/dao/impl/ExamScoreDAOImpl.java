@@ -32,6 +32,34 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return null;
     }
 
+    // Score for one enrollment + section type.
+    @Override
+    public Double getScoreByEnrollmentAndSectionType(int examEnrollmentId, String sectionType) {
+        if (examEnrollmentId <= 0 || sectionType == null || sectionType.isBlank()) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 es.Score
+                FROM ExamScore es
+                JOIN ExamResult er ON er.ExamResultId = es.ExamResultId
+                JOIN ExamSection sec ON sec.ExamSectionId = es.ExamSectionId
+                WHERE er.ExamEnrollmentId = ?
+                  AND sec.SectionType = ?
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examEnrollmentId);
+            ps.setString(2, sectionType.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getDouble("Score");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     // Inserts a new exam score row and returns generated id.
     @Override
     public int add(ExamScore score) {

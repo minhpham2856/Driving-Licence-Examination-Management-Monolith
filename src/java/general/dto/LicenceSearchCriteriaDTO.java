@@ -1,13 +1,9 @@
 package general.dto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class LicenceSearchCriteriaDTO {
 
     private String keyword;
-    private List<String> durations = new ArrayList<>();
-    private String sortBy = "licenceId";
+    private String sortBy = "licenceClass";
     private String sortDir = "asc";
 
     public String getKeyword() {
@@ -16,14 +12,6 @@ public class LicenceSearchCriteriaDTO {
 
     public void setKeyword(String keyword) {
         this.keyword = keyword;
-    }
-
-    public List<String> getDurations() {
-        return durations;
-    }
-
-    public void setDurations(List<String> durations) {
-        this.durations = durations != null ? durations : new ArrayList<>();
     }
 
     public String getSortBy() {
