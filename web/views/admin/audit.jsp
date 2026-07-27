@@ -58,7 +58,7 @@
                         <select id="filterRole" name="filterRole" class="input-field"><option value="">Tất cả vai trò</option>
                             <option value="admin" ${param.filterRole eq 'admin' ? 'selected' : ''}>Quản trị viên</option>
                             <option value="coi_thi" ${param.filterRole eq 'coi_thi' ? 'selected' : ''}>Cán bộ coi thi</option>
-                            <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>Giám khảo</option>
+                            <option value="cham_thi" ${param.filterRole eq 'cham_thi' ? 'selected' : ''}>Sát hạch viên</option>
                             <option value="managing" ${param.filterRole eq 'managing' ? 'selected' : ''}>Cán bộ quản lý</option>
                             <option value="candidate" ${param.filterRole eq 'candidate' ? 'selected' : ''}>Thí sinh</option>
                         </select></div>
@@ -126,7 +126,7 @@
                                             <c:choose>
                                                 <c:when test="${log.roleCode eq 'admin'}"><span class="role-badge role-badge--admin">Quản trị viên</span></c:when>
                                                 <c:when test="${log.roleCode eq 'coi_thi'}"><span class="role-badge role-badge--coi">Cán bộ coi thi</span></c:when>
-                                                <c:when test="${log.roleCode eq 'cham_thi'}"><span class="role-badge role-badge--cham">Giám khảo</span></c:when>
+                                                <c:when test="${log.roleCode eq 'cham_thi'}"><span class="role-badge role-badge--cham">Sát hạch viên</span></c:when>
                                                 <c:when test="${log.roleCode eq 'managing'}"><span class="role-badge role-badge--admin">Cán bộ quản lý</span></c:when>
                                                 <c:otherwise><span class="role-badge role-badge--other">${log.roleLabel}</span></c:otherwise>
                                             </c:choose>
@@ -171,7 +171,6 @@
             </footer>
         </section>
     </main>
-    <jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include>
 </div>
 
 </body>
