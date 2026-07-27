@@ -149,7 +149,8 @@ public final class AllocationPassRules {
         String license = normalizeLicense(c.getLicenseCode(), c.getClazz());
         Integer theoryScore = c.getTheoryScore();
         if (theoryScore != null && !c.skipsTheory()) {
-            c.setTheoryPassed(toPassFlag(isTheoryPassed(license, theoryScore)));
+            c.setTheoryPassed(toPassFlag(isTheoryPassed(
+                    license, theoryScore, c.hasWrongCriticalTheory())));
         }
         Integer practicalScore = c.getPracticalScore();
         if (practicalScore != null && !c.skipsPractical()) {

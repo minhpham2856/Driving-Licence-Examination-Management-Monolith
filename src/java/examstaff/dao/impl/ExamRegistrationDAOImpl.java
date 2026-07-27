@@ -1090,8 +1090,12 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
                 JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentSectionId = tp.ExamEnrollmentSectionId
                 WHERE ees.ExamEnrollmentId = ?
                   AND q.IsCritical = 1
-                  AND ca.Answer IS NOT NULL AND LTRIM(RTRIM(ca.Answer)) <> N''
-                  AND UPPER(LTRIM(RTRIM(ca.Answer))) <> UPPER(LTRIM(RTRIM(q.CorrectAnswer)))
+                  AND (
+                    ca.Answer IS NULL
+                    OR LTRIM(RTRIM(ca.Answer)) = N''
+                    OR UPPER(LTRIM(RTRIM(ca.Answer)))
+                       <> UPPER(LTRIM(RTRIM(q.CorrectAnswer)))
+                  )
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examEnrollmentId);
@@ -1222,6 +1226,7 @@ public class ExamRegistrationDAOImpl extends DBContext implements ExamRegistrati
             er.setTheoryScore(tScoreVal);
             boolean hasWrongCritical = er.getExamEnrollmentId() > 0
                     && countWrongCriticalByEnrollment(er.getExamEnrollmentId()) > 0;
+            er.setWrongCriticalTheory(hasWrongCritical);
             er.setTheoryPassed(AllocationPassRules.isTheoryPassed(licenseForPass, tScoreVal, hasWrongCritical)
                     ? "passed" : "failed");
         }

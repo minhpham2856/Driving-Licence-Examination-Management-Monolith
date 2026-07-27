@@ -120,7 +120,7 @@ public class AllocationActionServiceImpl {
     }
 
     /**
-     * Đổi / gán phòng lý thuyết cho thí sinh sau khi kiểm tra giám khảo đã phân công.
+     * Đổi / gán phòng lý thuyết cho thí sinh sau khi kiểm tra sát hạch viên đã phân công.
      * @param result  DTO kết quả (mutate)
      * @param request request gốc (areaId, …)
      * @param profile hồ sơ thí sinh (mutate khi thành công)
@@ -174,7 +174,7 @@ public class AllocationActionServiceImpl {
     }
 
     /**
-     * Đổi / gán sân thực hành cho thí sinh sau khi kiểm tra giám khảo đã phân công.
+     * Đổi / gán sân thực hành cho thí sinh sau khi kiểm tra sát hạch viên đã phân công.
      * @param result  DTO kết quả (mutate)
      * @param request request gốc (areaId, …)
      * @param profile hồ sơ thí sinh (mutate khi thành công)
