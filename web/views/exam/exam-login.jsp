@@ -19,11 +19,11 @@
         <div class="exam-kiosk-brand">
             <img class="exam-kiosk-logo" src="${ctx}/assets/imgs/csgt-footer.png" alt="Logo CSGT">
             <div>
-                <p class="exam-kiosk-eyebrow">Máy thi lý thuyết</p>
+                <p class="exam-kiosk-eyebrow">Mở ca thi (cán bộ)</p>
                 <h1>Đăng nhập kỳ thi</h1>
             </div>
         </div>
-        <p class="exam-kiosk-subtitle">Nhập mã kỳ thi và mật khẩu kỳ thi do cán bộ cấu hình để mở màn hình nhập SBD.</p>
+        <p class="exam-kiosk-subtitle">Cán bộ nhập mã kỳ thi và mật khẩu OTP 6 số để mở máy thi cho thí sinh nhập SBD.</p>
         <c:if test="${not empty error}">
             <p class="exam-kiosk-alert" role="alert"><c:out value="${error}"/></p>
         </c:if>

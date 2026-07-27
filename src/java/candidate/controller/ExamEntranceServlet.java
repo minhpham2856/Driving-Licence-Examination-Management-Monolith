@@ -18,6 +18,7 @@ import shared.model.Question;
 
 @WebServlet(urlPatterns = {
     "/exam/login",
+    "/exam/logout",
     "/exam/entrance",
     "/exam/info",
     "/exam/questions",
@@ -40,11 +41,18 @@ public class ExamEntranceServlet extends HttpServlet {
             throws ServletException, IOException {
         String path = request.getServletPath();
         if ("/exam/login".equals(path)) {
+            if (redirectToEntranceIfExamUnlocked(request, response)) {
+                return;
+            }
             request.getRequestDispatcher("/views/exam/exam-login.jsp").forward(request, response);
             return;
         }
-        if (!hasActiveExamSession(request)) {
-            forward403(request, response);
+        if ("/exam/logout".equals(path)) {
+            invalidateKioskSession(request);
+            response.sendRedirect(request.getContextPath() + "/exam/login");
+            return;
+        }
+        if (!ensureActiveExamSession(request, response)) {
             return;
         }
         if ("/exam/entrance".equals(path)) {
@@ -92,8 +100,7 @@ public class ExamEntranceServlet extends HttpServlet {
             loginExam(request, response);
             return;
         }
-        if (!hasActiveExamSession(request)) {
-            forward403(request, response);
+        if (!ensureActiveExamSession(request, response)) {
             return;
         }
         if ("/exam/submit".equals(path)) {
@@ -105,6 +112,9 @@ public class ExamEntranceServlet extends HttpServlet {
 
     private void loginExam(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (redirectToEntranceIfExamUnlocked(request, response)) {
+            return;
+        }
         String examCodeOrId = trim(firstNonBlank(request.getParameter("examCode"), request.getParameter("examId")));
         String examPassword = trim(request.getParameter("examPassword"));
         int examId = accessService.loginExam(examCodeOrId, examPassword);
@@ -115,6 +125,7 @@ public class ExamEntranceServlet extends HttpServlet {
 
         HttpSession session = request.getSession(true);
         session.setAttribute(Attributes.Session.ACTIVE_CANDIDATE_EXAM_ID, examId);
+        session.setAttribute(Attributes.Session.ACTIVE_CANDIDATE_KIOSK_PASSWORD, examPassword);
         session.removeAttribute(CANDIDATE_EXAM_CONTEXT);
         session.removeAttribute(CANDIDATE_EXAM_RESULT);
         session.removeAttribute(FAILURE_COUNT);
@@ -127,7 +138,7 @@ public class ExamEntranceServlet extends HttpServlet {
         HttpSession session = request.getSession(true);
         Integer examId = activeExamId(session);
         if (examId == null) {
-            forward403(request, response);
+            redirectToLogin(request, response);
             return;
         }
 
@@ -171,7 +182,9 @@ public class ExamEntranceServlet extends HttpServlet {
             return;
         }
         context.setQuestions(null);
-        request.getSession().setAttribute(CANDIDATE_EXAM_RESULT, result);
+        HttpSession session = request.getSession();
+        session.setAttribute(CANDIDATE_EXAM_RESULT, result);
+        session.removeAttribute(CANDIDATE_EXAM_CONTEXT);
         response.sendRedirect(request.getContextPath() + "/exam/result");
     }
 
@@ -185,9 +198,53 @@ public class ExamEntranceServlet extends HttpServlet {
         session.setAttribute(FAILURE_COUNT, failures);
     }
 
-    private boolean hasActiveExamSession(HttpServletRequest request) {
+    private boolean ensureActiveExamSession(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
         HttpSession session = request.getSession(false);
-        return activeExamId(session) != null;
+        if (hasActiveExamSession(session)) {
+            return true;
+        }
+        if (activeExamId(session) != null) {
+            invalidateKioskSession(request);
+            redirectToLogin(request, response);
+            return false;
+        }
+        forward403(request, response);
+        return false;
+    }
+
+    private boolean hasActiveExamSession(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        if (session.getAttribute(CANDIDATE_EXAM_RESULT) != null) {
+            return true;
+        }
+        Integer examId = activeExamId(session);
+        if (examId == null) {
+            return false;
+        }
+        if (isCandidateExamInProgress(session)) {
+            return true;
+        }
+        String storedPassword = kioskPassword(session);
+        if (storedPassword == null) {
+            return false;
+        }
+        return accessService.verifyExamPassword(examId, storedPassword);
+    }
+
+    private boolean isCandidateExamInProgress(HttpSession session) {
+        if (session == null) {
+            return false;
+        }
+        CandidateExamContextDTO context = (CandidateExamContextDTO) session.getAttribute(CANDIDATE_EXAM_CONTEXT);
+        if (context == null) {
+            return false;
+        }
+        return context.getTheoryPaperId() > 0
+                || context.getQuestions() != null
+                || context.getStartedAtMillis() > 0L;
     }
 
     private Integer activeExamId(HttpSession session) {
@@ -198,10 +255,49 @@ public class ExamEntranceServlet extends HttpServlet {
         return value instanceof Integer && ((Integer) value) > 0 ? (Integer) value : null;
     }
 
+    private String kioskPassword(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object value = session.getAttribute(Attributes.Session.ACTIVE_CANDIDATE_KIOSK_PASSWORD);
+        if (value instanceof String && !((String) value).isBlank()) {
+            return ((String) value).trim();
+        }
+        return null;
+    }
+
     private CandidateExamContextDTO current(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         return session == null ? null
                 : (CandidateExamContextDTO) session.getAttribute(CANDIDATE_EXAM_CONTEXT);
+    }
+
+    private boolean redirectToEntranceIfExamUnlocked(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        HttpSession session = request.getSession(false);
+        if (!hasActiveExamSession(session)) {
+            return false;
+        }
+        response.sendRedirect(request.getContextPath() + "/exam/entrance");
+        return true;
+    }
+
+    private void invalidateKioskSession(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return;
+        }
+        session.removeAttribute(Attributes.Session.ACTIVE_CANDIDATE_EXAM_ID);
+        session.removeAttribute(Attributes.Session.ACTIVE_CANDIDATE_KIOSK_PASSWORD);
+        session.removeAttribute(CANDIDATE_EXAM_CONTEXT);
+        session.removeAttribute(CANDIDATE_EXAM_RESULT);
+        session.removeAttribute(FAILURE_COUNT);
+        session.removeAttribute(LOCKED_UNTIL);
+    }
+
+    private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        invalidateKioskSession(request);
+        response.sendRedirect(request.getContextPath() + "/exam/login");
     }
 
     private void showLoginError(HttpServletRequest request, HttpServletResponse response)

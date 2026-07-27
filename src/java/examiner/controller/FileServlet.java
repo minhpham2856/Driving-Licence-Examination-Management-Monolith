@@ -160,8 +160,8 @@ public class FileServlet extends HttpServlet {
             request.setAttribute(Attributes.Examiner.Print.PRINTED_AT,
                     new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date()));
         }
-        if (preview.bbModel() != null) {
-            Map<String, Object> model = preview.bbModel();
+        if (preview.printModel() != null) {
+            Map<String, Object> model = preview.printModel();
             request.setAttribute(Attributes.Examiner.Print.MODEL, model);
             request.setAttribute(Attributes.Examiner.Print.ANSWER_LIST_A, model.get(Attributes.Examiner.Print.ANSWER_LIST_A));
             request.setAttribute(Attributes.Examiner.Print.ANSWER_LIST_B, model.get(Attributes.Examiner.Print.ANSWER_LIST_B));

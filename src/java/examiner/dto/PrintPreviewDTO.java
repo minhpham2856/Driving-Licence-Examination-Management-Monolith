@@ -6,6 +6,6 @@ import java.util.Map;
 public record PrintPreviewDTO(
         String jspPath,
         ExportPayloadDTO tablePayload,
-        Map<String, Object> bbModel,
+        Map<String, Object> printModel,
         String docTitle) {
 }

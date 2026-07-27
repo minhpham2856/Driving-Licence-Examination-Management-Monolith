@@ -6,7 +6,6 @@ import java.util.List;
 public class LicenceSearchCriteriaDTO {
 
     private String keyword;
-    private List<String> vehicleTypes = new ArrayList<>();
     private List<String> durations = new ArrayList<>();
     private String sortBy = "licenceId";
     private String sortDir = "asc";
@@ -17,14 +16,6 @@ public class LicenceSearchCriteriaDTO {
 
     public void setKeyword(String keyword) {
         this.keyword = keyword;
-    }
-
-    public List<String> getVehicleTypes() {
-        return vehicleTypes;
-    }
-
-    public void setVehicleTypes(List<String> vehicleTypes) {
-        this.vehicleTypes = vehicleTypes != null ? vehicleTypes : new ArrayList<>();
     }
 
     public List<String> getDurations() {

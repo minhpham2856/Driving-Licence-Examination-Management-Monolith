@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="10;url=${ctx}/exam/entrance">
+    <meta http-equiv="refresh" content="10;url=${ctx}/exam/logout">
     <title>Kết quả thi | Lái Vui</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,12 +25,12 @@
             <div><span>Sai</span><strong>${result.wrong}</strong></div>
             <div><span>Không trả lời</span><strong>${result.unanswered}</strong></div>
         </div>
-        <p class="exam-result-note">Màn hình sẽ tự quay về nhập SBD sau 10 giây.</p>
+        <p class="exam-result-note">Màn hình sẽ tự đăng xuất và quay về mở ca thi sau 10 giây.</p>
     </section>
 </main>
 <script>
 window.setTimeout(function () {
-    window.location.href = '${ctx}/exam/entrance';
+    window.location.href = '${ctx}/exam/logout';
 }, 10000);
 </script>
 </body>

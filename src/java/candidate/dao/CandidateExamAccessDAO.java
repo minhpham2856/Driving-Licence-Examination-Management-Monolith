@@ -8,6 +8,8 @@ public interface CandidateExamAccessDAO {
 
     int findActiveExamIdForLogin(String examCodeOrId, String examPassword);
 
+    boolean verifyExamPassword(int examId, String examPassword);
+
     CandidateExamContextDTO getEligibleTheoryContext(int examId, String candidateNumber);
 
     boolean startTheoryAttempt(CandidateExamContextDTO context, int questionLimit);
