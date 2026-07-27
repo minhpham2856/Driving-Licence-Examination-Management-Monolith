@@ -148,10 +148,13 @@ public final class RegistrantFilterSupport {
 
     private static final Map<String, StatusDefinition> MY_EXAMS_STATUS = linkedStatusMap(
             myExamStatus("pending", "Nguyện vọng / chờ xét duyệt",
-                    exam -> exam.isPreferredDate()
-                            || exam.isSbdPending()
+                    exam -> RegistrantExamSupport.isActivePreferredMyExam(exam)
+                            || (!exam.isPreferredDate() && exam.isSbdPending())
                             || "Chờ xét duyệt".equals(exam.getStatusLabel())
-                            || RegistrantExamSupport.PREFERRED_DATE_STATUS_LABEL.equals(exam.getStatusLabel())),
+                            || RegistrantExamSupport.PREFERRED_DATE_STATUS_LABEL.equals(exam.getStatusLabel())
+                            || RegistrantExamSupport.PREFERRED_DATE_LOCKED_STATUS_LABEL.equals(exam.getStatusLabel())),
+            myExamStatus("preferred_cancelled", "Nguyện vọng — đã hủy",
+                    RegistrantMyExamRow::isPreferredCancelled),
             myExamStatus("approved_waiting", "Đã xếp lịch — chờ ngày thi",
                     exam -> !exam.isPreferredDate()
                             && (RegistrantExamSupport.SCHEDULED_WAITING_STATUS_LABEL.equals(exam.getStatusLabel())
@@ -162,10 +165,11 @@ public final class RegistrantFilterSupport {
                             || "Đã thi".equals(exam.getStatusLabel())),
             myExamStatus("passed", "Đạt", exam -> "Đạt".equals(exam.getStatusLabel())),
             myExamStatus("failed", "Trượt / Từ chối",
-                    exam -> "Trượt".equals(exam.getStatusLabel())
+                    exam -> !exam.isPreferredCancelled()
+                            && ("Trượt".equals(exam.getStatusLabel())
                             || "Bị từ chối".equals(exam.getStatusLabel())
                             || "rejected".equals(exam.getStatusClass())
-                            || "danger".equals(exam.getStatusClass()))
+                            || "danger".equals(exam.getStatusClass())))
     );
 
     private RegistrantFilterSupport() {

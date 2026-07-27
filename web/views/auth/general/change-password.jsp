@@ -5,6 +5,7 @@
 <c:set var="useExamstaffShell" value="${requestScope.accountShell eq 'examstaff'}" />
 <c:set var="useExaminerShell" value="${requestScope.accountShell eq 'examiner'}" />
 <c:set var="useAdminShell" value="${requestScope.accountShell eq 'admin'}" />
+<c:set var="useManagingShell" value="${requestScope.accountShell eq 'managingstaff'}" />
 <c:set var="usePoliceShell" value="${requestScope.accountShell eq 'police'}" />
 <c:set var="headerTitle" value="Đổi mật khẩu" scope="request" />
 <c:set var="accountCssVer" value="20260714d" />
@@ -32,6 +33,27 @@
             <main class="main-content">
                 <div class="account-page account-page--portal account-page--password">
 </c:when>
+    <c:when test="${useManagingShell}">
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+            <title>Đổi mật khẩu - Ban quản lý</title>
+            <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+            <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
+            <link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}">
+        </head>
+        <body class="has-side-nav-bar">
+            <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
+                <jsp:param name="activeSidebar" value="change-password" />
+            </jsp:include>
+            <div class="dashboard-shell">
+                <main class="main-content">
+                    <div class="account-page account-page--portal account-page--password">
+    </c:when>
     <c:when test="${useExamstaffShell}">
         <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-head.jsp">
             <jsp:param name="activeSidebar" value="doi-mat-khau" />
@@ -69,7 +91,7 @@
                     <div class="account-page account-page--portal account-page--password">
     </c:when>
     <c:when test="${usePoliceShell}">
-        <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đổi mật khẩu - CSGT</title><link rel="stylesheet" href="${ctx}/assets/css/style.css"><link rel="stylesheet" href="${ctx}/assets/css/layout.css"><link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}"></head><body class="has-side-nav-bar"><jsp:include page="/views/layout/sidebar-policestaff.jsp"><jsp:param name="activeSidebar" value="profile"/></jsp:include><div class="dashboard-shell"><main class="main-content"><div class="account-page account-page--portal account-page--password">
+        <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đổi mật khẩu - CSGT</title><link rel="stylesheet" href="${ctx}/assets/css/style.css"><link rel="stylesheet" href="${ctx}/assets/css/layout.css"><link rel="stylesheet" href="${ctx}/assets/css/examstaff/account.css?v=${accountCssVer}"></head><body class="has-side-nav-bar"><jsp:include page="/views/layout/sidebar-policestaff.jsp"><jsp:param name="activeSidebar" value="change-password"/></jsp:include><div class="dashboard-shell"><main class="main-content"><div class="account-page account-page--portal account-page--password">
     </c:when>
     <c:otherwise>
         <jsp:include page="/views/layout/header.jsp">
@@ -144,6 +166,16 @@
     </body>
     </html>
 </c:when>
+    <c:when test="${useManagingShell}">
+                    </div>
+                </main>
+                <jsp:include page="/views/layout/footer.jsp">
+                    <jsp:param name="standalone" value="false" />
+                </jsp:include>
+            </div>
+        </body>
+        </html>
+    </c:when>
     <c:when test="${useExamstaffShell}">
         </div>
         <jsp:include page="/views/staff/examstaff/includes/examstaff-layout-foot.jsp" />

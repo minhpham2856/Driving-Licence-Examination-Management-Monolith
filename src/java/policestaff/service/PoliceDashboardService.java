@@ -16,7 +16,8 @@ public interface PoliceDashboardService {
     List<PoliceCandidateDTO> loadCandidates(int examDateId);
     List<PoliceCandidateDTO> loadCandidates(int examDateId, int page, int pageSize);
     int countCandidates(int examDateId);
-    boolean review(int registrationDateId, String decision, String reason);
+    boolean review(int registrationDateId, String decision, String reason,
+            String participationType);
     OfficialRosterPublishResult complete(int examDateId);
     List<OfficialExamCandidateDTO> loadOfficialCandidates(int examDateId);
     List<OfficialExamCandidateDTO> loadOfficialCandidates(int examDateId, int page, int pageSize);
