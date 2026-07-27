@@ -56,6 +56,7 @@ public class ActionServlet extends HttpServlet {
 
             request.setAttribute(Attributes.Request.CANDIDATES, candidates);
         }
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/action.jsp").forward(request, response);
     }
 
@@ -193,20 +194,6 @@ public class ActionServlet extends HttpServlet {
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/violations?sbd="
                         + RequestUtil.urlEncode(sbd) + "&mode=create&from=action");
-                return true;
-            }
-            case "undoSuspend" -> {
-                if (sbd == null) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
-                    return true;
-                }
-                if (!actionService.undoSuspension(activeExamId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=unsuspendFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
-                    return true;
-                }
-                response.sendRedirect(request.getContextPath() + "/examiner/action?unsuspended="
-                        + RequestUtil.urlEncode(sbd));
                 return true;
             }
             default -> {

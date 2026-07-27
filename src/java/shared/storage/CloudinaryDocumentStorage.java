@@ -11,7 +11,9 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.TreeMap;
 import java.util.UUID;
 import shared.ConfigManager;
@@ -156,27 +158,51 @@ public final class CloudinaryDocumentStorage {
         }
     }
 
-    /** URL có chữ ký, hết hạn sau TTL cấu hình (mặc định 30 phút). */
+    /**
+     * URL xem tạm trên trình duyệt cho asset authenticated.
+     * Dùng chữ ký delivery /s--XXXX--/ (không dùng query api_key — res.cloudinary.com sẽ từ chối).
+     */
     public static String signedDeliveryUrl(String resourceType, String publicId) {
-        if (!isConfigured() || blank(publicId)) {
+        if (!isConfigured() || blank(publicId) || blank(resourceType)) {
             return null;
         }
-        long ttl = signedUrlTtlSeconds();
-        long timestamp = Instant.now().getEpochSecond() + ttl;
+        try {
+            String toSign = publicId + apiSecret();
+            byte[] digest = MessageDigest.getInstance("SHA-1")
+                    .digest(toSign.getBytes(StandardCharsets.UTF_8));
+            String signature = Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(digest);
+            if (signature.length() > 8) {
+                signature = signature.substring(0, 8);
+            }
+            return "https://res.cloudinary.com/"
+                    + cloudName()
+                    + "/" + resourceType.trim()
+                    + "/" + accessType()
+                    + "/s--" + signature + "--/"
+                    + publicId;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
 
-        TreeMap<String, String> signParams = new TreeMap<>();
-        signParams.put("public_id", publicId);
-        signParams.put("timestamp", String.valueOf(timestamp));
-        String signature = signApi(signParams);
-
-        return "https://res.cloudinary.com/"
-                + cloudName()
-                + "/" + resourceType
-                + "/" + accessType()
-                + "/" + publicId
-                + "?api_key=" + urlEncode(apiKey())
-                + "&timestamp=" + timestamp
-                + "&signature=" + signature;
+    /** Đổi ref DB cloudinary:… thành URL trình duyệt xem được. */
+    public static String resolveViewUrl(String storedRef) {
+        if (storedRef == null || storedRef.isBlank()) {
+            return null;
+        }
+        String trimmed = storedRef.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        if (!isCloudinaryRef(trimmed)) {
+            return trimmed;
+        }
+        CloudinaryRef ref = parseRef(trimmed);
+        if (ref == null) {
+            return null;
+        }
+        return signedDeliveryUrl(ref.resourceType, ref.publicId);
     }
 
     private static String buildPublicId(int profileId, String docType, String ext) {

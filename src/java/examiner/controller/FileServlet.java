@@ -184,7 +184,8 @@ public class FileServlet extends HttpServlet {
         }
         ExaminerSchedule schedule = (ExaminerSchedule) session.getAttribute(Attributes.Examiner.SCHEDULE);
         SectionType sectionType = ExaminerFilter.resolveSectionType(session);
-        return new ExportContextDTO(activeExamId, schedule, sectionType == SectionType.THEORY, sectionType);
+        return new ExportContextDTO(activeExamId, schedule, sectionType == SectionType.THEORY, sectionType,
+                request.getContextPath());
     }
 
     private void syncResultPrintedFlag(ExportContextDTO ctx, String type, int sbd) {

@@ -1,17 +1,63 @@
 (function () {
     'use strict';
 
+    var preferredVoice = null;
+
+    function resolveVietnameseVoice() {
+        if (!window.speechSynthesis) {
+            return null;
+        }
+        var voices = window.speechSynthesis.getVoices();
+        var i;
+        for (i = 0; i < voices.length; i++) {
+            if (voices[i].lang === 'vi-VN') {
+                return voices[i];
+            }
+        }
+        for (i = 0; i < voices.length; i++) {
+            if (voices[i].lang && voices[i].lang.indexOf('vi') === 0) {
+                return voices[i];
+            }
+        }
+        return null;
+    }
+
+    function refreshVoice() {
+        preferredVoice = resolveVietnameseVoice();
+    }
+
+    if (window.speechSynthesis) {
+        refreshVoice();
+        if (typeof window.speechSynthesis.addEventListener === 'function') {
+            window.speechSynthesis.addEventListener('voiceschanged', refreshVoice);
+        } else {
+            window.speechSynthesis.onvoiceschanged = refreshVoice;
+        }
+    }
+
     function initCallButtons() {
         document.querySelectorAll('.js-call-candidate').forEach(function (form) {
             form.addEventListener('submit', function () {
-                if (!window.speechSynthesis) {
+                if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
                     return;
                 }
                 window.speechSynthesis.cancel();
-                var speech = new SpeechSynthesisUtterance(
-                    'Mời thí sinh số báo danh ' + form.dataset.sbd + ', ' + form.dataset.name + ', vào khu vực thi.');
-                speech.lang = 'vi-VN';
-                window.speechSynthesis.speak(speech);
+                if (!preferredVoice) {
+                    refreshVoice();
+                }
+                var sbd = form.dataset.sbd || '';
+                var name = form.dataset.name || '';
+                var text = 'Mời thí sinh số báo danh ' + sbd
+                        + (name ? ', ' + name : '')
+                        + ', nhanh chóng đến khu vực thi.';
+                var utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'vi-VN';
+                utterance.rate = 0.92;
+                utterance.pitch = 1;
+                if (preferredVoice) {
+                    utterance.voice = preferredVoice;
+                }
+                window.speechSynthesis.speak(utterance);
             });
         });
     }
@@ -115,11 +161,6 @@
                     label.textContent = count || '';
                 }
 
-                var timeLabel = row.querySelector('.js-deduction-time');
-                if (timeLabel && count === 0) {
-                    timeLabel.textContent = '';
-                }
-
                 if (row.dataset.critical === 'true' && count > 0) {
                     failed = true;
                 }
@@ -182,7 +223,7 @@
             });
         }
 
-        document.querySelectorAll('.score-entry-timer__preset').forEach(function (button) {
+        document.querySelectorAll('.timer-preset').forEach(function (button) {
             button.addEventListener('click', function () {
                 if (!minutesInput) {
                     return;
@@ -206,20 +247,6 @@
                 var previous = counts.get(id) || 0;
                 var next = Math.max(0, previous + Number(button.dataset.delta));
                 counts.set(id, next);
-                var row = button.closest('tr[data-deduction-id]');
-                var timeLabel = row ? row.querySelector('.js-deduction-time') : null;
-                if (timeLabel) {
-                    if (next > 0 && previous === 0) {
-                        timeLabel.textContent = new Date().toLocaleTimeString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false
-                        });
-                    } else if (next === 0) {
-                        timeLabel.textContent = '';
-                    }
-                }
                 render();
                 persist();
             });

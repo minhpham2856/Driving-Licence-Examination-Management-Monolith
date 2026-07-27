@@ -87,6 +87,7 @@ public class ScoreServlet extends HttpServlet {
             }
         }
 
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/score-entry.jsp").forward(request, response);
     }
 

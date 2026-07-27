@@ -17,8 +17,6 @@ public final class FormatUtil {
         return switch (normalized) {
             case "minutes" ->
                 "result";
-            case "paper", "exam-paper", "de-thi", "theory", "bb1", "bb1-ly-thuyet" ->
-                "theory";
             case "layout", "bb2", "bb2-thuc-hanh-trong-hinh", "score-sheet" ->
                 "layout";
             case "violation", "violation-minutes", "bien-ban-vi-pham" ->
@@ -46,7 +44,6 @@ public final class FormatUtil {
         }
         String normalized = formatDocumentType(type);
         return "result".equals(normalized)
-                || "theory".equals(normalized)
                 || "layout".equals(normalized)
                 || "violation".equals(normalized);
     }
@@ -85,8 +82,6 @@ public final class FormatUtil {
                 sbd > 0 ? "biên bản vi phạm" : "danh sách thí sinh vi phạm";
             case "audit" ->
                 "nhật ký";
-            case "theory" ->
-                "đề thi";
             case "layout" ->
                 "biên bản thực hành";
             default ->
@@ -125,8 +120,6 @@ public final class FormatUtil {
         String label = switch (normalized) {
             case "result", "results" ->
                 "Biên bản kết quả thi";
-            case "theory" ->
-                "Biên bản sát hạch lý thuyết";
             case "layout" ->
                 "Biên bản sát hạch thực hành";
             case "violation" ->

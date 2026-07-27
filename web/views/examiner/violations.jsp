@@ -1,105 +1,150 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
+<%--context variable--%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Đình chỉ" />
 
 <!DOCTYPE html>
 <html lang="vi">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Sát hạch</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
-            <jsp:param name="pageCss" value="score-entry.css,candidate-detail.css" />
+        <jsp:include page="/views/examiner/components/head.jsp">
+            <jsp:param name="pageCss" value="violation.css" />
         </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' inactive' : ''}">
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="action" />
         </jsp:include>
 
-        <div class="examiner-shell">
-            <jsp:include page="/views/layout/header-examiner.jsp" />
-            <main class="examiner-main examiner-main--scroll">
-                <jsp:include page="/views/examiner/components/examiner-messages.jsp" />
+        <div class="shell">
+            <jsp:include page="/views/layout/header-examiner.jsp">
+                <jsp:param name="title" value="${param.mode eq 'view' ? 'Xem vi phạm' : 'Đình chỉ'}" />
+            </jsp:include>
+            <main class="main scroll">
+                <jsp:include page="/views/examiner/components/messages.jsp" />
 
                 <c:choose>
+                    <%--case 1: create violation form--%>
                     <c:when test="${param.mode eq 'create' and not empty candidate}">
-                        <section class="examiner-card">
-                            <div class="examiner-card__head">
-                                <div class="score-entry-card__title">
-                                    <span class="material-symbols-outlined">gavel</span>
-                                    <h2>Đình chỉ thí sinh</h2>
-                                </div>
-                            </div>
+                        <div class="vio-page">
+                            <a href="${ctx}/examiner/action" class="btn white vio-back">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                Quay lại
+                            </a>
 
-                            <div class="score-entry-selected-card">
-                                <div class="score-entry-selected-card__main">
-                                    <span class="score-entry-selected-card__eyebrow">Thí sinh bị đình chỉ</span>
-                                    <h2>${candidate.fullName}</h2>
-                                    <p>SBD: <strong>${candidate.candidateNumber}</strong></p>
-                                </div>
-                                <div class="score-entry-selected-card__meta">
-                                    <span>${candidate.statusLabel}</span>
-                                    <span>Hạng: ${empty candidate.licenceClass ? '' : candidate.licenceClass}</span>
-                                </div>
-                            </div>
+                            <h1 class="vio-title">Đình chỉ thí sinh</h1>
+                            <p class="vio-meta">
+                                SBD <strong>${candidate.candidateNumber}</strong>
+                                · ${candidate.fullName}
+                                <c:if test="${not empty candidate.licenceClass}"> · Hạng ${candidate.licenceClass}</c:if>
+                            </p>
 
-                            <form method="post" action="${ctx}/examiner/violations" enctype="multipart/form-data">
+                            <form method="post"
+                                  action="${ctx}/examiner/violations"
+                                  enctype="multipart/form-data"
+                                  class="vio-form">
                                 <input type="hidden" name="action" value="createViolation">
                                 <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
-                                <input type="hidden" name="from" value="${empty param.from ? 'action' : param.from}">
+                                <input type="hidden"
+                                       name="from"
+                                       value="${empty param.from ? 'action' : param.from}">
 
-                                <div class="violation-form-field">
-                                    <label class="violation-form-field__label" for="reasonCode">Lý do đình chỉ</label>
-                                    <select id="reasonCode" name="reasonCode" class="violation-form-field__select" required>
-                                        <option value="">-- Chọn lý do --</option>
-                                        <c:forEach var="reason" items="${violationReasons}">
-                                            <option value="${reason.code}">${reason.label}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
+                                <label class="vio-label" for="reasonCode">Lý do đình chỉ</label>
+                                <select id="reasonCode"
+                                        name="reasonCode"
+                                        class="vio-input"
+                                        required>
+                                    <option value="">-- Chọn lý do --</option>
+                                    <c:forEach var="reason" items="${violationReasons}">
+                                        <option value="${reason.code}">${reason.label}</option>
+                                    </c:forEach>
+                                </select>
 
-                                <div class="violation-form-field">
-                                    <label class="violation-form-field__label" for="reasonDetail">Chi tiết vi phạm</label>
-                                    <textarea id="reasonDetail" name="reasonDetail" class="violation-form-field__textarea"
-                                              rows="5" maxlength="2000"
-                                              placeholder="Nhập mô tả chi tiết vi phạm, bắt buộc nếu chọn lý do Khác"></textarea>
-                                </div>
+                                <label class="vio-label" for="reasonDetail">Chi tiết vi phạm</label>
+                                <textarea id="reasonDetail"
+                                          name="reasonDetail"
+                                          class="vio-input vio-textarea"
+                                          rows="4"
+                                          maxlength="2000"
+                                          placeholder="Mô tả chi tiết (bắt buộc nếu chọn lý do Khác)"></textarea>
 
-                                <div class="violation-form-field">
-                                    <label class="violation-form-field__label" for="evidenceFile">Ảnh minh chứng</label>
-                                    <input id="evidenceFile" type="file" name="evidenceFile"
-                                           class="violation-form-field__file"
-                                           accept="image/jpeg,image/png,image/webp" required>
-                                    <p class="violation-form-field__hint">Chỉ nhận JPEG, PNG hoặc WebP; tối đa 5 MB.</p>
-                                </div>
+                                <label class="vio-label" for="evidenceFile">Ảnh minh chứng</label>
+                                <input id="evidenceFile"
+                                       type="file"
+                                       name="evidenceFile"
+                                       class="vio-input"
+                                       accept="image/jpeg,image/png,image/webp"
+                                       required>
+                                <p class="vio-hint">JPEG, PNG hoặc WebP · tối đa 5 MB</p>
 
-                                <div class="violation-form-field">
-                                    <label class="violation-form-field__label" for="confirmPassword">Mật khẩu xác nhận</label>
-                                    <input id="confirmPassword" type="password" name="confirmPassword"
-                                           class="violation-form-field__select"
-                                           placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
-                                </div>
+                                <label class="vio-label" for="confirmPassword">Mật khẩu xác nhận</label>
+                                <input id="confirmPassword"
+                                       type="password"
+                                       name="confirmPassword"
+                                       class="vio-input"
+                                       placeholder="Nhập mật khẩu của bạn"
+                                       required
+                                       autocomplete="current-password">
 
-                                <div class="violation-form-actions">
-                                    <button type="submit" class="examiner-btn examiner-btn--danger">
+                                <div class="vio-actions">
+                                    <button type="submit" class="btn red">
                                         <span class="material-symbols-outlined">gavel</span>
                                         Xác nhận đình chỉ
                                     </button>
-                                    <a href="${ctx}/examiner/action" class="examiner-btn examiner-btn--white">
-                                        <span class="material-symbols-outlined">close</span>
-                                        Hủy
-                                    </a>
+                                    <a href="${ctx}/examiner/action" class="btn white">Hủy</a>
                                 </div>
                             </form>
-                        </section>
+                        </div>
                     </c:when>
+
+                    <%--case 2: view violation--%>
+                    <c:when test="${param.mode eq 'view' and not empty candidate}">
+                        <div class="vio-page">
+                            <a href="${ctx}/examiner/action" class="btn white vio-back">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                Quay lại
+                            </a>
+
+                            <h1 class="vio-title">Chi tiết vi phạm</h1>
+                            <p class="vio-meta">
+                                SBD <strong>${candidate.candidateNumber}</strong>
+                                · ${candidate.fullName}
+                                <c:if test="${not empty candidate.licenceClass}"> · Hạng ${candidate.licenceClass}</c:if>
+                                · ${candidate.statusLabel}
+                            </p>
+
+                            <c:choose>
+                                <c:when test="${empty violation}">
+                                    <p class="vio-hint">Không tìm thấy biên bản vi phạm cho thí sinh này.</p>
+                                </c:when>
+                                <c:otherwise>
+                                    <dl class="vio-dl">
+                                        <dt>Lý do đình chỉ</dt>
+                                        <dd>${empty violation.reason ? '—' : violation.reason}</dd>
+
+                                        <dt>Chi tiết vi phạm</dt>
+                                        <dd>${empty violation.details ? '—' : violation.details}</dd>
+
+                                        <dt>Ảnh minh chứng</dt>
+                                        <dd>
+                                            <c:choose>
+                                                <c:when test="${not empty violationEvidenceUrl}">
+                                                    <img class="vio-img"
+                                                         src="${violationEvidenceUrl}"
+                                                         alt="Ảnh minh chứng">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="vio-hint">Không có ảnh minh chứng.</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </dd>
+                                    </dl>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </c:when>
+
+                    <%--case 3: redirect to action--%>
                     <c:otherwise>
                         <c:redirect url="${ctx}/examiner/action" />
                     </c:otherwise>

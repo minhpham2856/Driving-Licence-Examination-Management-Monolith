@@ -6,11 +6,6 @@ import shared.model.DeductionRecord;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 // JDBC implementation for DeductionRecord; examiner module DAO layer only.
 public class DeductionRecordDAOImpl extends DBContext implements DeductionRecordDAO {
@@ -36,13 +31,12 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
     // Inserts a new deduction occurrence row.
     @Override
     public boolean add(DeductionRecord record) {
-        String sql = "INSERT INTO DeductionRecord (ExamScoreId, ScoreDeductionId, OccurrenceCount, RecordedAt) "
-                + "VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO DeductionRecord (ExamScoreId, ScoreDeductionId, OccurrenceCount) "
+                + "VALUES (?, ?, ?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, record.getExamScoreId());
             ps.setInt(2, record.getScoreDeductionId());
             ps.setInt(3, record.getOccurrenceCount());
-            ps.setTimestamp(4, record.getRecordedAt());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -50,16 +44,15 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return false;
     }
 
-    // Updates occurrence count and recorded timestamp for one score/rule pair.
+    // Updates occurrence count for one score/rule pair.
     @Override
-    public boolean updateOccurrence(int examScoreId, int scoreDeductionId, int occurrenceCount, Timestamp recordedAt) {
-        String sql = "UPDATE DeductionRecord SET OccurrenceCount = ?, RecordedAt = ? "
+    public boolean updateOccurrence(int examScoreId, int scoreDeductionId, int occurrenceCount) {
+        String sql = "UPDATE DeductionRecord SET OccurrenceCount = ? "
                 + "WHERE ExamScoreId = ? AND ScoreDeductionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, occurrenceCount);
-            ps.setTimestamp(2, recordedAt);
-            ps.setInt(3, examScoreId);
-            ps.setInt(4, scoreDeductionId);
+            ps.setInt(2, examScoreId);
+            ps.setInt(3, scoreDeductionId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -81,4 +74,3 @@ public class DeductionRecordDAOImpl extends DBContext implements DeductionRecord
         return false;
     }
 }
-

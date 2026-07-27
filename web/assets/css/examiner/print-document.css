@@ -1,4 +1,4 @@
-.print-doc {
+.doc {
     margin: 0;
     padding: 0;
     background: #e2e8f0;
@@ -8,7 +8,7 @@
     font-weight: 400;
 }
 
-.print-doc__toolbar {
+.toolbar {
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -18,7 +18,7 @@
     font-family: "Segoe UI", Tahoma, sans-serif;
 }
 
-.print-doc__btn {
+.btn {
     border: 1px solid #cbd5e1;
     border-radius: 8px;
     padding: 8px 14px;
@@ -28,13 +28,13 @@
     background: #fff;
 }
 
-.print-doc__btn--primary {
+.btn.blue {
     background: #003d9b;
     border-color: #003d9b;
     color: #fff;
 }
 
-.print-doc__page {
+.page {
     max-width: 900px;
     margin: 16px auto;
     padding: 24px 28px 32px;
@@ -43,7 +43,7 @@
 }
 
 /* Preview + print: filled A4 portrait height */
-.print-doc__page--bb1 {
+.page-bb1 {
     width: 210mm;
     max-width: 210mm;
     min-height: 297mm;
@@ -53,11 +53,11 @@
     flex-direction: column;
 }
 
-.print-doc__page--table {
+.page-table {
     max-width: 1100px;
 }
 
-.print-doc__header {
+.header {
     display: flex;
     justify-content: space-between;
     gap: 20px;
@@ -66,25 +66,25 @@
     flex-shrink: 0;
 }
 
-.print-doc__header-col {
+.header-col {
     flex: 1;
     text-align: center;
 }
 
-.print-doc__org {
+.org {
     font-weight: 700;
     font-size: 18px;
     text-transform: uppercase;
     line-height: 1.4;
 }
 
-.print-doc__org--underline {
+.org-underline {
     display: inline-block;
     border-bottom: 1px solid #000;
     padding-bottom: 1px;
 }
 
-.print-doc__motto {
+.motto {
     font-size: 18px;
     font-weight: 700;
     font-style: italic;
@@ -94,7 +94,7 @@
     padding-bottom: 1px;
 }
 
-.print-doc__title {
+.title {
     text-align: center;
     font-size: 24px;
     font-weight: 700;
@@ -104,18 +104,18 @@
     flex-shrink: 0;
 }
 
-.print-doc__info {
+.info {
     display: flex;
     gap: 16px;
     margin-bottom: 18px;
     flex-shrink: 0;
 }
 
-.print-doc__info-main {
+.info-main {
     flex: 1;
 }
 
-.print-doc__row {
+.row {
     display: flex;
     justify-content: space-between;
     gap: 16px;
@@ -125,16 +125,16 @@
     line-height: 1.55;
 }
 
-.print-doc__row > span {
+.row > span {
     flex: 1;
     font-weight: 400;
 }
 
-.print-doc__row .print-doc__value {
+.row .value {
     font-weight: 400 !important;
 }
 
-.print-doc__photo {
+.photo {
     width: 110px;
     height: 140px;
     border: 1px dashed #333;
@@ -148,13 +148,13 @@
     text-align: center;
 }
 
-.print-doc__photo img {
+.photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.print-doc__answers {
+.answers {
     width: 100%;
     border-collapse: collapse;
     margin: 8px 0 14px;
@@ -163,8 +163,8 @@
     flex: 1 1 auto;
 }
 
-.print-doc__answers th,
-.print-doc__answers td {
+.answers th,
+.answers td {
     border: 1px solid #000;
     padding: 8px 3px;
     text-align: center;
@@ -173,80 +173,80 @@
     height: 30px;
 }
 
-.print-doc__answers th {
+.answers th {
     font-weight: 700;
 }
 
-.print-doc__answers .print-doc__traloi {
+.answers .traloi {
     width: 56px;
     font-weight: 700;
 }
 
-.print-doc__answers .print-doc__choice {
+.answers .choice {
     width: 24px;
     font-weight: 700;
 }
 
-.print-doc__answers .print-doc__qno {
+.answers .qno {
     font-weight: 700;
 }
 
-.print-doc__practice,
-.print-doc__data {
+.practice,
+.data {
     width: 100%;
     border-collapse: collapse;
     margin: 10px 0;
     font-size: 12px;
 }
 
-.print-doc__practice th,
-.print-doc__practice td,
-.print-doc__data th,
-.print-doc__data td {
+.practice th,
+.practice td,
+.data th,
+.data td {
     border: 1px solid #333;
     padding: 4px 6px;
     text-align: center;
 }
 
-.print-doc__practice th:nth-child(2),
-.print-doc__practice td:nth-child(2),
-.print-doc__data th,
-.print-doc__data td {
+.practice th:nth-child(2),
+.practice td:nth-child(2),
+.data th,
+.data td {
     text-align: left;
 }
 
-.print-doc__practice th:first-child,
-.print-doc__practice td:first-child,
-.print-doc__practice th:nth-child(3),
-.print-doc__practice td:nth-child(3),
-.print-doc__practice th:nth-child(4),
-.print-doc__practice td:nth-child(4) {
+.practice th:first-child,
+.practice td:first-child,
+.practice th:nth-child(3),
+.practice td:nth-child(3),
+.practice th:nth-child(4),
+.practice td:nth-child(4) {
     text-align: center;
 }
 
-.print-doc__practice-total td {
+.practice-total td {
     font-weight: 700;
 }
 
-.print-doc__empty {
+.empty {
     text-align: center !important;
 }
 
-.print-doc__violation-body {
+.violation-body {
     margin-top: 18px;
     font-size: 20px;
     line-height: 1.65;
 }
 
-.print-doc__violation-body p {
+.violation-body p {
     margin: 0 0 12px;
 }
 
-.print-doc__evidence {
+.evidence {
     margin-top: 12px;
 }
 
-.print-doc__evidence img {
+.evidence img {
     display: block;
     max-width: 100%;
     max-height: 320px;
@@ -255,12 +255,12 @@
     object-fit: contain;
 }
 
-.print-doc__data th {
+.data th {
     background: #f1f5f9;
     font-weight: 700;
 }
 
-.print-doc__ketluan {
+.ketluan {
     margin-top: 20px;
     font-size: 20px;
     font-weight: 400;
@@ -268,11 +268,11 @@
     flex-shrink: 0;
 }
 
-.print-doc__ketluan-label {
+.ketluan-label {
     font-weight: 700 !important;
 }
 
-.print-doc__box {
+.box {
     display: inline-block;
     min-width: 1.2em;
     text-align: center;
@@ -280,7 +280,7 @@
     font-weight: 700;
 }
 
-.print-doc__signs {
+.signs {
     display: flex;
     justify-content: space-between;
     margin-top: auto;
@@ -292,16 +292,16 @@
     flex-shrink: 0;
 }
 
-.print-doc__signs > div {
+.signs > div {
     width: 42%;
 }
 
-.print-doc__sign-label {
+.sign-label {
     font-weight: 400;
     text-decoration: underline;
 }
 
-.print-doc__meta {
+.meta {
     text-align: center;
     margin: 4px 0;
     font-size: 12px;
@@ -319,7 +319,7 @@
     }
 
     html,
-    body.print-doc {
+    body.doc {
         width: 210mm;
         height: 297mm;
         background: #fff;
@@ -327,14 +327,14 @@
         padding: 0;
     }
 
-    .print-doc__page {
+    .page {
         margin: 0;
         padding: 0;
         box-shadow: none;
         max-width: none;
     }
 
-    .print-doc__page--bb1 {
+    .page-bb1 {
         width: 100%;
         max-width: none;
         min-height: 277mm;
@@ -342,8 +342,8 @@
         padding: 0;
     }
 
-    .print-doc__answers th,
-    .print-doc__answers td {
+    .answers th,
+    .answers td {
         height: 32px;
         padding: 8px 2px;
         font-size: 18px;

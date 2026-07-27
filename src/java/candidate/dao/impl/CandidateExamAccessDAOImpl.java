@@ -413,9 +413,7 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 ps.executeUpdate();
             }
             int examResultId = upsertResult(connection, context.getExamEnrollmentId(), result.isPassed());
-            double finalScore = result.isCriticalFailed() || context.getQuestions().isEmpty()
-                    ? 0
-                    : result.getCorrect() * 100.0 / context.getQuestions().size();
+            double finalScore = result.isCriticalFailed() ? 0 : result.getCorrect();
             upsertScore(connection, examResultId, context.getExamSectionId(),
                     finalScore);
             try (PreparedStatement ps = connection.prepareStatement(
@@ -457,7 +455,7 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
                 result.setCriticalFailed(true);
             }
         }
-        int required = (int) Math.ceil(questions.size() * 0.8);
+        int required = 21;
         result.setPassed(result.getCorrect() >= required && !result.isCriticalFailed());
         return result;
     }

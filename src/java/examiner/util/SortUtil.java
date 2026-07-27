@@ -3,6 +3,7 @@ package examiner.util;
 import examiner.dto.CandidateRowDTO;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 // Parses and applies column sort specs for examiner candidate table views.
@@ -10,9 +11,12 @@ public final class SortUtil {
 
     public static final String DEFAULT_COLUMN = "sbd";
     public static final String DEFAULT_DIRECTION = "asc";
+    public static final String PAPER_DEFAULT_COLUMN = "questionNo";
     private static final Set<String> ALLOWED_COLUMNS = Set.of(
             "fullName", "sbd", "dob", "address", "status", "governmentId",
             "correct", "wrong", "unanswered", "result", "examDate", "examScore");
+    private static final Set<String> PAPER_COLUMNS = Set.of(
+            "questionNo", "correctAnswer", "studentAnswer");
 
     private SortUtil() {
     }
@@ -47,12 +51,34 @@ public final class SortUtil {
         return new Spec(column, ascending);
     }
 
+    // Parses sort for theory paper answer rows.
+    public static Spec parsePaper(String sort, String dir) {
+        String column = sort != null ? sort.trim() : PAPER_DEFAULT_COLUMN;
+        if (!PAPER_COLUMNS.contains(column)) {
+            column = PAPER_DEFAULT_COLUMN;
+        }
+        boolean ascending = !"desc".equalsIgnoreCase(dir);
+        return new Spec(column, ascending);
+    }
+
     // Sorts candidate rows in place using the parsed spec.
     public static void sort(List<CandidateRowDTO> rows, Spec spec) {
         if (rows == null || rows.size() < 2 || spec == null) {
             return;
         }
         Comparator<CandidateRowDTO> comparator = comparatorFor(spec.getColumn());
+        if (!spec.isAscending()) {
+            comparator = comparator.reversed();
+        }
+        rows.sort(comparator);
+    }
+
+    // Sorts theory paper answer maps in place.
+    public static void sortPaperRows(List<Map<String, Object>> rows, Spec spec) {
+        if (rows == null || rows.size() < 2 || spec == null) {
+            return;
+        }
+        Comparator<Map<String, Object>> comparator = paperComparatorFor(spec.getColumn());
         if (!spec.isAscending()) {
             comparator = comparator.reversed();
         }
@@ -87,6 +113,27 @@ public final class SortUtil {
             default ->
                 Comparator.comparingInt(CandidateRowDTO::getCandidateNumber);
         };
+    }
+
+    private static Comparator<Map<String, Object>> paperComparatorFor(String column) {
+        return switch (column) {
+            case "correctAnswer" ->
+                Comparator.comparing(row -> normalizeString(row.get("correctAnswer")));
+            case "studentAnswer" ->
+                Comparator.comparing(row -> normalizeString(row.get("studentAnswer")));
+            case "questionNo" ->
+                Comparator.comparingInt(row -> paperQuestionNo(row));
+            default ->
+                Comparator.comparingInt(row -> paperQuestionNo(row));
+        };
+    }
+
+    private static int paperQuestionNo(Map<String, Object> row) {
+        Object value = row.get("questionNo");
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        return 0;
     }
 
     // Private helper: string comparator.

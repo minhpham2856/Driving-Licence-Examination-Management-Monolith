@@ -358,6 +358,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.put("unanswered", unanswered);
             row.put("correct", correct);
             row.put("answerStatus", unanswered ? "skipped" : (correct ? "correct" : "wrong"));
+            row.put("critical", question.isCritical());
             rows.add(row);
         }
         // Sort rows by question number
@@ -628,11 +629,11 @@ public class ExamViewServiceImpl implements ExamViewService {
         if (device.isActive()) {
             row.put("status", DeviceStatus.ACTIVE.getValue());
             row.put("statusLabel", DeviceStatus.ACTIVE.getValue());
-            row.put("statusClass", "device-grid-card--available");
+            row.put("statusClass", "free");
         } else {
             row.put("status", DeviceStatus.MAINTENANCE.getValue());
             row.put("statusLabel", DeviceStatus.MAINTENANCE.getValue());
-            row.put("statusClass", "device-grid-card--maintenance");
+            row.put("statusClass", "unused");
         }
         row.put("icon", deviceIcon(device.getDeviceType()));
         return row;
@@ -1144,7 +1145,7 @@ public class ExamViewServiceImpl implements ExamViewService {
     }
 
     // Loads score deduction rules for a section, and if candidateId/examId
-    // provided, enriches with occurrence counts and recorded timestamps.
+    // provided, enriches with occurrence counts.
     private List<Map<String, Object>> loadScoreDeductions(SectionType sectionType, Integer candidateId, Integer examId) {
         // Fetch deduction rules (list of maps with id, name, points, etc.)
         List<Map<String, Object>> list = viewDAO.getAllScoreDeductionRulesByExam(sectionTypeValue(sectionType),
@@ -1155,14 +1156,12 @@ public class ExamViewServiceImpl implements ExamViewService {
         // If we have a valid candidate and session, load actual occurrences
         if (candidateId != null && candidateId > 0 && examId != null && examId > 0 && !list.isEmpty()) {
             Map<Integer, int[]> occurrences = viewDAO.getAllDeductionOccurrencesByExam(candidateId, examId);
-            Map<Integer, java.util.Date> recordedAt = viewDAO.getAllDeductionRecordedAtByExam(candidateId, examId);
             for (Map<String, Object> row : list) {
                 int id = (Integer) row.get("id");
                 int[] occ = occurrences.get(id);
                 if (occ != null) {
                     row.put("occurrenceCount", occ[0]);
                     row.put("count", occ[0]);
-                    row.put("recordedAt", recordedAt.get(id));
                 }
             }
         }

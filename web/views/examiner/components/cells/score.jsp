@@ -1,1 +1,0 @@
-<td class="examiner-table__mono-md">${empty c.examScore ? '' : c.examScore}</td>

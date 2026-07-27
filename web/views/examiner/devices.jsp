@@ -2,70 +2,127 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
-<!--variables-->
+<%-- variables--%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="headerTitle" value="Quản lý thiết bị" />
 <c:set var="pageUrl" value="${ctx}/examiner/devices" scope="request" />
 
-<!--page-->
+<%--page--%>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>SÁT HẠCH</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
-        <jsp:include page="/views/examiner/components/examiner-styles.jsp">
+        <jsp:include page="/views/examiner/components/head.jsp">
             <jsp:param name="pageCss" value="devices.css" />
         </jsp:include>
     </head>
-    <body class="has-side-nav-bar examiner-portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' examiner-portal--inactive' : ''}">
+    <body class="has-side-nav-bar portal${empty examinerHasActiveExam or not examinerHasActiveExam ? ' inactive' : ''}">
 
-        <!--sidebar-->
+        <%--sidebar--%>
         <jsp:include page="/views/layout/sidebar-examiner.jsp">
             <jsp:param name="activeSidebar" value="devices" />
         </jsp:include>
 
-        <!--shell-->
-        <div class="examiner-shell">
+        <%--shell--%>
+        <div class="shell">
 
-            <!--header-->
-            <jsp:include page="/views/layout/header-examiner.jsp" />
+            <%--header--%>
+            <jsp:include page="/views/layout/header-examiner.jsp">
+                <jsp:param name="title" value="Quản lý thiết bị" />
+            </jsp:include>
 
-            <!--main content-->
-            <main class="examiner-main examiner-main--scroll">
+            <%--main content--%>
+            <main class="main scroll">
 
-                <!--action message-->
-                <jsp:include page="/views/examiner/components/examiner-messages.jsp" />
+                <%--action message--%>
+                <jsp:include page="/views/examiner/components/messages.jsp" />
 
-                <!--toolbar-->
-                <jsp:include page="/views/examiner/components/toolbar.jsp">
-                    <jsp:param name="btnSearch" value="right" />
-                    <jsp:param name="searchWide" value="true" />
-                    <jsp:param name="searchPlaceholder" value="Tìm theo tên, loại, trạng thái..." />
-                    <jsp:param name="btnRefresh" value="right" />
-                </jsp:include>
+                <%--toolbar--%>
+                <section class="toolbar toolbar-tools">
+                    <div class="toolbar-group"></div>
+                    <div class="toolbar-group search-form">
+                        <jsp:include page="/views/examiner/components/search-form.jsp">
+                            <jsp:param name="wide" value="true" />
+                            <jsp:param name="placeholder" value="Tìm theo tên, loại, trạng thái..." />
+                        </jsp:include>
+                        <a href="${pageUrl}"
+                           class="btn white icon-only"
+                           title="Làm mới">
+                            <span class="material-symbols-outlined">refresh</span>
+                        </a>
+                    </div>
+                </section>
 
-                <!--device list-->
-                <div class="device-grid-legend">
-                    <span class="device-grid-legend__item">
-                        <span class="device-grid-legend__swatch device-grid-legend__swatch--available"></span>
+                <%--device list--%>
+                <div class="status-key">
+                    <span class="status-key-item">
+                        <span class="status-key-color-dot free"></span>
                         Sẵn sàng
                     </span>
-                    <span class="device-grid-legend__item">
-                        <span class="device-grid-legend__swatch device-grid-legend__swatch--maintenance"></span>
+                    <span class="status-key-item">
+                        <span class="status-key-color-dot unused"></span>
                         Bảo trì
                     </span>
                 </div>
-                <jsp:include page="/views/examiner/components/device-grid.jsp">
-                    <jsp:param name="cardClass" value="examiner-card examiner-card--dashboard-table" />
-                    <jsp:param name="title" value="${empty devicesTitle ? 'Máy thi' : devicesTitle}" />
-                    <jsp:param name="badgeText" value="Tổng: ${fn:length(devices)} ${empty devicesUnit ? 'máy' : devicesUnit}" />
-                    <jsp:param name="pageUrl" value="${pageUrl}" />
-                </jsp:include>
+                <section class="card table-fill">
+                    <div class="card-head">
+                        <h2 class="card-title">
+                            ${examinerSectionTheory ? 'Máy thi lý thuyết' : 'Xe thi thực hành'}
+                        </h2>
+                        <span class="badge">
+                            Tổng: ${fn:length(devices)} ${examinerSectionTheory ? 'máy' : 'xe'}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <c:choose>
+                            <%--case 1: no devices--%>
+                            <c:when test="${empty devices}">
+                                <p class="table-empty">Không có thiết bị trong khu vực thi.</p>
+                            </c:when>
+
+                            <%--case 2: device table--%>
+                            <c:otherwise>
+                                <div class="table-wrap">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên</th>
+                                                <th>Khu vực</th>
+                                                <th>Trạng thái</th>
+                                                <th>Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="device" items="${devices}" varStatus="row">
+                                                <tr class="${row.index % 2 == 1 ? 'table-row-alt' : ''}">
+                                                    <td class="table-mono-md">${device.name}</td>
+                                                    <td>${empty device.area ? '—' : device.area}</td>
+                                                    <td>
+                                                        <span class="device-badge ${device.statusClass}">
+                                                            ${device.statusLabel}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <form method="post" action="${pageUrl}">
+                                                            <input type="hidden"
+                                                                   name="action"
+                                                                   value="${device.status eq 'Bảo trì' ? 'operational' : 'maintenance'}">
+                                                            <input type="hidden" name="deviceId" value="${device.id}">
+                                                            <c:if test="${not empty searchQuery}">
+                                                                <input type="hidden" name="q" value="${searchQuery}">
+                                                            </c:if>
+                                                            <button type="submit" class="link-action">
+                                                                ${device.status eq 'Bảo trì' ? 'Sử dụng' : 'Bảo trì'}
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </section>
             </main>
         </div>
     </body>

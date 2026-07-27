@@ -9,6 +9,7 @@ import examiner.dto.PrintPreviewDTO;
 import examiner.dto.XmlExportTable;
 import examiner.dao.CandidateAnswerDAO;
 import examiner.dao.CandidateViolationDAO;
+import examiner.util.CandidatePhotoFiles;
 import shared.enums.FileType;
 import shared.enums.SectionType;
 import shared.model.Audit;
@@ -84,8 +85,8 @@ public class FileServiceImpl implements FileService {
             "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
             "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi");
     private static final List<String> CANDIDATE_HEADERS = List.of(
-            "SBD", "Há» vÃ  tÃªn", "NgÃ y sinh", "Giá»›i tÃ­nh", "Sá»‘ cÄƒn cÆ°á»›c", "Email", "Sá»‘ Ä‘iá»‡n thoáº¡i",
-            "Äá»‹a chá»‰", "Háº¡ng GPLX", "LÃ½ do thi", "NgÃ y thi", "Váº¯ng thi", "TÃ¬nh tráº¡ng thi");
+            "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
+            "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi");
 
     // Loads exam code and shift times for export preamble metadata.
     private Map<String, Object> getExamExportMeta(int examId) {
@@ -111,7 +112,7 @@ public class FileServiceImpl implements FileService {
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sÃ¡ch thÃ­ sinh", "danhSachThiSinh", Map.of(), List.of(table), exportTimestampPreamble());
+                "Danh sách thí sinh", "danhSachThiSinh", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
     // Builds results export from session data.
@@ -123,7 +124,7 @@ public class FileServiceImpl implements FileService {
         List<List<Object>> rows = new ArrayList<>();
         if (ctx.isTheory() == false) {
             fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
+            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -131,12 +132,12 @@ public class FileServiceImpl implements FileService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         } else {
             fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
-                    "Váº¯ng thi");
+            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+                    "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -146,12 +147,12 @@ public class FileServiceImpl implements FileService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
         return new ExportPayloadDTO(
-                "Tá»•ng há»£p káº¿t quáº£ thi", "tongHopKetQuaThi", Map.of(), List.of(table), exportTimestampPreamble());
+                "Tổng hợp kết quả thi", "tongHopKetQuaThi", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
     // Builds minutes export from session data.
@@ -165,21 +166,21 @@ public class FileServiceImpl implements FileService {
                 ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
         List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.schedule(), ctx.isTheory(),
                 ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
-        preamble.add(0, Arrays.asList("Thá»i gian xuáº¥t", nowExportTimestamp()));
+        preamble.add(0, Arrays.asList("Thời gian xuất", nowExportTimestamp()));
         List<String> fields;
         List<String> headers;
         if (ctx.isTheory() == false) {
             fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Há» vÃ  tÃªn", "Äiá»ƒm", "Káº¿t quáº£", "TÃ¬nh tráº¡ng", "Váº¯ng thi");
+            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
         } else {
             fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("SBD", "Há» vÃ  tÃªn", "ÄÃºng", "Sai", "KhÃ´ng TL", "Káº¿t quáº£", "TÃ¬nh tráº¡ng",
-                    "Váº¯ng thi");
+            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+                    "Vắng thi");
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", fields, headers, buildMinutesRows(candidates, ctx.isTheory()));
         return new ExportPayloadDTO(
-                "BiÃªn báº£n thi", "bienBanThi", metadata, List.of(table), preamble);
+                "Biên bản thi", "bienBanThi", metadata, List.of(table), preamble);
     }
 
     // Builds violations export payload without SBD filter.
@@ -210,7 +211,7 @@ public class FileServiceImpl implements FileService {
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinhViPham", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sÃ¡ch thÃ­ sinh vi pháº¡m",
+                "Danh sách thí sinh vi phạm",
                 "danhSachThiSinhViPham",
                 Map.of(),
                 List.of(table),
@@ -244,21 +245,21 @@ public class FileServiceImpl implements FileService {
                 "nhatKy",
                 "banGhi",
                 List.of("nguoiDung", "thaoTac", "doiTuong", "maBanGhi", "thongTin", "cu", "moi", "lyDo", "thoiGian"),
-                List.of("NgÆ°á»i dÃ¹ng", "Thao tÃ¡c", "Äá»‘i tÆ°á»£ng", "SBD", "ThÃ´ng tin", "CÅ©", "Má»›i", "LÃ½ do",
-                        "Thá»i gian"),
+                List.of("Người dùng", "Thao tác", "Đối tượng", "SBD", "Thông tin", "Cũ", "Mới", "Lý do",
+                        "Thời gian"),
                 rows);
         Map<String, Object> metadata = Map.of();
         if (searchQuery != null && !searchQuery.isBlank()) {
             metadata = Map.of("tuKhoa", searchQuery.trim());
         }
-        return new ExportPayloadDTO("Nháº­t kÃ½", "nhatKyHeThong", metadata, List.of(table), exportTimestampPreamble());
+        return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), exportTimestampPreamble());
     }
 
     // Private helper: build minutes metadata.
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("tieuDe", "BIÃŠN Báº¢N Tá»” CHá»¨C THI");
+        metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
         metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
         metadata.put("maDotThi", nullToDash(meta.get("examCode")));
         metadata.put("ngayThi", formatDate(meta.get("examDate")));
@@ -268,7 +269,7 @@ public class FileServiceImpl implements FileService {
             metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
-                !isTheory ? nullToDash(sectionType) : "LÃ½ thuyáº¿t");
+                !isTheory ? nullToDash(sectionType) : "Lý thuyết");
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.getTotal());
         thongKe.put("daThi", summary.getDone());
@@ -284,24 +285,24 @@ public class FileServiceImpl implements FileService {
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, ExamStatsDTO summary,
             ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         List<List<Object>> preamble = new ArrayList<>();
-        preamble.add(Arrays.asList("BIÃŠN Báº¢N Tá»” CHá»¨C THI"));
+        preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
         preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
-        preamble.add(Arrays.asList("MÃ£ Ä‘á»£t thi", nullToDash(meta.get("examCode"))));
-        preamble.add(Arrays.asList("NgÃ y thi", formatDate(meta.get("examDate"))));
-        preamble.add(Arrays.asList("Giá» báº¯t Ä‘áº§u", formatTime(meta.get("startTime"))));
-        preamble.add(Arrays.asList("Giá» káº¿t thÃºc", formatTime(meta.get("endTime"))));
+        preamble.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
+        preamble.add(Arrays.asList("Ngày thi", formatDate(meta.get("examDate"))));
+        preamble.add(Arrays.asList("Giờ bắt đầu", formatTime(meta.get("startTime"))));
+        preamble.add(Arrays.asList("Giờ kết thúc", formatTime(meta.get("endTime"))));
         if (schedule != null && schedule.getExamArea() != null) {
-            preamble.add(Arrays.asList("Khu vá»±c / PhÃ²ng", nullToDash(schedule.getExamArea().getAreaName())));
+            preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
         }
-        preamble.add(Arrays.asList("Pháº§n thi",
-                !isTheory ? nullToDash(sectionType) : "LÃ½ thuyáº¿t"));
+        preamble.add(Arrays.asList("Phần thi",
+                !isTheory ? nullToDash(sectionType) : "Lý thuyết"));
         preamble.add(Arrays.asList());
-        preamble.add(Arrays.asList("Tá»•ng thÃ­ sinh", summary.getTotal()));
-        preamble.add(Arrays.asList("ÄÃ£ thi", summary.getDone()));
-        preamble.add(Arrays.asList("Äang thi", summary.getTesting()));
-        preamble.add(Arrays.asList("ChÆ°a thi", summary.getPending()));
-        preamble.add(Arrays.asList("Äáº¡t", summary.getPassed()));
-        preamble.add(Arrays.asList("TrÆ°á»£t", summary.getFailed()));
+        preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
+        preamble.add(Arrays.asList("Đã thi", summary.getDone()));
+        preamble.add(Arrays.asList("Đang thi", summary.getTesting()));
+        preamble.add(Arrays.asList("Chưa thi", summary.getPending()));
+        preamble.add(Arrays.asList("Đạt", summary.getPassed()));
+        preamble.add(Arrays.asList("Trượt", summary.getFailed()));
         preamble.add(Arrays.asList());
         return preamble;
     }
@@ -318,7 +319,7 @@ public class FileServiceImpl implements FileService {
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
+                        c.isAbsent() ? "Có" : "Không"));
             } else {
                 rows.add(Arrays.asList(
                         c.getCandidateNumber(),
@@ -328,7 +329,7 @@ public class FileServiceImpl implements FileService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        c.isAbsent() ? "CÃ³" : "KhÃ´ng"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         return rows;
@@ -348,7 +349,7 @@ public class FileServiceImpl implements FileService {
                 c.getLicenceClass(),
                 c.getReasonForTaking(),
                 c.getExamDate(),
-                c.isAbsent() ? "CÃ³" : "KhÃ´ng",
+                c.isAbsent() ? "Có" : "Không",
                 c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "");
     }
 
@@ -376,7 +377,7 @@ public class FileServiceImpl implements FileService {
     // Adds export timestamp row used as sheet preamble in payloads.
     private static List<List<Object>> exportTimestampPreamble() {
         List<List<Object>> preamble = new ArrayList<>();
-        preamble.add(Arrays.asList("Thá»i gian xuáº¥t", nowExportTimestamp()));
+        preamble.add(Arrays.asList("Thời gian xuất", nowExportTimestamp()));
         return preamble;
     }
 
@@ -462,7 +463,7 @@ public class FileServiceImpl implements FileService {
             case "audit" ->
                 buildAuditExport(ctx, searchQuery);
             default ->
-                throw new IOException("Loáº¡i tÃ i liá»‡u xuáº¥t khÃ´ng Ä‘Æ°á»£c há»— trá»£: " + documentType);
+                throw new IOException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
         };
     }
 
@@ -631,9 +632,25 @@ public class FileServiceImpl implements FileService {
             data.put("marksB", buildChoiceMarks(listB));
         }
         String photoUrl = candidate.getPhotoImageUrl();
-        data.put("PHOTO_URL", photoUrl == null ? "" : photoUrl.trim());
+        data.put("PHOTO_URL", resolveCandidatePhotoUrl(ctx, candidate.getCandidateNumber(), photoUrl));
         data.put("PIC", "");
         return data;
+    }
+
+    // Build a browser-reachable photo URL for print templates (local file via servlet, or remote http).
+    private String resolveCandidatePhotoUrl(ExportContextDTO ctx, int sbd, String photoUrl) {
+        if (photoUrl == null || photoUrl.isBlank()) {
+            return "";
+        }
+        String trimmed = photoUrl.trim();
+        if (CandidatePhotoFiles.isRemoteUrl(trimmed)) {
+            return trimmed;
+        }
+        if (CandidatePhotoFiles.findPhotoFile(trimmed) == null) {
+            return "";
+        }
+        String contextPath = ctx.contextPath() == null ? "" : ctx.contextPath();
+        return contextPath + "/examiner/candidate-photo?sbd=" + sbd;
     }
 
     private Map<String, Object> buildBb1Placeholders(ExportContextDTO ctx, CandidateRowDTO candidate) {

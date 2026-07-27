@@ -6,6 +6,7 @@ import examiner.dto.CandidateRowDTO;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.util.ListUtil;
 import examiner.util.RequestUtil;
+import examiner.util.SortUtil;
 import shared.Attributes;
 import static shared.util.FormatUtil.formatPositiveInteger;
 import static shared.util.FormatUtil.formatString;
@@ -67,6 +68,16 @@ public class CandidateServlet extends HttpServlet {
                 if ("/examiner/candidate-paper".equals(path)) {
                     // Theory paper view needs answer map keyed for candidate-paper.jsp.
                     Map<String, Object> ansData = viewService.getPaperAnswersData(activeExamId, sbd, request.getContextPath());
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> paperAnswers
+                            = (List<Map<String, Object>>) ansData.get(Attributes.Examiner.PAPER_ANSWERS);
+                    SortUtil.Spec paperSort = SortUtil.parsePaper(
+                            request.getParameter("sort"), request.getParameter("dir"));
+                    if (paperAnswers != null) {
+                        SortUtil.sortPaperRows(paperAnswers, paperSort);
+                    }
+                    request.setAttribute(Attributes.Request.SORT_BY, paperSort.getColumn());
+                    request.setAttribute(Attributes.Request.SORT_DIR, paperSort.isAscending() ? "asc" : "desc");
                     RequestUtil.applyModel(request, ansData);
                 }
             }
@@ -82,6 +93,7 @@ public class CandidateServlet extends HttpServlet {
             default ->
                 "/views/examiner/candidates.jsp";
         };
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher(jsp).forward(request, response);
     }
 }

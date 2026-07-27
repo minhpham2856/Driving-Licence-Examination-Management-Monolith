@@ -5,7 +5,6 @@ import shared.enums.SectionType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -227,35 +226,6 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
             e.printStackTrace();
         }
         return occurrences;
-    }
-
-    // Loads deduction recorded timestamps keyed by ScoreDeductionId for one candidate/exam.
-    @Override
-    public Map<Integer, java.util.Date> getAllDeductionRecordedAtByExam(int candidateId, int examId) {
-        Map<Integer, java.util.Date> recordedAt = new HashMap<>();
-        String sql = """
-                SELECT dr.ScoreDeductionId, dr.RecordedAt
-                FROM ExamEnrollment ee
-                JOIN ExamResult er ON er.ExamEnrollmentId = ee.ExamEnrollmentId
-                JOIN ExamScore es ON es.ExamResultId = er.ExamResultId
-                JOIN DeductionRecord dr ON dr.ExamScoreId = es.ExamScoreId
-                WHERE ee.CandidateId = ? AND ee.ExamId = ?
-                """;
-        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setInt(1, candidateId);
-            ps.setInt(2, examId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Timestamp ts = rs.getTimestamp("RecordedAt");
-                    if (ts != null) {
-                        recordedAt.put(rs.getInt("ScoreDeductionId"), new java.util.Date(ts.getTime()));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return recordedAt;
     }
 
     // Loads current score and critical-disqualification flag for one candidate section.

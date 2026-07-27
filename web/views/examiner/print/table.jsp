@@ -5,26 +5,34 @@
 <head>
     <meta charset="UTF-8">
     <title>${docTitle}</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/examiner/print-document.css">
+    <link rel="stylesheet"
+          href="${pageContext.request.contextPath}/assets/css/examiner/print-document.css">
 </head>
-<body class="print-doc" data-auto-print="${autoPrint ? 'true' : 'false'}">
-<div class="print-doc__toolbar no-print">
-    <button type="button" class="print-doc__btn print-doc__btn--primary" id="btnPrint">In</button>
-    <button type="button" class="print-doc__btn" onclick="window.close()">Đóng</button>
+<body class="doc"
+      data-auto-print="${autoPrint ? 'true' : 'false'}">
+<div class="toolbar no-print">
+    <button type="button"
+            class="btn blue"
+            id="btnPrint">In</button>
+    <button type="button"
+            class="btn"
+            onclick="window.close()">Đóng</button>
 </div>
 
-<div class="print-doc__page print-doc__page--table">
-    <h1 class="print-doc__title">${payload.excelSheetName}</h1>
-    <p class="print-doc__meta">Thời gian in: <c:out value="${printedAt}"/></p>
+<div class="page page-table">
+    <h1 class="title">${payload.excelSheetName}</h1>
+    <p class="meta">Thời gian in: <c:out value="${printedAt}"/></p>
 
     <c:if test="${not empty payload.metadata}">
         <c:forEach var="entry" items="${payload.metadata}">
-            <p class="print-doc__meta"><c:out value="${entry.key}"/>: <c:out value="${entry.value}"/></p>
+            <p class="meta">
+                <c:out value="${entry.key}"/>: <c:out value="${entry.value}"/>
+            </p>
         </c:forEach>
     </c:if>
 
     <c:forEach var="table" items="${payload.tables}">
-        <table class="print-doc__data">
+        <table class="data">
             <thead>
             <tr>
                 <c:forEach var="h" items="${table.headers}">

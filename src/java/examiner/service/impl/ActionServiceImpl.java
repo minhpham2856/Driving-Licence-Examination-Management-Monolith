@@ -54,7 +54,6 @@ import examiner.service.ActionService;
 import examiner.service.ExamViewService;
 import examiner.service.impl.DispatchServiceImpl;
 import examiner.service.impl.ProgressServiceImpl;
-import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -487,24 +486,6 @@ public class ActionServiceImpl implements ActionService {
         auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
                 auditText, enrollment.getCandidateId());
         removeFromAllQueues(examId, enrollment.getCandidateNumber());
-        return ServiceResult.ok(null);
-    }
-
-    // Clears Candidate.IsSuspended and writes a short audit entry.
-    @Override
-    public ServiceResult<Void> undoSuspension(int examId, int sbd, Integer actionUserId, SectionType sectionType) {
-        EnrollmentDTO enrollment = loadEnrollment(examId, sbd, sectionType);
-        if (enrollment == null || !enrollment.isSuspended()) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy thí sinh đang bị đình chỉ.");
-        }
-        if (candidateDAO.get(enrollment.getCandidateId()) == null) {
-            return ServiceResult.fail(ErrorType.NOT_FOUND, "Không tìm thấy hồ sơ thí sinh.");
-        }
-        if (!candidateDAO.updateSuspended(enrollment.getCandidateId(), false)) {
-            return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể gỡ đình chỉ thí sinh.");
-        }
-        auditService.logAction(actionUserId, AuditAction.UPDATE, AuditEntity.CANDIDATE,
-                "Gỡ đình chỉ SBD " + enrollment.getCandidateNumber(), enrollment.getCandidateId());
         return ServiceResult.ok(null);
     }
 
@@ -1000,23 +981,14 @@ public class ActionServiceImpl implements ActionService {
     private static void removeFromAllQueues(int examId, int sbd) {
     }
 
-    // Private helper: build violation audit text.
+    // Private helper: build violation audit text (no evidence path).
     private static String buildViolationAuditText(String reasonLabel, String reasonDetail, String evidencePath) {
-        StringBuilder text = new StringBuilder();
+        StringBuilder text = new StringBuilder("Đình chỉ");
         if (reasonLabel != null && !reasonLabel.isBlank()) {
-            text.append(reasonLabel);
+            text.append(": ").append(reasonLabel.trim());
         }
         if (reasonDetail != null && !reasonDetail.isBlank()) {
-            if (text.length() > 0) {
-                text.append(": ");
-            }
-            text.append(reasonDetail.trim());
-        }
-        if (evidencePath != null && !evidencePath.isBlank()) {
-            if (text.length() > 0) {
-                text.append(" | ");
-            }
-            text.append("Minh chứng: ").append(evidencePath);
+            text.append(" — ").append(reasonDetail.trim());
         }
         return text.toString();
     }
@@ -1201,20 +1173,18 @@ public class ActionServiceImpl implements ActionService {
     private boolean applyDeductionDelta(int examScoreId, int scoreDeductionId, int delta) {
         int current = deductionRecordDAO.getOccurrenceCount(examScoreId, scoreDeductionId);
         int next = current + delta;
-        Timestamp now = new Timestamp(System.currentTimeMillis());
         if (current == 0 && delta > 0) {
             DeductionRecord record = new DeductionRecord();
             record.setExamScoreId(examScoreId);
             record.setScoreDeductionId(scoreDeductionId);
             record.setOccurrenceCount(delta);
-            record.setRecordedAt(now);
             return deductionRecordDAO.add(record);
         }
         if (current > 0) {
             if (next <= 0) {
                 return deductionRecordDAO.deleteByExamScoreAndRule(examScoreId, scoreDeductionId);
             }
-            return deductionRecordDAO.updateOccurrence(examScoreId, scoreDeductionId, next, now);
+            return deductionRecordDAO.updateOccurrence(examScoreId, scoreDeductionId, next);
         }
         return false;
     }

@@ -1,5 +1,5 @@
 /* Print documents */
-.print-btn {
+.btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -14,12 +14,12 @@
     transition: background 0.15s;
 }
 
-.print-btn:hover {
+.btn:hover {
     background: #f0f4f8;
     text-decoration: none;
 }
 
-.print-btn__text {
+.btn-text {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     font-weight: 700;

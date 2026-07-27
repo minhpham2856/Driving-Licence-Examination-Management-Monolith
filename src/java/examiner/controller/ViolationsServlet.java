@@ -12,6 +12,9 @@ import examiner.filter.ExaminerFilter;
 import auth.dto.UserDTO;
 import shared.Attributes;
 import shared.enums.SectionType;
+import shared.model.CandidateViolation;
+import examiner.dao.CandidateViolationDAO;
+import examiner.dao.impl.CandidateViolationDAOImpl;
 import examiner.service.ActionService;
 import examiner.service.ExamViewService;
 import examiner.dto.ServiceResult;
@@ -27,7 +30,7 @@ import shared.storage.CloudinaryDocumentStorage;
 
 @WebServlet(urlPatterns = {"/examiner/violations"})
 @MultipartConfig(maxFileSize = 5 * 1024 * 1024, maxRequestSize = 6 * 1024 * 1024)
-// Violations page: lists candidates and supports one-click suspend or undo-suspend actions.
+// Violations page: create suspension with evidence, or view existing violation details.
 public class ViolationsServlet extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(ViolationsServlet.class.getName());
@@ -35,8 +38,9 @@ public class ViolationsServlet extends HttpServlet {
 
     private final ExamViewService viewService = new ExamViewServiceImpl();
     private final ActionService actionService = new ActionServiceImpl();
+    private final CandidateViolationDAO violationDAO = new CandidateViolationDAOImpl();
 
-    // Serve the violations list with searchable candidate rows for the active exam session.
+    // Serve create form or read-only violation detail for the selected SBD.
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -48,7 +52,9 @@ public class ViolationsServlet extends HttpServlet {
         Integer activeExamId = (Integer) session.getAttribute(Attributes.Examiner.ACTIVE_EXAM_ID);
         String mode = request.getParameter("mode");
         int selectedSbd = formatPositiveInt(request.getParameter("sbd"));
-        if (!"create".equals(mode) || selectedSbd <= 0) {
+        boolean createMode = "create".equals(mode);
+        boolean viewMode = "view".equals(mode);
+        if ((!createMode && !viewMode) || selectedSbd <= 0) {
             response.sendRedirect(request.getContextPath() + "/examiner/action");
             return;
         }
@@ -56,14 +62,23 @@ public class ViolationsServlet extends HttpServlet {
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
             request.setAttribute(Attributes.Request.CANDIDATE, viewService.getCandidateViewRow(
                     activeExamId, selectedSbd, sectionType));
-            request.setAttribute(Attributes.Examiner.VIOLATION_REASONS,
-                    viewService.getViolationViewByExam(activeExamId, selectedSbd, sectionType)
-                            .get(Attributes.Examiner.VIOLATION_REASONS));
+            if (createMode) {
+                request.setAttribute(Attributes.Examiner.VIOLATION_REASONS,
+                        viewService.getViolationViewByExam(activeExamId, selectedSbd, sectionType)
+                                .get(Attributes.Examiner.VIOLATION_REASONS));
+            } else {
+                CandidateViolation violation = violationDAO.getLatestByExamAndSbd(
+                        activeExamId, selectedSbd, sectionType.getValue());
+                request.setAttribute(Attributes.Examiner.VIOLATION, violation);
+                request.setAttribute(Attributes.Examiner.VIOLATION_EVIDENCE_URL,
+                        resolveEvidenceUrl(violation != null ? violation.getEvidenceUrl() : null));
+            }
         }
+        ExaminerFlash.bind(request);
         request.getRequestDispatcher("/views/examiner/violations.jsp").forward(request, response);
     }
 
-    // Suspend or undo-suspend the selected candidate and redirect with outcome flash params.
+    // Create violation with evidence + suspend; undo-suspend is not supported.
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -88,15 +103,6 @@ public class ViolationsServlet extends HttpServlet {
         String action = request.getParameter("action");
         String from = request.getParameter("from");
         String actionHome = "/examiner/action";
-        // undoSuspend clears Candidate.IsSuspended; createViolation records evidence + suspend.
-        if ("undoSuspend".equals(action)) {
-            ServiceResult<Void> result = actionService.undoSuspension(activeExamId, sbd, userId, sectionType);
-            String redirect = result.isSuccess()
-                    ? actionHome + "?unsuspended=" + RequestUtil.urlEncode(sbd)
-                    : actionHome + "?sbd=" + RequestUtil.urlEncode(sbd) + "&error=unsuspendFailed";
-            response.sendRedirect(request.getContextPath() + redirect);
-            return;
-        }
         if ("createViolation".equals(action)) {
             if (user == null || !actionService.verifyPassword(user.toUser(), request.getParameter("confirmPassword"))) {
                 redirectCreate(request, response, sbd, "passwordIncorrect", null);
@@ -143,6 +149,10 @@ public class ViolationsServlet extends HttpServlet {
         // Default one-click suspend is disabled; require reason + evidence form.
         response.sendRedirect(request.getContextPath()
                 + "/examiner/violations?sbd=" + RequestUtil.urlEncode(sbd) + "&mode=create&from=action");
+    }
+
+    private static String resolveEvidenceUrl(String storedRef) {
+        return CloudinaryDocumentStorage.resolveViewUrl(storedRef);
     }
 
     private void redirectCreate(HttpServletRequest request, HttpServletResponse response, int sbd,

@@ -22,7 +22,7 @@
     box-sizing: border-box;
 }
 
-body.examiner-session-select {
+body.session {
     margin: 0;
     min-height: 100vh;
     background: var(--exam-bg);
@@ -32,12 +32,12 @@ body.examiner-session-select {
     line-height: 1.5;
 }
 
-.examiner-session-select__header {
+.session-header {
     background: #fff;
     border-bottom: 1px solid var(--exam-border);
 }
 
-.examiner-session-select__header-inner {
+.session-header-inner {
     max-width: 1200px;
     margin: 0 auto;
     padding: 16px 24px;
@@ -47,18 +47,18 @@ body.examiner-session-select {
     gap: 16px;
 }
 
-.examiner-session-select__brand {
+.session-brand {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.examiner-session-select__brand-icon {
+.session-brand-icon {
     font-size: 20px;
     color: var(--exam-brand);
 }
 
-.examiner-session-select__title {
+.session-title {
     margin: 0;
     font-size: 24px;
     line-height: 32px;
@@ -67,7 +67,7 @@ body.examiner-session-select {
     color: var(--exam-text);
 }
 
-.examiner-session-select__header-btn {
+.session-header-btn {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -82,21 +82,21 @@ body.examiner-session-select {
     line-height: 16px;
 }
 
-.examiner-session-select__header-btn .material-symbols-outlined {
+.session-header-btn .material-symbols-outlined {
     font-size: 18px;
 }
 
-.examiner-session-select__header-btn:hover {
+.session-header-btn:hover {
     background: rgba(0, 64, 161, 0.04);
 }
 
-.examiner-session-select__main {
+.session-main {
     max-width: 1200px;
     margin: 0 auto;
     padding: 32px;
 }
 
-.examiner-session-select__alert {
+.session-alert {
     margin: 0 0 16px;
     padding: 12px 16px;
     border-radius: 8px;
@@ -106,19 +106,19 @@ body.examiner-session-select {
     font-size: 14px;
 }
 
-.examiner-session-select__empty {
+.session-empty {
     text-align: center;
     padding: 64px 24px;
     color: var(--exam-muted);
 }
 
-.examiner-session-select__empty .material-symbols-outlined {
+.session-empty .material-symbols-outlined {
     font-size: 48px;
     display: block;
     margin-bottom: 12px;
 }
 
-.examiner-session-select__list {
+.session-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -127,7 +127,7 @@ body.examiner-session-select {
     padding-right: 4px;
 }
 
-.examiner-exam-card {
+.exam-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -138,13 +138,13 @@ body.examiner-session-select {
     border-radius: 12px;
 }
 
-.examiner-exam-card--active {
+.exam-card-active {
     border: 2px solid var(--exam-cta);
     box-shadow: 0 0 0 4px rgba(0, 86, 210, 0.1);
     padding: 26px;
 }
 
-.examiner-exam-card__content {
+.exam-card-content {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -152,14 +152,14 @@ body.examiner-session-select {
     gap: 16px;
 }
 
-.examiner-exam-card__top {
+.exam-card-top {
     display: flex;
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
 }
 
-.examiner-exam-card__dot {
+.exam-card-dot {
     width: 12px;
     height: 12px;
     border-radius: 9999px;
@@ -167,24 +167,24 @@ body.examiner-session-select {
     flex-shrink: 0;
 }
 
-.examiner-exam-card__dot--live {
+.exam-card-dot.live {
     background: var(--exam-dot-live);
     box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
-.examiner-exam-card__code {
+.exam-card-code {
     font-size: 14px;
     font-weight: 600;
     line-height: 16px;
     color: var(--exam-text);
 }
 
-.examiner-exam-card--active .examiner-exam-card__code {
+.exam-card-active .exam-card-code {
     font-weight: 700;
     color: var(--exam-brand);
 }
 
-.examiner-exam-card__badge {
+.exam-card-badge {
     padding: 4px 12px;
     border-radius: 9999px;
     font-size: 12px;
@@ -192,23 +192,23 @@ body.examiner-session-select {
     line-height: 16px;
 }
 
-.examiner-exam-card__badge--idle {
+.exam-card-badge.idle {
     background: var(--session-badge-idle-bg);
     color: var(--session-badge-idle-text);
 }
 
-.examiner-exam-card__badge--live {
+.exam-card-badge.live {
     background: var(--exam-badge-live-bg);
     color: var(--exam-badge-live-text);
 }
 
-.examiner-exam-card__fields {
+.exam-card-fields {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
 }
 
-.examiner-exam-card__field {
+.exam-card-field {
     flex: 1 1 180px;
     max-width: 200px;
     display: flex;
@@ -216,7 +216,7 @@ body.examiner-session-select {
     gap: 4px;
 }
 
-.examiner-exam-card__label {
+.exam-card-label {
     font-size: 12px;
     font-weight: 700;
     line-height: 16px;
@@ -225,7 +225,7 @@ body.examiner-session-select {
     color: var(--exam-muted);
 }
 
-.examiner-exam-card__value {
+.exam-card-value {
     display: flex;
     align-items: center;
     gap: 4px;
@@ -235,17 +235,17 @@ body.examiner-session-select {
     color: var(--exam-text);
 }
 
-.examiner-exam-card__value .material-symbols-outlined {
+.exam-card-value .material-symbols-outlined {
     font-size: 14px;
     color: var(--exam-muted);
     flex-shrink: 0;
 }
 
-.examiner-exam-card__action {
+.exam-card-action {
     flex-shrink: 0;
 }
 
-.examiner-exam-card__enter {
+.exam-card-enter {
     padding: 16px 32px;
     border: none;
     border-radius: 8px;
@@ -260,11 +260,11 @@ body.examiner-session-select {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
 }
 
-.examiner-exam-card__enter:hover:not(:disabled) {
+.exam-card-enter:hover:not(:disabled) {
     background: #0040a1;
 }
 
-.examiner-exam-card__enter--disabled {
+.exam-card-enter.grey-out {
     background: var(--session-btn-disabled);
     opacity: 0.6;
     cursor: not-allowed;
@@ -272,20 +272,20 @@ body.examiner-session-select {
 }
 
 @media (max-width: 900px) {
-    .examiner-exam-card {
+    .exam-card {
         flex-direction: column;
         align-items: stretch;
     }
 
-    .examiner-exam-card__action {
+    .exam-card-action {
         width: 100%;
     }
 
-    .examiner-exam-card__enter {
+    .exam-card-enter {
         width: 100%;
     }
 
-    .examiner-exam-card__field {
+    .exam-card-field {
         max-width: none;
     }
 }

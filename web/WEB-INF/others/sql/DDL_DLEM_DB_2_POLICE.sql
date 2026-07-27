@@ -458,7 +458,6 @@ CREATE TABLE DeductionRecord (
     ExamScoreId INT NOT NULL REFERENCES ExamScore(ExamScoreId),
     ScoreDeductionId INT NOT NULL REFERENCES ScoreDeduction(ScoreDeductionId),
     OccurrenceCount INT NOT NULL DEFAULT 1,
-    RecordedAt DATETIME NOT NULL DEFAULT GETDATE(),
     UNIQUE (ExamScoreId, ScoreDeductionId),
     CHECK (OccurrenceCount > 0)
 );
