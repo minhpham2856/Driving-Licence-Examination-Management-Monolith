@@ -88,6 +88,7 @@ public final class ExamStaffCandidateMapper {
         if (row.getTheoryScore() != null) {
             dto.setTheoryScore(row.getTheoryScore());
         }
+        dto.setWrongCriticalTheory(row.hasWrongCriticalTheory());
         if (row.getPracticalScore() != null) {
             dto.setPracticalScore(row.getPracticalScore());
         }

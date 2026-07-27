@@ -27,8 +27,8 @@
         </div>
         <span class="allocation-stage-panel__count">${pg.totalItems} thí sinh</span>
     </div>
-    <div class="examiner-table-wrap">
-        <table class="examiner-table allocation-stage-table allocation-table--fill">
+    <div class="table-wrap">
+        <table class="table allocation-stage-table allocation-table--fill">
             <thead>
                 <jsp:include page="/views/staff/examstaff/includes/allocation-table-head.jsp">
                     <jsp:param name="variant" value="theory" />
@@ -37,7 +37,7 @@
             <tbody>
                 <c:forEach var="c" items="${allocationStageList}" varStatus="st">
                     <tr>
-                        <td class="examiner-table__center">${rowStart + st.count}</td>
+                        <td class="table-center">${rowStart + st.count}</td>
                         <td><strong>${c.sbd}</strong></td>
                         <td>${c.name}</td>
                         <td>${c.clazz}</td>

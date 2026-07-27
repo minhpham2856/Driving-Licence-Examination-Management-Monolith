@@ -78,6 +78,22 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         return false;
     }
 
+    @Override
+    public boolean updateExamPassword(int examId, String password) {
+        if (examId <= 0 || password == null || password.isBlank()) {
+            return false;
+        }
+        String sql = "UPDATE Exam SET ExamPassword = ? WHERE ExamId = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, password.trim());
+            ps.setInt(2, examId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private ExamSummaryDTO mapResultSetToExam(ResultSet rs) throws SQLException {
         ExamSummaryDTO es = new ExamSummaryDTO();
         es.setId(rs.getInt("id"));
@@ -97,6 +113,7 @@ public class ExamDAOImpl extends DBContext implements ExamDAO {
         es.setLicenseCode(rs.getString("licenseCode"));
         es.setExamCode(rs.getString("examCode"));
         es.setExamTypeName(rs.getString("examTypeName"));
+        es.setExamPassword(rs.getString("examPassword"));
         return es;
     }
 }

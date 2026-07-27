@@ -50,8 +50,8 @@ import shared.model.ExamArea;
 public class ExamViewServiceImpl implements ExamViewService {
 
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
-    private static final int THEORY_PASS_CORRECT = 32;
-    private static final int THEORY_MAX_QUESTIONS = 35;
+    private static final int THEORY_PASS_CORRECT = 21;
+    private static final int THEORY_MAX_QUESTIONS = 25;
     private static final int AUDIT_PAGE_SIZE = 20;
     private final AuditService AuditService = new AuditServiceImpl();
 

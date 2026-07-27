@@ -11,8 +11,8 @@ import java.util.List;
  *
  * Vai trò trong kiến trúc:
  *
- * Quản lý slot giám khảo ↔ khu vực ↔ section trước khi auto-allocate thí sinh:
- * chỉ phân thí sinh vào phòng/sân đã có giám khảo được gán. Ghi/xóa slot kèm
+ * Quản lý slot sát hạch viên ↔ khu vực ↔ section trước khi auto-allocate thí sinh:
+ * chỉ phân thí sinh vào phòng/sân đã có sát hạch viên được gán. Ghi/xóa slot kèm
  * nhật ký Audit (triển khai impl).
  * <pre>
  *   /examstaff/examiner-allocation

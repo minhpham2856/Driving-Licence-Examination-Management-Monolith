@@ -14,7 +14,7 @@ package examstaff.enums;
  *
  * Ai sử dụng:
  * ExaminerAssignmentDAOImpl, ExaminerAllocationServiceImpl,
- * ExaminerAssignmentRules — lọc và hiển thị danh sách giám khảo/sát hạch viên theo ca.
+ * ExaminerAssignmentRules — lọc và hiển thị danh sách sát hạch viên theo ca.
  */
 public enum UserRole {
     /** Sát hạch viên — người được phân công coi / chấm tại phòng/sân thi. */

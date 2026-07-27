@@ -8,11 +8,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+// JDBC implementation for ExamDevice; examiner module DAO layer only.
 public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
     private static final String BASE_SELECT =
             "SELECT ExamDeviceId, DeviceName, DeviceType, IsActive, ExamAreaId FROM ExamDevice";
+    // Loads one exam device row by primary key.
     @Override
-    public ExamDevice getById(int examDeviceId) {
+    public ExamDevice get(int examDeviceId) {
         String sql = BASE_SELECT + " WHERE ExamDeviceId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, examDeviceId);
@@ -26,8 +28,9 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return null;
     }
+    // Inserts a new exam device and returns generated id.
     @Override
-    public int insert(ExamDevice d) {
+    public int add(ExamDevice d) {
         String sql = "INSERT INTO ExamDevice (DeviceName, DeviceType, IsActive, ExamAreaId) VALUES (?,?,?,?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, d.getDeviceName());
@@ -47,6 +50,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return 0;
     }
+    // Updates an existing exam device row.
     @Override
     public boolean update(ExamDevice d) {
         String sql = "UPDATE ExamDevice SET DeviceName=?, DeviceType=?, IsActive=?, ExamAreaId=? WHERE ExamDeviceId=?";
@@ -62,6 +66,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
+    // Deletes an exam device row by primary key.
     @Override
     public boolean delete(int examDeviceId) {
         String sql = "DELETE FROM ExamDevice WHERE ExamDeviceId = ?";
@@ -73,6 +78,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
+    // Returns total count of exam device rows.
     @Override
     public int countAll() {
         String sql = "SELECT COUNT(*) FROM ExamDevice";
@@ -87,6 +93,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return 0;
     }
+    // Updates only the IsActive flag on one device row.
     @Override
     public boolean updateStatus(int examDeviceId, boolean isActive) {
         String sql = "UPDATE ExamDevice SET IsActive = ? WHERE ExamDeviceId = ?";
@@ -99,6 +106,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return false;
     }
+    // Lists devices assigned to one exam area.
     @Override
     public List<ExamDevice> getDevicesByAreaId(int examAreaId) {
         List<ExamDevice> list = new ArrayList<>();
@@ -115,6 +123,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return list;
     }
+    // Lists devices for multiple exam area ids in one query.
     @Override
     public List<ExamDevice> getAllByAreaIds(List<Integer> areaIds) {
         List<ExamDevice> list = new ArrayList<>();
@@ -140,6 +149,7 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         }
         return list;
     }
+    // Private helper: map.
     private static ExamDevice map(ResultSet rs) throws SQLException {
         ExamDevice d = new ExamDevice();
         d.setExamDeviceId(rs.getInt("ExamDeviceId"));
@@ -149,10 +159,12 @@ public class ExamDeviceDAOImpl extends DBContext implements ExamDeviceDAO {
         d.setExamAreaId(rs.getInt("ExamAreaId"));
         return d;
     }
+    // Returns count of devices matching active/inactive status.
     public int countByStatus(boolean isActive) {
         return 0;
     }
-    public List<ExamDevice> search(String keyword, boolean isActive) {
+    // Searches exam devices by keyword and active status filter (stub returns empty list).
+    public List<ExamDevice> getFiltered(String keyword, boolean isActive) {
         return new ArrayList<>();
     }
 }

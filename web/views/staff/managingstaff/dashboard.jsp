@@ -12,7 +12,7 @@
 <section style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.25rem">
 <a href="${ctx}/manager/dossiers" style="text-decoration:none" class="report-pane"><strong style="font-size:1.5rem;color:#d97706">${reviewableCount}</strong><div style="margin-top:.3rem;color:#475569;font-weight:700">Hồ sơ chờ duyệt</div></a>
 <a href="${ctx}/manager/exam-schedules?tab=upcoming" style="text-decoration:none" class="report-pane"><strong style="font-size:1.5rem;color:#0052cc">${upcomingCount}</strong><div style="margin-top:.3rem;color:#475569;font-weight:700">Phiên thi sắp tới</div></a>
-<a href="${ctx}/manager/exam-schedules?tab=upcoming" style="text-decoration:none" class="report-pane"><strong style="font-size:1.5rem;color:#dc2626">${emptyRosterCount}</strong><div style="margin-top:.3rem;color:#475569;font-weight:700">Phiên chưa có danh sách</div></a>
+<a href="${ctx}/manager/tentative-exam-dates" style="text-decoration:none" class="report-pane"><strong style="font-size:1.5rem;color:#dc2626">${tentativeExamDateCount}</strong><div style="margin-top:.3rem;color:#475569;font-weight:700">Phiên thi dự kiến</div></a>
 </section>
 <section class="log-card" style="margin-top:1.25rem"><header class="log-card-header"><h2 class="log-card-title">Hồ sơ chờ duyệt</h2><a href="${ctx}/manager/dossiers" style="text-decoration:none;color:#0052cc;font-weight:700">Xem tất cả (${reviewableCount})</a></header>
 <div class="table-responsive"><table class="audit-table"><thead><tr><th>Mã</th><th>Thí sinh</th><th>CCCD</th><th>Hạng</th><th>Giấy tờ</th><th>Trạng thái</th><th></th></tr></thead><tbody>

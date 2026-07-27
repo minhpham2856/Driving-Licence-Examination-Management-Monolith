@@ -129,7 +129,17 @@
                             <section class="p-alert-banner" style="margin-bottom:1.25rem;background:#fff7ed;border-color:#fdba74;" aria-label="Hồ sơ bị từ chối">
                                 <div class="p-alert-banner__content">
                                     <span class="p-alert-banner__title">Hồ sơ bị từ chối</span>
-                                    <span>Vui lòng sửa lại giấy tờ tại 4 mục bên dưới (tải lên thay thế) rồi bấm <strong>Gửi yêu cầu duyệt</strong> lại.</span>
+                                    <span>
+                                        <c:choose>
+                                            <c:when test="${not empty rejectionReason}">
+                                                Lý do từ ban quản lý: <strong><c:out value="${rejectionReason}"/></strong>.
+                                            </c:when>
+                                            <c:otherwise>
+                                                Ban quản lý đã từ chối hồ sơ nhưng chưa ghi lý do chi tiết trên hệ thống.
+                                            </c:otherwise>
+                                        </c:choose>
+                                        Vui lòng sửa lại giấy tờ tại 4 mục bên dưới (tải lên thay thế) rồi bấm <strong>Gửi yêu cầu duyệt</strong> lại.
+                                    </span>
                                 </div>
                             </section>
                         </c:if>
@@ -423,6 +433,22 @@
                                         </c:if>
                                         <p class="upload-licence-picker__hint">Hạng A1 / A / B1 đều chỉ cần 4 giấy tờ bắt buộc. Hồ sơ khác là tùy chọn; hồ sơ đã duyệt có thể tái sử dụng khi thi hạng khác.</p>
                                     </div>
+
+                                    <fieldset class="upload-retake-fieldset" style="margin:0 0 12px;border:1px solid #e2e8f0;border-radius:8px;padding:0.75rem 1rem;">
+                                        <legend style="font-size:0.875rem;font-weight:600;padding:0 0.25rem;">
+                                            Bạn gửi duyệt để thi lần đầu hay thi lại? <span class="profile-edit-required">*</span>
+                                        </legend>
+                                        <div style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.875rem;">
+                                            <label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;">
+                                                <input type="radio" name="isRetake" value="0" checked style="margin-top:0.2rem;">
+                                                <span>Thi lần đầu</span>
+                                            </label>
+                                            <label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;">
+                                                <input type="radio" name="isRetake" value="1" style="margin-top:0.2rem;">
+                                                <span>Thi lại </span>
+                                            </label>
+                                        </div>
+                                    </fieldset>
 
                                     <label class="p-input-label" for="request-note">Ghi chú gửi ban quản lý (tùy chọn)</label>
                                     <textarea id="request-note" name="requestNote" class="upload-card__reason" rows="2"

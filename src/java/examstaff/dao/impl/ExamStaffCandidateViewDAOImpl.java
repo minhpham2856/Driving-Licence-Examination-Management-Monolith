@@ -176,6 +176,7 @@ public class ExamStaffCandidateViewDAOImpl extends DBContext implements ExamStaf
             if (!rs.wasNull()) {
                 row.setTheoryScore(theory);
             }
+            row.setWrongCriticalTheory(readBit(rs, "hasWrongCriticalTheory"));
             int practical = rs.getInt("practicalScore");
             if (!rs.wasNull()) {
                 row.setPracticalScore(practical);

@@ -20,10 +20,10 @@
     <c:if test="${not empty param.view}"><c:param name="view" value="${param.view}" /></c:if>
 </c:url>
 <c:set var="thClass" value="${not empty param.thClass ? param.thClass : ''}" />
-<c:if test="${param.center == 'true'}"><c:set var="thClass" value="${thClass} examiner-table__center" /></c:if>
+<c:if test="${param.center == 'true'}"><c:set var="thClass" value="${thClass} table-center" /></c:if>
 <th<c:if test="${not empty fn:trim(thClass)}"> class="${fn:trim(thClass)}"</c:if>>
-    <a href="${sortUrl}" class="examiner-sort-link${sortBy == col ? ' examiner-sort-link--active' : ''}${sortBy == col and sortDir == 'desc' ? ' examiner-sort-link--desc' : ''}">
+    <a href="${sortUrl}" class="sort-link${sortBy == col ? ' sort-link-active' : ''}${sortBy == col and sortDir == 'desc' ? ' sort-link-desc' : ''}">
         <c:out value="${label}" />
-        <span class="material-symbols-outlined examiner-sort-link__icon" aria-hidden="true">arrow_upward</span>
+        <span class="material-symbols-outlined sort-link-icon" aria-hidden="true">arrow_upward</span>
     </a>
 </th>

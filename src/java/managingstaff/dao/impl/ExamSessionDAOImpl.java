@@ -14,6 +14,7 @@ import managingstaff.dao.ExamSessionDAO;
 import managingstaff.dto.ExamRegistrationDTO;
 import managingstaff.dto.SessionDTO;
 import shared.dbconnection.DBContext;
+import shared.util.TentativeExamDatePolicy;
 
 public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     private static final String SELECT = """
@@ -49,12 +50,12 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
 
     @Override
     public int create(SessionDTO s) {
-        validateFuture(s);
         Connection c = getConnection();
-        validateAvailableDate(c, s.getExamDate(), 0);
         try {
             c.setAutoCommit(false);
-            validatePoliceSource(c, s);
+            loadPoliceSource(c, s);
+            validateFuture(s);
+            validateAvailableDate(c, s.getExamDate(), 0);
 
             int examId;
             try (PreparedStatement ps = c.prepareStatement(
@@ -74,21 +75,11 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                 }
             }
 
-            int sectionId;
-            try (PreparedStatement ps = c.prepareStatement(
-                    "INSERT INTO ExamSection(SectionType,LicenceId,DurationMinutes,ExamId) "
-                    + "VALUES(N'Lý thuyết',?,1,?)",
-                    Statement.RETURN_GENERATED_KEYS)) {
-                ps.setInt(1, s.getLicenceId());
-                ps.setInt(2, examId);
-                ps.executeUpdate();
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (!keys.next()) throw new SQLException("Không lấy được mã phần thi");
-                    sectionId = keys.getInt(1);
-                }
-            }
+            int theorySectionId = createSection(c, examId, s.getLicenceId(), "Lý thuyết");
+            int practicalSectionId = createSection(
+                    c, examId, s.getLicenceId(), "Thực hành trong hình");
 
-            copyOfficialCandidates(c, s, examId, sectionId);
+            copyOfficialCandidates(c, s, examId, theorySectionId, practicalSectionId);
             c.commit();
             return examId;
         } catch (SQLException e) {
@@ -102,14 +93,47 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         }
     }
 
-    @Override public boolean update(SessionDTO s){validateFuture(s);SessionDTO old=findById(s.getId());if(old==null||!old.isEditable())throw new IllegalArgumentException("Chỉ được sửa phiên chưa thi.");Connection c=getConnection();validateAvailableDate(c,s.getExamDate(),s.getId());try{c.setAutoCommit(false);
-        try(PreparedStatement ps=c.prepareStatement("UPDATE Exam SET ExamDate=?,StartTime=?,EndTime=NULL,CentreName=?,LicenceId=? WHERE ExamId=? AND CAST(ExamDate AS date)>CAST(GETDATE() AS date) AND [Status] NOT IN ('Cancelled',N'Đã hủy')")){ps.setDate(1,s.getExamDate());ps.setTimestamp(2,startTimestamp(s));ps.setString(3,s.getCentreName());ps.setInt(4,s.getLicenceId());ps.setInt(5,s.getId());if(ps.executeUpdate()==0)throw new IllegalArgumentException("Phiên không còn được phép sửa.");}
-        try(PreparedStatement ps=c.prepareStatement("UPDATE ExamSection SET LicenceId=? WHERE ExamId=?")){ps.setInt(1,s.getLicenceId());ps.setInt(2,s.getId());ps.executeUpdate();}
-        c.commit();return true;}catch(SQLException e){rollback(c);throw dbError(e);}finally{auto(c);}}
+    @Override
+    public boolean update(SessionDTO s) {
+        SessionDTO old = findById(s.getId());
+        if (old == null || !old.isEditable()) {
+            throw new IllegalArgumentException("Chỉ được sửa phiên chưa thi.");
+        }
+
+        // Ngày thi và hạng GPLX đã được CSGT ban hành nên không nhận lại từ form.
+        s.setExamDate(old.getExamDate());
+        s.setLicenceId(old.getLicenceId());
+        s.setLicenseCode(old.getLicenseCode());
+        s.setSourceExamDateId(old.getSourceExamDateId());
+        validateFuture(s);
+
+        Connection c = getConnection();
+        try {
+            c.setAutoCommit(false);
+            try (PreparedStatement ps = c.prepareStatement(
+                    "UPDATE Exam SET StartTime=?,EndTime=NULL,CentreName=? "
+                    + "WHERE ExamId=? AND CAST(ExamDate AS date)>CAST(GETDATE() AS date) "
+                    + "AND [Status] NOT IN ('Cancelled',N'Đã hủy')")) {
+                ps.setTimestamp(1, startTimestamp(s));
+                ps.setString(2, s.getCentreName());
+                ps.setInt(3, s.getId());
+                if (ps.executeUpdate() == 0) {
+                    throw new IllegalArgumentException("Phiên không còn được phép sửa.");
+                }
+            }
+            c.commit();
+            return true;
+        } catch (SQLException e) {
+            rollback(c);
+            throw dbError(e);
+        } finally {
+            auto(c);
+        }
+    }
 
     @Override public boolean cancel(int id){try(PreparedStatement ps=getConnection().prepareStatement("UPDATE Exam SET [Status]=N'Đã hủy' WHERE ExamId=? AND CAST(ExamDate AS date)>CAST(GETDATE() AS date) AND [Status] NOT IN ('Cancelled',N'Đã hủy')")){ps.setInt(1,id);return ps.executeUpdate()>0;}catch(SQLException e){throw dbError(e);}}
 
-    @Override public List<ExamRegistrationDTO> getCandidates(int id){List<ExamRegistrationDTO> r=new ArrayList<>();String sql="SELECT c.CandidateNumber,c.FullName,c.DateOfBirth,c.GovernmentIdNumber,c.PhoneNumber,c.Email FROM ExamEnrollment ee JOIN Candidate c ON c.CandidateId=ee.CandidateId WHERE ee.ExamId=? ORDER BY TRY_CONVERT(int,c.CandidateNumber),c.CandidateNumber";try(PreparedStatement ps=getConnection().prepareStatement(sql)){ps.setInt(1,id);try(ResultSet rs=ps.executeQuery()){while(rs.next()){ExamRegistrationDTO x=new ExamRegistrationDTO();try{x.setCandidateNo(Integer.parseInt(rs.getString(1)));}catch(Exception ignored){}x.setFullName(rs.getString(2));x.setDateOfBirth(rs.getDate(3));x.setGovIdNo(rs.getString(4));x.setPhoneNo(rs.getString(5));x.setEmail(rs.getString(6));r.add(x);}}return r;}catch(SQLException e){throw dbError(e);}}
+    @Override public List<ExamRegistrationDTO> getCandidates(int id){List<ExamRegistrationDTO> r=new ArrayList<>();String sql="SELECT c.CandidateNumber,c.FullName,c.DateOfBirth,c.GovernmentIdNumber,c.PhoneNumber,c.Email,CASE WHEN c.TakeTheory=0 AND c.TakeLayout=1 THEN N'PRACTICAL_ONLY' ELSE N'FULL_EXAM' END ExamParticipationType FROM ExamEnrollment ee JOIN Candidate c ON c.CandidateId=ee.CandidateId WHERE ee.ExamId=? ORDER BY TRY_CONVERT(int,c.CandidateNumber),c.CandidateNumber";try(PreparedStatement ps=getConnection().prepareStatement(sql)){ps.setInt(1,id);try(ResultSet rs=ps.executeQuery()){while(rs.next()){ExamRegistrationDTO x=new ExamRegistrationDTO();try{x.setCandidateNo(Integer.parseInt(rs.getString(1)));}catch(Exception ignored){}x.setFullName(rs.getString(2));x.setDateOfBirth(rs.getDate(3));x.setGovIdNo(rs.getString(4));x.setPhoneNo(rs.getString(5));x.setEmail(rs.getString(6));x.setExamParticipationType(rs.getString(7));r.add(x);}}return r;}catch(SQLException e){throw dbError(e);}}
 
     private List<SessionDTO> query(String sql){return query(sql,List.of());}
     private List<SessionDTO> query(String sql,List<?> p){List<SessionDTO> r=new ArrayList<>();try(PreparedStatement ps=getConnection().prepareStatement(sql)){bind(ps,p);try(ResultSet rs=ps.executeQuery()){while(rs.next()){SessionDTO x=new SessionDTO();x.setId(rs.getInt("ExamId"));x.setSessionName(rs.getString("ExamCode"));x.setExamDate(rs.getDate("ExamDate"));x.setShiftStartTime(rs.getTime("StartTime"));x.setShiftEndTime(rs.getTime("EndTime"));x.setStatus(rs.getString("Status"));x.setCentreName(rs.getString("CentreName"));x.setLicenceId(rs.getInt("LicenceId"));x.setLicenseCode(rs.getString("LicenceClass"));x.setSourceExamDateId(rs.getInt("SourceExamDateId"));x.setAreaId(rs.getInt("ExamAreaId"));x.setAreaName(rs.getString("AreaName"));x.setMaxCandidates(rs.getInt("Capacity"));x.setExamTypeName(rs.getString("SectionType"));x.setRegisteredCount(rs.getInt("RegisteredCount"));applyLifecycle(x);r.add(x);}}return r;}catch(SQLException e){throw dbError(e);}}
@@ -124,19 +148,68 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             }
         }catch(SQLException e){throw dbError(e);}
     }
-    private static void validatePoliceSource(Connection c,SessionDTO s){
-        if(s.getSourceExamDateId()<=0)throw new IllegalArgumentException("Vui lòng chọn danh sách CSGT đã duyệt.");
-        String sql="SELECT 1 FROM ExamDates ed WHERE ed.ExamDateId=? AND ed.PoliceStatus=N'COMPLETED' "
-                +"AND ed.LicenceId=? AND ed.ExamDate=? AND NOT EXISTS(SELECT 1 FROM Exam e WHERE e.SourceExamDateId=ed.ExamDateId)";
-        try(PreparedStatement ps=c.prepareStatement(sql)){ps.setInt(1,s.getSourceExamDateId());ps.setInt(2,s.getLicenceId());ps.setDate(3,s.getExamDate());try(ResultSet rs=ps.executeQuery()){if(!rs.next())throw new IllegalArgumentException("Danh sách CSGT không khớp ngày, hạng hoặc đã được tạo phiên thi.");}}catch(SQLException e){throw dbError(e);}
+    private static void loadPoliceSource(Connection c, SessionDTO s) {
+        if (s.getSourceExamDateId() <= 0) {
+            throw new IllegalArgumentException("Vui lòng chọn danh sách CSGT đã duyệt.");
+        }
+        String sql = """
+                SELECT ed.ExamDate,ed.LicenceId,l.LicenceClass,
+                       (SELECT COUNT(*) FROM OfficialExamCandidate o
+                        WHERE o.ExamDateId=ed.ExamDateId) OfficialCandidateCount
+                FROM ExamDates ed
+                JOIN Licence l ON l.LicenceId=ed.LicenceId
+                WHERE ed.ExamDateId=?
+                  AND ed.PoliceStatus=N'COMPLETED'
+                  AND ed.Status<>N'Cancelled'
+                  AND NOT EXISTS(
+                      SELECT 1 FROM Exam e WHERE e.SourceExamDateId=ed.ExamDateId
+                  )
+                """;
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, s.getSourceExamDateId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new IllegalArgumentException(
+                            "Danh sách CSGT chưa được ban hành, đã hủy hoặc đã được tạo phiên thi.");
+                }
+                s.setExamDate(rs.getDate("ExamDate"));
+                s.setLicenceId(rs.getInt("LicenceId"));
+                s.setLicenseCode(rs.getString("LicenceClass"));
+                int officialCount = rs.getInt("OfficialCandidateCount");
+                if (officialCount < TentativeExamDatePolicy.MIN_REGISTRATIONS
+                        || officialCount > TentativeExamDatePolicy.MAX_REGISTRATIONS) {
+                    throw new IllegalArgumentException("Danh sách chính thức phải có từ "
+                            + TentativeExamDatePolicy.MIN_REGISTRATIONS + " đến "
+                            + TentativeExamDatePolicy.MAX_REGISTRATIONS
+                            + " thí sinh. Hiện có " + officialCount + " thí sinh.");
+                }
+            }
+        } catch (SQLException e) {
+            throw dbError(e);
+        }
+    }
+
+    private static int createSection(Connection c, int examId, int licenceId,
+            String sectionType) throws SQLException {
+        try (PreparedStatement ps = c.prepareStatement(
+                "INSERT INTO ExamSection(SectionType,LicenceId,DurationMinutes,ExamId) "
+                + "VALUES(?,?,1,?)",
+                Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, sectionType);
+            ps.setInt(2, licenceId);
+            ps.setInt(3, examId);
+            ps.executeUpdate();
+            return generatedId(ps, "Không lấy được mã phần thi " + sectionType);
+        }
     }
 
     private static void copyOfficialCandidates(Connection c, SessionDTO session,
-            int examId, int sectionId) throws SQLException {
+            int examId, int theorySectionId, int practicalSectionId) throws SQLException {
         List<OfficialCandidateRow> rows = new ArrayList<>();
         String sourceSql = """
-                SELECT o.ExamRegistrationId,o.CandidateNumber,o.FullName,o.DateOfBirth,
+                SELECT o.CandidateNumber,o.FullName,o.DateOfBirth,
                        o.PhoneNumber,o.Email,o.GovernmentIdNumber,o.SourceUnitCode,o.SourceUnitName,
+                       o.ExamParticipationType,er.ProfileId,COALESCE(er.IsRetake,0) IsRetake,
                        COALESCE(p.Sex,0) Sex,p.Address,portrait.DocumentUrl PhotoImageUrl
                 FROM OfficialExamCandidate o
                 LEFT JOIN ExamRegistration er ON er.ExamRegistrationId=o.ExamRegistrationId
@@ -162,9 +235,9 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                         candidateNumber = String.format("%03d", fallbackNumber);
                     }
                     fallbackNumber++;
-                    int registrationId = rs.getInt("ExamRegistrationId");
+                    int profileId = rs.getInt("ProfileId");
                     rows.add(new OfficialCandidateRow(
-                            rs.wasNull() ? null : registrationId,
+                            rs.wasNull() ? null : profileId,
                             candidateNumber,
                             rs.getString("FullName"),
                             rs.getDate("DateOfBirth"),
@@ -175,7 +248,9 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                             rs.getString("Address"),
                             rs.getString("PhotoImageUrl"),
                             rs.getString("SourceUnitCode"),
-                            rs.getString("SourceUnitName")));
+                            rs.getString("SourceUnitName"),
+                            rs.getString("ExamParticipationType"),
+                            rs.getBoolean("IsRetake")));
                 }
             }
         }
@@ -188,7 +263,12 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                   (CandidateNumber,FullName,DateOfBirth,PhoneNumber,Email,Sex,
                    GovernmentIdNumber,Address,TakeTheory,TakeLayout,TakeNo,
                    ReasonForTaking,PhotoImageUrl,SourceUnitCode,SourceUnitName)
-                VALUES(?,?,?,?,?,?,?,?,1,0,1,?,?,?,?)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                """;
+        String officialRegistrationSql = """
+                INSERT INTO ExamRegistration
+                  (RegistrationStatus,Notes,ProfileId,LicenceId,IsRetake)
+                VALUES(N'OfficialScheduled',CONCAT(N'#EXAM_ID#',?,N'#'),?,?,?)
                 """;
         String enrollmentSql = """
                 INSERT INTO ExamEnrollment(CandidateId,ExamId,ExamRegistrationId)
@@ -199,11 +279,10 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                 VALUES(?,?,'Pending')
                 """;
         try (PreparedStatement candidatePs = c.prepareStatement(candidateSql, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement officialRegistrationPs = c.prepareStatement(
+                     officialRegistrationSql, Statement.RETURN_GENERATED_KEYS);
              PreparedStatement enrollmentPs = c.prepareStatement(enrollmentSql, Statement.RETURN_GENERATED_KEYS);
-             PreparedStatement sectionPs = c.prepareStatement(sectionSql);
-             PreparedStatement statusPs = c.prepareStatement(
-                     "UPDATE ExamRegistration SET LicenceId=?,RegistrationStatus='OfficialScheduled' "
-                     + "WHERE ExamRegistrationId=?")) {
+             PreparedStatement sectionPs = c.prepareStatement(sectionSql)) {
             for (OfficialCandidateRow row : rows) {
                 candidatePs.setString(1, row.candidateNumber);
                 candidatePs.setString(2, row.fullName);
@@ -213,32 +292,55 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                 candidatePs.setBoolean(6, row.sex);
                 candidatePs.setString(7, row.governmentIdNumber);
                 candidatePs.setString(8, row.address);
-                candidatePs.setString(9, "Thi sát hạch hạng " + session.getLicenseCode());
-                candidatePs.setString(10, row.photoImageUrl);
-                candidatePs.setString(11, row.sourceUnitCode);
-                candidatePs.setString(12, row.sourceUnitName);
+                candidatePs.setBoolean(9, row.takeTheory());
+                candidatePs.setBoolean(10, row.takePractical());
+                candidatePs.setInt(11, row.isRetake() ? 2 : 1);
+                candidatePs.setString(12, row.examReason(session.getLicenseCode()));
+                candidatePs.setString(13, row.photoImageUrl);
+                candidatePs.setString(14, row.sourceUnitCode);
+                candidatePs.setString(15, row.sourceUnitName);
                 candidatePs.executeUpdate();
                 int candidateId = generatedId(candidatePs, "Không tạo được thí sinh "
                         + row.governmentIdNumber);
 
+                Integer officialRegistrationId = null;
+                if (row.profileId != null) {
+                    officialRegistrationPs.setInt(1, examId);
+                    officialRegistrationPs.setInt(2, row.profileId);
+                    officialRegistrationPs.setInt(3, session.getLicenceId());
+                    officialRegistrationPs.setBoolean(4, row.isRetake());
+                    officialRegistrationPs.executeUpdate();
+                    officialRegistrationId = generatedId(officialRegistrationPs,
+                            "Không tạo được đăng ký kỳ thi chính thức cho " + row.governmentIdNumber);
+                }
+
                 enrollmentPs.setInt(1, candidateId);
                 enrollmentPs.setInt(2, examId);
-                if (row.examRegistrationId == null) enrollmentPs.setNull(3, Types.INTEGER);
-                else enrollmentPs.setInt(3, row.examRegistrationId);
+                if (officialRegistrationId == null) enrollmentPs.setNull(3, Types.INTEGER);
+                else enrollmentPs.setInt(3, officialRegistrationId);
                 enrollmentPs.executeUpdate();
                 int enrollmentId = generatedId(enrollmentPs, "Không ghi danh được thí sinh "
                         + row.governmentIdNumber);
 
-                sectionPs.setInt(1, enrollmentId);
-                sectionPs.setInt(2, sectionId);
-                sectionPs.executeUpdate();
-
-                if (row.examRegistrationId != null) {
-                    statusPs.setInt(1, session.getLicenceId());
-                    statusPs.setInt(2, row.examRegistrationId);
-                    statusPs.executeUpdate();
+                if (row.takeTheory()) {
+                    sectionPs.setInt(1, enrollmentId);
+                    sectionPs.setInt(2, theorySectionId);
+                    sectionPs.executeUpdate();
                 }
+
+                if (row.takePractical()) {
+                    sectionPs.setInt(1, enrollmentId);
+                    sectionPs.setInt(2, practicalSectionId);
+                    sectionPs.executeUpdate();
+                }
+
             }
+        }
+        try (PreparedStatement ps = c.prepareStatement(
+                "UPDATE RegistrationDates SET IsActive=0 "
+                + "WHERE ExamDateId=? AND IsActive=1")) {
+            ps.setInt(1, session.getSourceExamDateId());
+            ps.executeUpdate();
         }
     }
 
@@ -250,7 +352,7 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
     }
 
     private static final class OfficialCandidateRow {
-        private final Integer examRegistrationId;
+        private final Integer profileId;
         private final String candidateNumber;
         private final String fullName;
         private final java.sql.Date dateOfBirth;
@@ -262,12 +364,15 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
         private final String photoImageUrl;
         private final String sourceUnitCode;
         private final String sourceUnitName;
+        private final String examParticipationType;
+        private final boolean isRetake;
 
-        private OfficialCandidateRow(Integer examRegistrationId, String candidateNumber,
+        private OfficialCandidateRow(Integer profileId, String candidateNumber,
                 String fullName, java.sql.Date dateOfBirth, String phoneNumber, String email,
                 String governmentIdNumber, boolean sex, String address, String photoImageUrl,
-                String sourceUnitCode, String sourceUnitName) {
-            this.examRegistrationId = examRegistrationId;
+                String sourceUnitCode, String sourceUnitName, String examParticipationType,
+                boolean isRetake) {
+            this.profileId = profileId;
             this.candidateNumber = candidateNumber;
             this.fullName = fullName;
             this.dateOfBirth = dateOfBirth;
@@ -279,6 +384,26 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
             this.photoImageUrl = photoImageUrl;
             this.sourceUnitCode = sourceUnitCode;
             this.sourceUnitName = sourceUnitName;
+            this.examParticipationType = examParticipationType;
+            this.isRetake = isRetake;
+        }
+
+        private boolean takeTheory() {
+            return !"PRACTICAL_ONLY".equalsIgnoreCase(examParticipationType);
+        }
+
+        private boolean takePractical() {
+            return true;
+        }
+
+        private boolean isRetake() {
+            return isRetake || "PRACTICAL_ONLY".equalsIgnoreCase(examParticipationType);
+        }
+
+        private String examReason(String licenceClass) {
+            return takeTheory()
+                    ? "Thi lý thuyết và thực hành hạng " + licenceClass
+                    : "Thi lại thực hành hạng " + licenceClass;
         }
     }
     private static java.sql.Timestamp startTimestamp(SessionDTO s){return java.sql.Timestamp.valueOf(s.getExamDate().toLocalDate().atTime(s.getShiftStartTime().toLocalTime()));}

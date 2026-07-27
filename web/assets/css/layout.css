@@ -279,8 +279,9 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .side-nav-bar--examiner .side-nav-bar__logo-img {
-    width: 44px;
-    height: 52px;
+    width: 48px;
+    height: auto;
+    max-height: 56px;
     object-fit: contain;
 }
 
@@ -486,7 +487,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .side-nav-bar__submenu {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 4px;
     padding-left: 12px;
@@ -497,6 +498,7 @@ body.has-side-nav-bar .dashboard-shell > .site-footer {
 }
 
 .side-nav-bar__link.is-active + .side-nav-bar__submenu {
+    display: flex;
     border-left-color: #0052cc;
 }
 

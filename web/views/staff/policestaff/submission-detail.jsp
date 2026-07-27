@@ -20,6 +20,7 @@
         .doc-tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0}.doc-tab{padding:.55rem .75rem;border:1px solid #cbd5e1;border-radius:9px;text-decoration:none;color:#0755b5;font-weight:700;font-size:.82rem}.doc-tab.is-active{background:#075bd8;color:#fff;border-color:#075bd8}
         .document-frame{width:100%;height:430px;border:1px solid #cbd5e1;border-radius:12px;background:#f8fafc}.empty-document{height:280px;display:grid;place-items:center;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;color:#64748b}
         .decision-box{margin-top:1rem;padding-top:1rem;border-top:1px solid #e2e8f0}.decision{display:grid;grid-template-columns:auto auto minmax(240px,1fr) auto;gap:.75rem;align-items:center}.decision textarea{min-height:78px;resize:vertical}.decision label{white-space:nowrap;font-weight:700}
+        .exam-request{margin:.75rem 0;padding:.8rem;border-radius:10px;background:#eff6ff;color:#1e40af}.participation-choice{display:flex;gap:.8rem;flex-wrap:wrap;grid-column:1/-1}.participation-choice label{padding:.6rem .75rem;border:1px solid #bfdbfe;border-radius:9px;background:#fff}
         .alert{padding:.9rem;border-radius:10px;margin-top:1rem}.ok{background:#ecfdf5;color:#047857}.err{background:#fef2f2;color:#b91c1c}
         .pager{display:flex;justify-content:center;align-items:center;gap:.45rem;padding-top:1rem}.pager a,.pager span{padding:.42rem .68rem;border:1px solid #cbd5e1;border-radius:8px;text-decoration:none}.pager .is-current{background:#075bd8;color:#fff;border-color:#075bd8}
         @media(max-width:1050px){.review-layout{grid-template-columns:1fr}.candidate-pane{max-height:420px}.decision{grid-template-columns:1fr 1fr}.decision textarea,.decision button{grid-column:1/-1}.header-actions{align-items:flex-start;flex-direction:column}}
@@ -83,6 +84,10 @@
                         <div>
                             <h2><c:out value="${selectedCandidate.dossier.profile.fullName}"/></h2>
                             <p>CCCD: <strong><c:out value="${selectedCandidate.dossier.profile.govIdNo}"/></strong> · Email: <c:out value="${selectedCandidate.dossier.user.email}"/></p>
+                            <div class="exam-request">
+                                <strong>Yêu cầu đăng ký:</strong> ${selectedCandidate.registrationTypeLabel}.
+                                <c:if test="${selectedCandidate.retake}">CSGT xác định nội dung được phép thi bên dưới.</c:if>
+                            </div>
                         </div>
                         <span class="status ${selectedCandidate.approved ? 'approved' : (selectedCandidate.rejected ? 'rejected' : 'pending')}">${selectedCandidate.approved ? 'Đã duyệt' : (selectedCandidate.rejected ? 'Từ chối' : 'Chờ duyệt')}</span>
                     </div>
@@ -117,6 +122,19 @@
                                 <input type="hidden" name="registrationDateId" value="${selectedCandidate.registrationDateId}">
                                 <label><input type="radio" name="decision" value="APPROVED" required> Duyệt hồ sơ</label>
                                 <label><input type="radio" name="decision" value="REJECTED" required> Từ chối</label>
+                                <div class="participation-choice">
+                                    <c:choose>
+                                        <c:when test="${selectedCandidate.retake}">
+                                            <strong>Nội dung thi khi duyệt:</strong>
+                                            <label><input type="radio" name="participationType" value="PRACTICAL_ONLY" checked> Chỉ thi thực hành</label>
+                                            <label><input type="radio" name="participationType" value="FULL_EXAM"> Thi lý thuyết và thực hành</label>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <input type="hidden" name="participationType" value="FULL_EXAM">
+                                            <strong>Nội dung thi:</strong> Lý thuyết và thực hành (thi lần đầu)
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
                                 <textarea class="input-field" name="reason" maxlength="500" placeholder="Lý do bắt buộc khi từ chối"></textarea>
                                 <button class="btn-filter" type="submit">Lưu thẩm định</button>
                             </form>

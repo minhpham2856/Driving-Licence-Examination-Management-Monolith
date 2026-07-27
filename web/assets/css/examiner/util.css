@@ -1,0 +1,155 @@
+/* Examiner shared utilities - short single-purpose classes */
+.blue {
+    color: #003d9b;
+}
+
+.green {
+    color: #006846;
+}
+
+.amber {
+    color: #b45309;
+}
+
+.red {
+    color: #ef4444;
+}
+
+.left {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+.right {
+    text-align: right;
+    justify-content: flex-end;
+}
+
+.bold {
+    font-weight: 700;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rounded {
+    border-radius: 8px;
+}
+
+.grey-out {
+    opacity: 0.55;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.unused {
+    background-color: #94a3b8;
+}
+
+.free {
+    background-color: #22c55e;
+}
+
+.busy {
+    background-color: #3b82f6;
+}
+
+.live {
+    background-color: #16a34a;
+}
+
+.idle {
+    background-color: #94a3b8;
+}
+
+.compact {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.stacked {
+    flex-direction: column;
+}
+
+.embedded {
+    box-shadow: none;
+    border-style: dashed;
+}
+
+.critical {
+    border-color: #ef4444;
+    color: #b91c1c;
+}
+
+.suspend {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.direct {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.pending {
+    color: #b45309;
+}
+
+.testing {
+    color: #003d9b;
+}
+
+.total {
+    color: #171c1f;
+}
+
+.white {
+    background-color: #ffffff;
+    color: #434654;
+}
+
+.ink {
+    color: #171c1f;
+}
+
+.inactive {
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.45;
+}
+
+.dash {
+    /* main layout variant: dashboard */
+}
+
+.scroll {
+    overflow: auto;
+}
+
+.score {
+    overflow: hidden;
+}
+
+.table-fill {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.messages {
+    margin-bottom: 0;
+}
+
+.icon-only {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+}
+
+.sm {
+    font-size: 12px;
+}

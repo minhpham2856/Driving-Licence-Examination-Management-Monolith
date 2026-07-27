@@ -13,19 +13,22 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+// JDBC implementation for Candidate; examiner module DAO layer only.
 public class CandidateDAOImpl extends DBContext implements CandidateDAO {
 
     private static final String BASE_SELECT =
-            "SELECT CandidateId, CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, "
+            "SELECT CandidateId, CandidateNumber, FullName, DateOfBirth, PhoneNumber, Email, Sex, "
             + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeNo, "
             + "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended FROM Candidate";
 
+    // Loads one candidate row by primary key.
     @Override
-    public Candidate getById(int candidateId) {
+    public Candidate get(int candidateId) {
         String sql = BASE_SELECT + " WHERE CandidateId = ?";
         return querySingle(sql, ps -> ps.setInt(1, candidateId));
     }
 
+    // Loads candidate rows for a list of ids.
     @Override
     public List<Candidate> getAllByIds(List<Integer> candidateIds) {
         if (candidateIds == null || candidateIds.isEmpty()) {
@@ -43,35 +46,37 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         });
     }
 
+    // Inserts a new candidate and returns generated CandidateId.
     @Override
-    public int insert(Candidate candidate) {
-        String sql = "INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Sex, "
+    public int add(Candidate candidate) {
+        String sql = "INSERT INTO Candidate (CandidateNumber, FullName, DateOfBirth, PhoneNumber, Email, Sex, "
                 + "GovernmentIdNumber, Address, TakeTheory, TakeLayout, TakeNo, "
                 + "ReasonForTaking, PhotoImageUrl, IsAbsent, IsSuspended) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, candidate.getCandidateNumber());
             ps.setString(2, candidate.getFullName());
             ps.setTimestamp(3, candidate.getDateOfBirth());
             ps.setString(4, candidate.getPhoneNumber());
-            ps.setBoolean(5, candidate.isSex());
-            ps.setString(6, candidate.getGovernmentIdNumber());
-            ps.setString(7, candidate.getAddress());
+            ps.setString(5, candidate.getEmail());
+            ps.setBoolean(6, candidate.isSex());
+            ps.setString(7, candidate.getGovernmentIdNumber());
+            ps.setString(8, candidate.getAddress());
             if (candidate.getTakeTheory() != null) {
-                ps.setBoolean(8, candidate.getTakeTheory());
-            } else {
-                ps.setNull(8, Types.BIT);
-            }
-            if (candidate.getTakeLayout() != null) {
-                ps.setBoolean(9, candidate.getTakeLayout());
+                ps.setBoolean(9, candidate.getTakeTheory());
             } else {
                 ps.setNull(9, Types.BIT);
             }
-            ps.setInt(10, candidate.getTakeNo());
-            ps.setString(11, candidate.getReasonForTaking());
-            ps.setString(12, candidate.getPhotoImageUrl());
-            ps.setBoolean(13, candidate.isAbsent());
-            ps.setBoolean(14, candidate.isSuspended());
+            if (candidate.getTakeLayout() != null) {
+                ps.setBoolean(10, candidate.getTakeLayout());
+            } else {
+                ps.setNull(10, Types.BIT);
+            }
+            ps.setInt(11, candidate.getTakeNo());
+            ps.setString(12, candidate.getReasonForTaking());
+            ps.setString(13, candidate.getPhotoImageUrl());
+            ps.setBoolean(14, candidate.isAbsent());
+            ps.setBoolean(15, candidate.isSuspended());
             if (ps.executeUpdate() > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
                     if (keys.next()) {
@@ -85,9 +90,10 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return 0;
     }
 
+    // Updates all columns on an existing candidate row.
     @Override
     public boolean update(Candidate candidate) {
-        String sql = "UPDATE Candidate SET CandidateNumber=?, FullName=?, DateOfBirth=?, PhoneNumber=?, Sex=?, "
+        String sql = "UPDATE Candidate SET CandidateNumber=?, FullName=?, DateOfBirth=?, PhoneNumber=?, Email=?, Sex=?, "
                 + "GovernmentIdNumber=?, Address=?, TakeTheory=?, TakeLayout=?, TakeNo=?, "
                 + "ReasonForTaking=?, PhotoImageUrl=?, IsAbsent=?, IsSuspended=? WHERE CandidateId=?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -95,25 +101,26 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
             ps.setString(2, candidate.getFullName());
             ps.setTimestamp(3, candidate.getDateOfBirth());
             ps.setString(4, candidate.getPhoneNumber());
-            ps.setBoolean(5, candidate.isSex());
-            ps.setString(6, candidate.getGovernmentIdNumber());
-            ps.setString(7, candidate.getAddress());
+            ps.setString(5, candidate.getEmail());
+            ps.setBoolean(6, candidate.isSex());
+            ps.setString(7, candidate.getGovernmentIdNumber());
+            ps.setString(8, candidate.getAddress());
             if (candidate.getTakeTheory() != null) {
-                ps.setBoolean(8, candidate.getTakeTheory());
-            } else {
-                ps.setNull(8, Types.BIT);
-            }
-            if (candidate.getTakeLayout() != null) {
-                ps.setBoolean(9, candidate.getTakeLayout());
+                ps.setBoolean(9, candidate.getTakeTheory());
             } else {
                 ps.setNull(9, Types.BIT);
             }
-            ps.setInt(10, candidate.getTakeNo());
-            ps.setString(11, candidate.getReasonForTaking());
-            ps.setString(12, candidate.getPhotoImageUrl());
-            ps.setBoolean(13, candidate.isAbsent());
-            ps.setBoolean(14, candidate.isSuspended());
-            ps.setInt(15, candidate.getCandidateId());
+            if (candidate.getTakeLayout() != null) {
+                ps.setBoolean(10, candidate.getTakeLayout());
+            } else {
+                ps.setNull(10, Types.BIT);
+            }
+            ps.setInt(11, candidate.getTakeNo());
+            ps.setString(12, candidate.getReasonForTaking());
+            ps.setString(13, candidate.getPhotoImageUrl());
+            ps.setBoolean(14, candidate.isAbsent());
+            ps.setBoolean(15, candidate.isSuspended());
+            ps.setInt(16, candidate.getCandidateId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -121,6 +128,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    // Updates only the IsAbsent flag on a candidate row.
     @Override
     public boolean updateAbsent(int candidateId, boolean absent) {
         String sql = "UPDATE Candidate SET IsAbsent = ? WHERE CandidateId = ?";
@@ -134,24 +142,13 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return false;
     }
 
+    // Updates only the IsSuspended flag on a candidate row.
     @Override
-    public boolean updateExaminerProfile(int candidateId, String fullName, Date dateOfBirth,
-            String governmentIdNumber, String phoneNumber, String address, boolean sex, String reasonForTaking) {
-        String sql = "UPDATE Candidate SET FullName = ?, DateOfBirth = ?, GovernmentIdNumber = ?, "
-                + "PhoneNumber = ?, Address = ?, Sex = ?, ReasonForTaking = ? WHERE CandidateId = ?";
+    public boolean updateSuspended(int candidateId, boolean suspended) {
+        String sql = "UPDATE Candidate SET IsSuspended = ? WHERE CandidateId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, fullName);
-            if (dateOfBirth != null) {
-                ps.setTimestamp(2, new Timestamp(dateOfBirth.getTime()));
-            } else {
-                ps.setNull(2, Types.TIMESTAMP);
-            }
-            ps.setString(3, governmentIdNumber);
-            ps.setString(4, phoneNumber);
-            ps.setString(5, address);
-            ps.setBoolean(6, sex);
-            ps.setString(7, reasonForTaking);
-            ps.setInt(8, candidateId);
+            ps.setBoolean(1, suspended);
+            ps.setInt(2, candidateId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -163,6 +160,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         void bind(PreparedStatement ps) throws SQLException;
     }
 
+    // Private helper: query single.
     private Candidate querySingle(String sql, PreparedStatementBinder binder) {
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             binder.bind(ps);
@@ -177,6 +175,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return null;
     }
 
+    // Private helper: query list.
     private List<Candidate> queryList(String sql, PreparedStatementBinder binder) {
         List<Candidate> list = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -192,6 +191,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         return list;
     }
 
+    // Private helper: map.
     private Candidate map(ResultSet rs) throws SQLException {
         Candidate candidate = new Candidate();
         candidate.setCandidateId(rs.getInt("CandidateId"));
@@ -199,6 +199,7 @@ public class CandidateDAOImpl extends DBContext implements CandidateDAO {
         candidate.setFullName(rs.getString("FullName"));
         candidate.setDateOfBirth(rs.getTimestamp("DateOfBirth"));
         candidate.setPhoneNumber(rs.getString("PhoneNumber"));
+        candidate.setEmail(rs.getString("Email"));
         candidate.setSex(rs.getBoolean("Sex"));
         candidate.setGovernmentIdNumber(rs.getString("GovernmentIdNumber"));
         candidate.setAddress(rs.getString("Address"));
