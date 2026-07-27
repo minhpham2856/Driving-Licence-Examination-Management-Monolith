@@ -159,6 +159,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             dto.setExamEnrollmentId(enrollment.getExamEnrollmentId());
             dto.setExamId(enrollment.getExamId());
             dto.setExamDeviceId(enrollment.getExamDeviceId());
+            dto.setPaymentCompleted(paymentDAO.hasCompletedPayment(enrollment.getExamEnrollmentId()));
             String status = sectionStatuses != null
                     ? sectionStatuses.get(enrollment.getExamEnrollmentId()) : null;
             CandidateStatus parsed = CandidateStatus.fromValue(SectionStatusUtil.normalize(status));
@@ -173,6 +174,7 @@ public class EnrollmentServiceImpl implements EnrollmentService {
             dto.setSectionStatus(CandidateStatus.NOT_STARTED);
             dto.setResultPrinted(false);
             dto.setPresent(false);
+            dto.setPaymentCompleted(false);
         }
         return dto;
     }
