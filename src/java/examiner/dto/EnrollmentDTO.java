@@ -1,130 +1,216 @@
 package examiner.dto;
 
-import java.sql.*;
-import shared.model.ExamEnrollment;
+import java.sql.Timestamp;
 import shared.enums.CandidateStatus;
 
+// Enrollment view for examiner screens with flat scalar fields.
 public class EnrollmentDTO {
 
-    private CandidateProfileDTO candidate;
-    private ExamEnrollment enrollment;
-
+    private int candidateId;
+    private int examEnrollmentId;
+    private int examId;
+    private int candidateNumber;
+    private String fullName;
+    private Timestamp dateOfBirth;
+    private String governmentIdNumber;
+    private String phoneNumber;
+    private String address;
+    private String email;
+    private String reasonForTaking;
+    private boolean sex;
+    private String photoImageUrl;
+    private boolean takeTheory;
+    private boolean takeLayout;
+    private boolean absent;
+    private boolean suspended;
+    private boolean present;
+    private boolean paymentCompleted;
+    private boolean validCapturedPhoto;
+    private CandidateStatus sectionStatus = CandidateStatus.NOT_STARTED;
+    private boolean resultPrinted;
+    private int allocatedAreaId;
+    private String allocatedAreaName;
+    private String notes;
     private Integer theoryScore;
     private Integer practicalScore;
     private String theoryPassed;
     private String practicalPassed;
-    private int allocatedAreaId;
-    private String allocatedAreaName;
-    private String notes;
-    private boolean paymentCompleted;
-    private boolean present;
-    private boolean validCapturedPhoto;
+    private Integer examDeviceId;
 
-    private Timestamp dateOfBirth;
-    private String phoneNo;
-    private String address;
-    private String reasonForTaking;
-    private boolean sex;
-    private String email = "";
-
-    public EnrollmentDTO() {
+    public int getCandidateId() {
+        return candidateId;
     }
 
-    public EnrollmentDTO(CandidateProfileDTO candidate, ExamEnrollment enrollment) {
-        this.candidate = candidate;
-        this.enrollment = enrollment;
+    public void setCandidateId(int candidateId) {
+        this.candidateId = candidateId;
     }
 
-    public CandidateProfileDTO getCandidate() {
-        return candidate;
+    public int getExamEnrollmentId() {
+        return examEnrollmentId;
     }
 
-    public void setCandidate(CandidateProfileDTO candidate) {
-        this.candidate = candidate;
-    }
-
-    public ExamEnrollment getEnrollment() {
-        return enrollment;
-    }
-
-    public void setEnrollment(ExamEnrollment enrollment) {
-        this.enrollment = enrollment;
-    }
-
-    public int getId() {
-        return candidate != null ? candidate.getCandidateId() : 0;
-    }
-
-    public String getCandidateName() {
-        return candidate != null ? candidate.getFullName() : "";
-    }
-
-    public Date getDob() {
-        return dateOfBirth != null ? new Date(dateOfBirth.getTime()) : null;
-    }
-
-    public int getCandidateNumber() {
-        return candidate != null ? candidate.getCandidateNumber() : 0;
-    }
-
-    public int getCandidateNo() {
-        return getCandidateNumber();
-    }
-
-    public String getFullName() {
-        return candidate != null ? candidate.getFullName() : "";
-    }
-
-    public String getGovIdNo() {
-        return candidate != null ? candidate.getGovernmentIdNumber() : "";
-    }
-
-    public boolean isAbsent() {
-        return candidate != null && candidate.isAbsent();
-    }
-
-    public void setAbsent(boolean absent) {
-        if (candidate != null) {
-            candidate.setAbsent(absent);
-        }
-    }
-
-    public boolean isSuspended() {
-        return candidate != null && candidate.isSuspended();
-    }
-
-    public String getSectionStatus() {
-        return enrollment != null ? enrollment.getSectionStatus() : CandidateStatus.NOT_STARTED.getValue();
-    }
-
-    public void setSectionStatus(String status) {
-        if (enrollment != null) {
-            enrollment.setSectionStatus(status);
-        }
-    }
-
-    public boolean isSignaturePrinted() {
-        return enrollment != null && enrollment.isSignaturePrinted();
+    public void setExamEnrollmentId(int examEnrollmentId) {
+        this.examEnrollmentId = examEnrollmentId;
     }
 
     public int getExamId() {
-        return enrollment != null ? enrollment.getExamId() : 0;
+        return examId;
+    }
+
+    public void setExamId(int examId) {
+        this.examId = examId;
+    }
+
+    public int getCandidateNumber() {
+        return candidateNumber;
+    }
+
+    public void setCandidateNumber(int candidateNumber) {
+        this.candidateNumber = candidateNumber;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public Timestamp getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(Timestamp dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getGovernmentIdNumber() {
+        return governmentIdNumber;
+    }
+
+    public void setGovernmentIdNumber(String governmentIdNumber) {
+        this.governmentIdNumber = governmentIdNumber;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getReasonForTaking() {
+        return reasonForTaking;
+    }
+
+    public void setReasonForTaking(String reasonForTaking) {
+        this.reasonForTaking = reasonForTaking;
+    }
+
+    public boolean isSex() {
+        return sex;
+    }
+
+    public void setSex(boolean sex) {
+        this.sex = sex;
+    }
+
+    public String getPhotoImageUrl() {
+        return photoImageUrl;
+    }
+
+    public void setPhotoImageUrl(String photoImageUrl) {
+        this.photoImageUrl = photoImageUrl;
+    }
+
+    public boolean isTakeTheory() {
+        return takeTheory;
+    }
+
+    public void setTakeTheory(boolean takeTheory) {
+        this.takeTheory = takeTheory;
+    }
+
+    public boolean isTakeLayout() {
+        return takeLayout;
+    }
+
+    public void setTakeLayout(boolean takeLayout) {
+        this.takeLayout = takeLayout;
+    }
+
+    public boolean isAbsent() {
+        return absent;
+    }
+
+    public void setAbsent(boolean absent) {
+        this.absent = absent;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
+    }
+
+    public boolean isPresent() {
+        return present;
+    }
+
+    public void setPresent(boolean present) {
+        this.present = present;
     }
 
     public boolean isPaymentCompleted() {
         return paymentCompleted;
     }
 
-    public void setIsPaymentCompleted(boolean paymentCompleted) {
+    public void setPaymentCompleted(boolean paymentCompleted) {
         this.paymentCompleted = paymentCompleted;
     }
 
     public boolean isValidCapturedPhoto() {
-        return validCapturedPhoto || (candidate != null && candidate.getPhotoImageUrl() != null && !candidate.getPhotoImageUrl().isEmpty());
+        return validCapturedPhoto;
     }
 
     public void setValidCapturedPhoto(boolean validCapturedPhoto) {
         this.validCapturedPhoto = validCapturedPhoto;
+    }
+
+    public CandidateStatus getSectionStatus() {
+        return sectionStatus;
+    }
+
+    public void setSectionStatus(CandidateStatus sectionStatus) {
+        this.sectionStatus = sectionStatus;
+    }
+
+    public boolean isResultPrinted() {
+        return resultPrinted;
+    }
+
+    public void setResultPrinted(boolean resultPrinted) {
+        this.resultPrinted = resultPrinted;
     }
 
     public int getAllocatedAreaId() {
@@ -167,17 +253,6 @@ public class EnrollmentDTO {
         this.practicalScore = practicalScore;
     }
 
-    public boolean isPresent() {
-        return present || (candidate != null && !candidate.isAbsent());
-    }
-
-    public void setIsPresent(boolean present) {
-        this.present = present;
-        if (candidate != null) {
-            candidate.setAbsent(!present);
-        }
-    }
-
     public String getTheoryPassed() {
         return theoryPassed;
     }
@@ -194,58 +269,11 @@ public class EnrollmentDTO {
         this.practicalPassed = practicalPassed;
     }
 
-    public void setPhotoUrl(String s) {
-        if (candidate != null) {
-            candidate.setPhotoImageUrl(s);
-        }
+    public Integer getExamDeviceId() {
+        return examDeviceId;
     }
 
-    public void setDateOfBirth(Timestamp dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
-
-    public void setPhoneNo(String phoneNo) {
-        this.phoneNo = phoneNo != null ? phoneNo : "";
-    }
-
-    public void setAddress(String address) {
-        this.address = address != null ? address : "";
-    }
-
-    public void setReasonForTaking(String reasonForTaking) {
-        this.reasonForTaking = reasonForTaking != null ? reasonForTaking : "";
-    }
-
-    public void setSex(boolean sex) {
-        this.sex = sex;
-    }
-
-    public Timestamp getDateOfBirth() {
-        return dateOfBirth;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhoneNo() {
-        return phoneNo != null ? phoneNo : "";
-    }
-
-    public String getAddress() {
-        return address != null ? address : "";
-    }
-
-    public boolean isSex() {
-        return sex;
-    }
-
-    public String getReasonForTaking() {
-        return reasonForTaking != null ? reasonForTaking : "";
+    public void setExamDeviceId(Integer examDeviceId) {
+        this.examDeviceId = examDeviceId;
     }
 }
-

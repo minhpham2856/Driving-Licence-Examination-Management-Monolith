@@ -1,5 +1,6 @@
 package examiner.dto;
 
+// Data transfer object for examiner save result views.
 public class SaveResultDTO {
 
     private int entityId;

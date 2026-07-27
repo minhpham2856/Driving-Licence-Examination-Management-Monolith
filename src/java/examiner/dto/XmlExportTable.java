@@ -15,4 +15,24 @@ public record XmlExportTable(
         // Data rows => each inner list contains cell values aligned with fieldElements/headers
         List<List<Object>> rows) {
 
+    // JavaBeans getters for JSP EL.
+    public String getListElement() {
+        return listElement;
+    }
+
+    public String getItemElement() {
+        return itemElement;
+    }
+
+    public List<String> getFieldElements() {
+        return fieldElements;
+    }
+
+    public List<String> getHeaders() {
+        return headers;
+    }
+
+    public List<List<Object>> getRows() {
+        return rows;
+    }
 }

@@ -48,11 +48,6 @@ public class LicenceCategoriesServlet extends HttpServlet {
             criteria.setKeyword(keyword.trim());
         }
 
-        String[] types = request.getParameterValues("type");
-        if (types != null && types.length > 0) {
-            criteria.setVehicleTypes(Arrays.asList(types));
-        }
-
         String[] durations = request.getParameterValues("duration");
         if (durations != null && durations.length > 0) {
             criteria.setDurations(Arrays.asList(durations));

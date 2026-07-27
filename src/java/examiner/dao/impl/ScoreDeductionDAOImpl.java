@@ -7,13 +7,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+// JDBC implementation for ScoreDeduction; examiner module DAO layer only.
 public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDAO {
 
     private static final String BASE_SELECT =
             "SELECT ScoreDeductionId, LicenceId, Reason, Points, IsCritical, ExamSectionId FROM ScoreDeduction";
 
+    // Loads one score deduction rule row by primary key.
     @Override
-    public ScoreDeduction getById(int scoreDeductionId) {
+    public ScoreDeduction get(int scoreDeductionId) {
         String sql = BASE_SELECT + " WHERE ScoreDeductionId = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, scoreDeductionId);
@@ -28,6 +30,7 @@ public class ScoreDeductionDAOImpl extends DBContext implements ScoreDeductionDA
         return null;
     }
 
+    // Private helper: map.
     private static ScoreDeduction map(ResultSet rs) throws SQLException {
         ScoreDeduction deduction = new ScoreDeduction();
         deduction.setScoreDeductionId(rs.getInt("ScoreDeductionId"));

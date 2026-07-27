@@ -39,6 +39,7 @@ public final class Db2ExamSummarySql {
                    e.StartTime AS createdAt,
                    l.LicenceClass AS licenseCode,
                    e.ExamCode AS examCode,
+                   e.ExamPassword AS examPassword,
                    N'Lý thuyết + Thực hành' AS examTypeName
             FROM Exam e
             JOIN Licence l ON l.LicenceId = e.LicenceId

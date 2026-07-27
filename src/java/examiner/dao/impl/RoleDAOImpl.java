@@ -7,10 +7,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+// JDBC implementation for Role; examiner module DAO layer only.
 public class RoleDAOImpl extends DBContext implements RoleDAO {
     private static final Logger LOG = Logger.getLogger(RoleDAOImpl.class.getName());
+    // Loads one role row by primary key.
     @Override
-    public Role getById(int id) {
+    public Role get(int id) {
         String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleId = ?";
         try (PreparedStatement st = getConnection().prepareStatement(sql)) {
             st.setInt(1, id);
@@ -24,6 +26,7 @@ public class RoleDAOImpl extends DBContext implements RoleDAO {
         }
         return null;
     }
+    // Loads one role row by role name string.
     @Override
     public Role getByName(String roleName) {
         String sql = "SELECT RoleId, RoleName FROM [Role] WHERE RoleName = ?";
