@@ -285,7 +285,7 @@
                                                             Giờ ca: ${upcomingExamTime}
                                                         </c:when>
                                                         <c:otherwise>
-                                                            Giờ ca thi sẽ được cập nhật khi Ban sát hạch mở ca
+                                                            Giờ kỳ thi sẽ được cập nhật khi Ban sát hạch mở kỳ thi
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </div>
