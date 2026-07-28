@@ -62,6 +62,21 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
             LEFT JOIN Licence l ON l.LicenceId = er.LicenceId
             """;
 
+    // Join đúng ExamRegistration được truyền vào (không bắt buộc là bản mới nhất của profile).
+    private static final String DOSSIER_SELECT_BY_REGISTRATION = """
+            SELECT u.UserId, u.Username, u.Email, u.IsActive,
+                   p.ProfileId, p.FullName, p.DateOfBirth, p.PhoneNumber,
+                   p.Sex, p.GovernmentIdNumber, p.Address,
+                   er.ExamRegistrationId, er.RegistrationStatus, er.Notes,
+                   l.LicenceClass,
+                   """ + DERIVED_STATUS + " AS DerivedStatus " + """
+            FROM ExamRegistration er
+            JOIN Profile p ON p.ProfileId = er.ProfileId
+            JOIN [User] u ON u.UserId = p.UserId
+            JOIN [Role] r ON r.RoleId = u.RoleId
+            LEFT JOIN Licence l ON l.LicenceId = er.LicenceId
+            """;
+
     @Override
     public DossierDTO findByUserId(int userId) {
         return findOne(DOSSIER_SELECT + " WHERE u.UserId = ?", userId);
@@ -69,7 +84,8 @@ public class DossierDAOImpl extends DBContext implements DossierDAO {
 
     @Override
     public DossierDTO findByRegistrationId(int registrationId) {
-        return findOne(DOSSIER_SELECT + " WHERE er.ExamRegistrationId = ?", registrationId);
+        return findOne(DOSSIER_SELECT_BY_REGISTRATION + " WHERE er.ExamRegistrationId = ?",
+                registrationId);
     }
 
     @Override

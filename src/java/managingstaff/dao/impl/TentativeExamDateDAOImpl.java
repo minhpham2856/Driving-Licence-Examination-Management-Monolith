@@ -16,12 +16,20 @@ import shared.util.TentativeExamDatePolicy;
 
 public class TentativeExamDateDAOImpl extends DBContext implements TentativeExamDateDAO {
 
+    // Chỉ đếm/liệt kê RegistrationDates active và đúng hạng với ExamDates.
+    private static final String ACTIVE_MATCHING_REG_COUNT = """
+            (SELECT COUNT(*) FROM RegistrationDates rd
+             JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+             WHERE rd.ExamDateId = ed.ExamDateId
+               AND rd.IsActive = 1
+               AND er.LicenceId = ed.LicenceId)
+            """;
+
     private static final String SELECT = """
         SELECT ed.ExamDateId,ed.ExamDate,ed.LicenceId,l.LicenceClass,
                CASE WHEN COALESCE(ed.Status,'Open')='Cancelled'
                     THEN COALESCE(ed.CancelledRegistrationCount,0)
-                    ELSE (SELECT COUNT(*) FROM RegistrationDates rd
-                          WHERE rd.ExamDateId=ed.ExamDateId AND rd.IsActive=1)
+                    ELSE """ + ACTIVE_MATCHING_REG_COUNT + """
                END RegisteredCount,
                COALESCE(ed.Status,'Open') Status,ed.CancelReason,ed.CancelledAt,
                COALESCE(ed.CancelledBy,0) CancelledBy,
@@ -93,7 +101,12 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
 
     @Override
     public int countRegistrations(int id) {
-        return scalar("SELECT COUNT(*) FROM RegistrationDates WHERE ExamDateId=? AND IsActive=1", id);
+        return scalar("""
+                SELECT COUNT(*) FROM RegistrationDates rd
+                JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+                JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId
+                WHERE rd.ExamDateId = ? AND rd.IsActive = 1 AND er.LicenceId = ed.LicenceId
+                """, id);
     }
 
     @Override
@@ -170,8 +183,10 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
             }
             int affected;
             try (PreparedStatement count = connection.prepareStatement(
-                    "SELECT COUNT(*) FROM RegistrationDates WITH (UPDLOCK,HOLDLOCK) "
-                            + "WHERE ExamDateId=? AND IsActive=1")) {
+                    "SELECT COUNT(*) FROM RegistrationDates rd WITH (UPDLOCK,HOLDLOCK) "
+                            + "JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId "
+                            + "JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId "
+                            + "WHERE rd.ExamDateId=? AND rd.IsActive=1 AND er.LicenceId=ed.LicenceId")) {
                 count.setInt(1, id);
                 try (ResultSet rs = count.executeQuery()) {
                     affected = rs.next() ? rs.getInt(1) : 0;
@@ -224,7 +239,10 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                 WHERE COALESCE(ed.Status,'Open')='Open'
                   AND COALESCE(ed.PoliceStatus,'NOT_SENT')='NOT_SENT'
                   AND (SELECT COUNT(*) FROM RegistrationDates rd
-                       WHERE rd.ExamDateId=ed.ExamDateId AND rd.IsActive=1) >= ?
+                       JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+                       WHERE rd.ExamDateId=ed.ExamDateId
+                         AND rd.IsActive=1
+                         AND er.LicenceId=ed.LicenceId) >= ?
                 """;
         String update = "UPDATE ExamDates SET Status='Locked' "
                 + "WHERE ExamDateId=? AND COALESCE(Status,'Open')='Open'";
@@ -290,7 +308,10 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
             }
             int count;
             try (PreparedStatement ps = connection.prepareStatement(
-                    "SELECT COUNT(*) FROM RegistrationDates WHERE ExamDateId=? AND IsActive=1")) {
+                    "SELECT COUNT(*) FROM RegistrationDates rd "
+                    + "JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId "
+                    + "JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId "
+                    + "WHERE rd.ExamDateId=? AND rd.IsActive=1 AND er.LicenceId=ed.LicenceId")) {
                 ps.setInt(1, id);
                 try (ResultSet rs = ps.executeQuery()) { count = rs.next() ? rs.getInt(1) : 0; }
             }
@@ -304,8 +325,11 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                         + TentativeExamDatePolicy.MAX_REGISTRATIONS + " thí sinh.");
             }
             try (PreparedStatement ps = connection.prepareStatement(
-                    "UPDATE RegistrationDates SET PoliceStatus=N'PENDING',PoliceReason=NULL "
-                    + "WHERE ExamDateId=? AND IsActive=1")) {
+                    "UPDATE rd SET PoliceStatus=N'PENDING',PoliceReason=NULL "
+                    + "FROM RegistrationDates rd "
+                    + "JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId "
+                    + "JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId "
+                    + "WHERE rd.ExamDateId=? AND rd.IsActive=1 AND er.LicenceId=ed.LicenceId")) {
                 ps.setInt(1, id);
                 ps.executeUpdate();
             }
@@ -351,7 +375,8 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
         String sql = """
             SELECT rd.ExamRegistrationId FROM RegistrationDates rd
             JOIN ExamRegistration er ON er.ExamRegistrationId=rd.ExamRegistrationId
-            WHERE rd.ExamDateId=? AND rd.IsActive=1
+            JOIN ExamDates ed ON ed.ExamDateId=rd.ExamDateId
+            WHERE rd.ExamDateId=? AND rd.IsActive=1 AND er.LicenceId=ed.LicenceId
             ORDER BY rd.RegistrationDateId
             """ + suffix;
         List<Integer> out = new ArrayList<>();

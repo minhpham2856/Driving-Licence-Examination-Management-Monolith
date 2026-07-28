@@ -216,7 +216,12 @@ BEGIN TRY
 
     DELETE c
     FROM Candidate c
-    WHERE (c.CandidateNumber LIKE N'D28-%' OR c.CandidateNumber LIKE N'D30-%')
+    WHERE (
+            c.CandidateNumber LIKE N'D28-%'
+         OR c.CandidateNumber LIKE N'D30-%'
+         OR (c.FullName LIKE N'Thí Sinh Demo %'
+             AND TRY_CAST(c.CandidateNumber AS INT) BETWEEN 1 AND 40)
+          )
       AND NOT EXISTS (SELECT 1 FROM ExamEnrollment ee WHERE ee.CandidateId = c.CandidateId);
 
     -- Reset dữ liệu workflow chỉ của 12 profile demo.
@@ -317,13 +322,18 @@ BEGIN TRY
 
     SELECT @ExamDateId = ExamDateId FROM ExamDates WHERE ExamDate = @PreferredExamDate;
 
-    -- Đúng 9 RegistrationDates cho 9 ER Approved; Police chưa gửi.
+    -- 6 RegistrationDates A1 (approved_03..08); bỏ approved_01/02 vì sẽ gắn kỳ chính thức;
+    -- bỏ ER hạng A của approved_01 (không thuộc ngày dự kiến A1).
     INSERT INTO RegistrationDates
         (ExamRegistrationId, ExamDateId, IsActive, PoliceStatus, PoliceReason, OfficialCandidateNumber)
     SELECT er.ExamRegistrationId, @ExamDateId, 1, N'NOT_SENT', NULL, NULL
     FROM ExamRegistration er
     JOIN @DemoProfileIds p ON p.ProfileId = er.ProfileId
-    WHERE er.RegistrationStatus = N'Approved';
+    JOIN Profile pr ON pr.ProfileId = er.ProfileId
+    JOIN [User] u ON u.UserId = pr.UserId
+    WHERE er.RegistrationStatus = N'Approved'
+      AND er.LicenceId = @A1LicenceId
+      AND u.Username NOT IN (N'demo_reg_approved_01', N'demo_reg_approved_02');
 
     -- Tạo hai kỳ thi chính thức.
     INSERT INTO Exam
@@ -391,9 +401,10 @@ BEGIN TRY
          TakeTheory, TakeLayout, ReasonForTaking)
     SELECT d.ExamDay,
            n.SeqNo,
+           -- SBD số (001–020 ngày 28, 021–040 ngày 30) để examiner/examstaff parse INT được.
            CASE d.ExamDay
-               WHEN 28 THEN N'D28-' + RIGHT(N'00' + CAST(n.SeqNo AS NVARCHAR(2)), 2)
-               ELSE N'D30-' + RIGHT(N'00' + CAST(n.SeqNo AS NVARCHAR(2)), 2)
+               WHEN 28 THEN RIGHT(N'000' + CAST(n.SeqNo AS NVARCHAR(3)), 3)
+               ELSE RIGHT(N'000' + CAST(20 + n.SeqNo AS NVARCHAR(3)), 3)
            END,
            CASE d.ExamDay
                WHEN 28 THEN N'Thí Sinh Demo 28-' + RIGHT(N'00' + CAST(n.SeqNo AS NVARCHAR(2)), 2)
@@ -464,6 +475,27 @@ BEGIN TRY
     WHERE u.Username = N'demo_reg_approved_02';
     SET @Lifecycle30Id = SCOPE_IDENTITY();
 
+    -- Vô hiệu hóa RegistrationDates cũ (nếu còn) của 2 profile đã gắn kỳ chính thức.
+    UPDATE rd
+    SET rd.IsActive = 0
+    FROM RegistrationDates rd
+    JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+    JOIN Profile p ON p.ProfileId = er.ProfileId
+    JOIN [User] u ON u.UserId = p.UserId
+    WHERE rd.ExamDateId = @ExamDateId
+      AND u.Username IN (N'demo_reg_approved_01', N'demo_reg_approved_02')
+      AND er.RegistrationStatus <> N'PreRegistered';
+
+    -- Vô hiệu hóa dòng RegistrationDates lệch hạng với ngày dự kiến.
+    UPDATE rd
+    SET rd.IsActive = 0
+    FROM RegistrationDates rd
+    JOIN ExamRegistration er ON er.ExamRegistrationId = rd.ExamRegistrationId
+    JOIN ExamDates ed ON ed.ExamDateId = rd.ExamDateId
+    WHERE rd.ExamDateId = @ExamDateId
+      AND rd.IsActive = 1
+      AND er.LicenceId <> ed.LicenceId;
+
     INSERT INTO ExamEnrollment
         (CandidateId, ExamId, ExamRegistrationId, AllocatedExamAreaId, ExamDeviceId)
     SELECT c.CandidateId,
@@ -511,6 +543,18 @@ BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
     THROW;
 END CATCH;
+GO
+
+-- Chuẩn hóa SBD demo cũ dạng D28-/D30- sang số (001–040) nếu còn trong DB.
+UPDATE Candidate
+SET CandidateNumber = CASE
+    WHEN CandidateNumber LIKE N'D28-%'
+        THEN RIGHT(N'000' + CAST(TRY_CAST(RIGHT(CandidateNumber, 2) AS INT) AS NVARCHAR(3)), 3)
+    WHEN CandidateNumber LIKE N'D30-%'
+        THEN RIGHT(N'000' + CAST(20 + TRY_CAST(RIGHT(CandidateNumber, 2) AS INT) AS NVARCHAR(3)), 3)
+    ELSE CandidateNumber
+END
+WHERE CandidateNumber LIKE N'D28-%' OR CandidateNumber LIKE N'D30-%';
 GO
 
 -- =============================================================================
