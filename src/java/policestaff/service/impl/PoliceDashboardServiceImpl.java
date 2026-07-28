@@ -60,40 +60,37 @@ public class PoliceDashboardServiceImpl implements PoliceDashboardService {
         int registrationId = submissionDAO.reviewCandidate(
                 registrationDateId, decision, reason, participationType);
         if (registrationId <= 0) return false;
+
+        // Approving an individual dossier only records the Police decision.
+        // Approved candidates are notified together when the official roster is published.
+        if (!"REJECTED".equalsIgnoreCase(decision)) return true;
+
         DossierDTO dossier = dossierDAO.findByRegistrationId(registrationId);
-        boolean approved = "APPROVED".equalsIgnoreCase(decision);
-        if (emailService.isConfigured() && dossier != null) {
-            String name = dossier.getProfile() == null ? "thí sinh" : dossier.getProfile().getFullName();
-            if (dossier.getUser() != null && dossier.getUser().getEmail() != null
-                    && !dossier.getUser().getEmail().isBlank()) {
-                String body = "Xin chào " + name + ",\n\nCơ quan CSGT đã "
-                        + (approved ? "chấp thuận" : "từ chối") + " hồ sơ đề nghị sát hạch của bạn."
-                        + (approved ? "\nNội dung thi được duyệt: "
-                        + participationLabel(participationType)
-                        + ".\nTrung tâm sẽ thông báo lịch thi chính thức sau khi nhận danh sách."
-                        : "\nLý do: " + reason
-                        + "\n\nVui lòng liên hệ trung tâm để được hướng dẫn hoàn thiện lại hồ sơ.");
-                emailService.sendTextEmail(dossier.getUser().getEmail(),
-                        approved ? "Hồ sơ sát hạch đã được CSGT chấp thuận"
-                                : "Hồ sơ sát hạch bị CSGT từ chối", body);
-            }
-            if (!approved) {
-                String centreBody = "CSGT đã từ chối hồ sơ sát hạch của thí sinh " + name
-                        + ".\nLý do: " + reason
-                        + "\n\nHồ sơ này không được đưa vào danh sách thi chính thức."
-                        + " Vui lòng liên hệ thí sinh để hướng dẫn xử lý.";
-                for (String email : submissionDAO.findActiveManagingStaffEmails()) {
-                    emailService.sendTextEmail(email,
-                            "CSGT từ chối một hồ sơ sát hạch", centreBody);
-                }
-            }
+        if (!emailService.isConfigured() || dossier == null) return true;
+
+        String name = dossier.getProfile() == null
+                ? "thí sinh" : dossier.getProfile().getFullName();
+        String rejectionReason = reason == null ? "" : reason.trim();
+
+        if (dossier.getUser() != null && dossier.getUser().getEmail() != null
+                && !dossier.getUser().getEmail().isBlank()) {
+            String candidateBody = "Xin chào " + name + ",\n\n"
+                    + "Cơ quan CSGT đã từ chối hồ sơ đề nghị sát hạch của bạn.\n"
+                    + "Lý do: " + rejectionReason + "\n\n"
+                    + "Vui lòng liên hệ trung tâm để được hướng dẫn hoàn thiện và đăng ký lại hồ sơ.";
+            emailService.sendTextEmail(dossier.getUser().getEmail(),
+                    "Hồ sơ sát hạch bị CSGT từ chối", candidateBody);
+        }
+
+        String centreBody = "CSGT đã từ chối hồ sơ sát hạch của thí sinh " + name
+                + ".\nLý do: " + rejectionReason
+                + "\n\nHồ sơ này không được đưa vào danh sách thi chính thức."
+                + " Vui lòng liên hệ thí sinh để hướng dẫn xử lý.";
+        for (String email : submissionDAO.findActiveManagingStaffEmails()) {
+            emailService.sendTextEmail(email,
+                    "CSGT từ chối một hồ sơ sát hạch", centreBody);
         }
         return true;
-    }
-
-    private static String participationLabel(String value) {
-        return "PRACTICAL_ONLY".equalsIgnoreCase(value)
-                ? "chỉ thi thực hành" : "lý thuyết và thực hành";
     }
 
     @Override
