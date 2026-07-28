@@ -627,14 +627,14 @@ public class DocumentDAOImpl extends DBContext implements DocumentDAO {
             ps.setInt(1, profileId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
+                    return RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass"));
                 }
             }
         } catch (SQLException e) {
             LOG.log(Level.WARNING, "Không tải hạng GPLX hồ sơ {0}: {1}",
                     new Object[] { profileId, e.getMessage() });
         }
-        return "B2";
+        return "B1";
     }
 
     private Integer findDocumentId(int profileId, String documentType) {
