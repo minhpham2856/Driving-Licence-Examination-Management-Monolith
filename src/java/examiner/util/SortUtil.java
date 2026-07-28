@@ -14,7 +14,8 @@ public final class SortUtil {
     public static final String PAPER_DEFAULT_COLUMN = "questionNo";
     private static final Set<String> ALLOWED_COLUMNS = Set.of(
             "fullName", "sbd", "dob", "address", "status", "governmentId",
-            "correct", "wrong", "unanswered", "result", "examDate", "examScore");
+            "correct", "wrong", "unanswered", "result", "examDate", "examScore",
+            "scoreTheory", "scorePractical");
     private static final Set<String> PAPER_COLUMNS = Set.of(
             "questionNo", "correctAnswer", "studentAnswer");
 
@@ -109,6 +110,14 @@ public final class SortUtil {
             case "examScore" ->
                 Comparator.comparingInt(
                 row -> row.getExamScore() != null ? row.getExamScore() : -1
+                );
+            case "scoreTheory" ->
+                Comparator.comparingInt(
+                row -> row.getScoreTheory() != null ? row.getScoreTheory() : -1
+                );
+            case "scorePractical" ->
+                Comparator.comparingInt(
+                row -> row.getScorePractical() != null ? row.getScorePractical() : -1
                 );
             default ->
                 Comparator.comparingInt(CandidateRowDTO::getCandidateNumber);

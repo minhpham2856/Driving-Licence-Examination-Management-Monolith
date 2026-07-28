@@ -10,7 +10,7 @@ import java.io.IOException;
 import shared.Attributes;
 import shared.model.User;
 
-// Revalidate session user IsActive against DB (admin may deactivate while logged in).
+// Revalidate session user IsActive against DB
 public final class ActiveAccountGuard {
 
     private static final UserDAO userDAO = new UserDAOImpl();

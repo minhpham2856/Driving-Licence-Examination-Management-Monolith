@@ -156,21 +156,8 @@ body {
 }
 
 .exam-choice {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 54px;
-    border: 1px solid var(--exam-border);
-    border-radius: 0;
-    background: #ffffff;
+    display: block;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
-}
-
-.exam-choice:has(input:checked) {
-    border-color: var(--exam-primary);
-    background: rgba(0, 82, 204, 0.08);
-    color: var(--exam-primary);
 }
 
 .exam-choice input {
@@ -180,7 +167,22 @@ body {
 }
 
 .exam-choice span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 54px;
+    border: 1px solid var(--exam-border);
+    border-radius: 0;
+    background: #ffffff;
+    color: inherit;
     font: 800 1.1rem/1 "JetBrains Mono", monospace;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.exam-choice input:checked + span {
+    border-color: var(--exam-primary);
+    background: rgba(0, 82, 204, 0.08);
+    color: var(--exam-primary);
 }
 
 .exam-submit-bar {

@@ -33,7 +33,7 @@ CREATE TABLE [Role] (
 );
 GO
 
--- User: người dùng hệ thống (không gồm thí sinh import ngày thi)
+-- User: người dùng hệ thống
 CREATE TABLE [User] (
     UserId INT PRIMARY KEY IDENTITY(1,1),
     Username NVARCHAR(100) NOT NULL,

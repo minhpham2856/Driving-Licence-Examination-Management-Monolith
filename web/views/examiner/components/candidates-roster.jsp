@@ -28,6 +28,18 @@
                         <jsp:param name="sortColumn" value="governmentId"/>
                         <jsp:param name="label" value="Số CC"/>
                     </jsp:include>
+                    <jsp:include page="/views/examiner/components/sort-th.jsp">
+                        <jsp:param name="sortColumn" value="scoreTheory"/>
+                        <jsp:param name="label" value="Điểm lý thuyết"/>
+                    </jsp:include>
+                    <jsp:include page="/views/examiner/components/sort-th.jsp">
+                        <jsp:param name="sortColumn" value="scorePractical"/>
+                        <jsp:param name="label" value="Điểm thực hành trong hình"/>
+                    </jsp:include>
+                    <jsp:include page="/views/examiner/components/sort-th.jsp">
+                        <jsp:param name="sortColumn" value="result"/>
+                        <jsp:param name="label" value="Kết quả"/>
+                    </jsp:include>
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -39,7 +51,7 @@
                     <%--case 1: empty list--%>
                     <c:when test="${empty candidates}">
                         <tr>
-                            <td colspan="4" class="table-empty">
+                            <td colspan="7" class="table-empty">
                                 ${searchActive ? 'Không tìm thấy thí sinh phù hợp.' : 'Chưa có dữ liệu.'}
                             </td>
                         </tr>
@@ -53,6 +65,20 @@
                                 <td class="table-mono-md">${candidate.candidateNumber}</td>
                                 <td class="table-mono-md">
                                     ${empty candidate.governmentId ? '' : candidate.governmentId}
+                                </td>
+                                <td class="table-mono-md">
+                                    ${empty candidate.scoreTheory ? '' : candidate.scoreTheory}
+                                </td>
+                                <td class="table-mono-md">
+                                    ${empty candidate.scorePractical ? '' : candidate.scorePractical}
+                                </td>
+                                <td>
+                                    <c:if test="${candidate.passed}">
+                                        <span class="tag tag-pass">${candidate.resultLabel}</span>
+                                    </c:if>
+                                    <c:if test="${not candidate.passed and not empty candidate.resultLabel}">
+                                        <span class="tag tag-fail">${candidate.resultLabel}</span>
+                                    </c:if>
                                 </td>
                                 <td>
                                     <div class="actions">

@@ -29,16 +29,16 @@
                         <jsp:param name="label" value="Số CC"/>
                     </jsp:include>
                     <jsp:include page="/views/examiner/components/sort-th.jsp">
-                        <jsp:param name="sortColumn" value="examScore"/>
-                        <jsp:param name="label" value="Điểm thi"/>
+                        <jsp:param name="sortColumn" value="scoreTheory"/>
+                        <jsp:param name="label" value="Điểm lý thuyết"/>
+                    </jsp:include>
+                    <jsp:include page="/views/examiner/components/sort-th.jsp">
+                        <jsp:param name="sortColumn" value="scorePractical"/>
+                        <jsp:param name="label" value="Điểm thực hành trong hình"/>
                     </jsp:include>
                     <jsp:include page="/views/examiner/components/sort-th.jsp">
                         <jsp:param name="sortColumn" value="result"/>
                         <jsp:param name="label" value="Kết quả"/>
-                    </jsp:include>
-                    <jsp:include page="/views/examiner/components/sort-th.jsp">
-                        <jsp:param name="sortColumn" value="status"/>
-                        <jsp:param name="label" value="Tình trạng"/>
                     </jsp:include>
                 </tr>
             </thead>
@@ -67,29 +67,20 @@
                                     ${empty candidate.governmentId ? '' : candidate.governmentId}
                                 </td>
                                 <td class="table-mono-md">
-                                    ${empty candidate.examScore ? '' : candidate.examScore}
+                                    ${empty candidate.scoreTheory ? '' : candidate.scoreTheory}
+                                </td>
+                                <td class="table-mono-md">
+                                    ${empty candidate.scorePractical ? '' : candidate.scorePractical}
                                 </td>
 
                                 <%--result tag--%>
                                 <td>
-                                    <%--case 1: passed--%>
                                     <c:if test="${candidate.passed}">
                                         <span class="tag tag-pass">${candidate.resultLabel}</span>
                                     </c:if>
-                                    <%--case 2: failed / has label--%>
                                     <c:if test="${not candidate.passed and not empty candidate.resultLabel}">
                                         <span class="tag tag-fail">${candidate.resultLabel}</span>
                                     </c:if>
-                                </td>
-
-                                <%--status--%>
-                                <td>
-                                    <%--map not-required -> pending css--%>
-                                    <c:set var="statusClass"
-                                           value="${candidate.status == 'not-required' ? 'pending' : candidate.status}" />
-                                    <span class="tag tag-${empty statusClass ? 'pending' : statusClass}">
-                                        ${candidate.statusLabel}
-                                    </span>
                                 </td>
                             </tr>
                         </c:forEach>

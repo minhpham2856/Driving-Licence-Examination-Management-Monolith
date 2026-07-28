@@ -118,11 +118,13 @@
                                 <%--call--%>
                                 <td>
                                     <c:if test="${candidate.sectionRequired and candidate.actionEligible}">
+                                        <c:set var="callArea"
+                                               value="${not empty candidate.examAreaName ? candidate.examAreaName : (not empty examinerSchedule.examArea.areaName ? examinerSchedule.examArea.areaName : 'khu vực thi')}" />
                                         <form method="post"
                                               action="${pageUrl}"
                                               class="js-call-candidate"
                                               data-sbd="${candidate.candidateNumber}"
-                                              data-name="${candidate.fullName}">
+                                              data-area="${callArea}">
                                             <input type="hidden" name="action" value="call">
                                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
                                             <button type="submit"

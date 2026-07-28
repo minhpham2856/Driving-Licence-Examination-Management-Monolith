@@ -56,7 +56,9 @@
                     <c:otherwise>
                         <c:forEach items="${candidates}" var="candidate" varStatus="row">
 
-                            <%--true when row can show action buttons--%>
+                            <%--attendance allowed even before theory pass; call/score need entry--%>
+                            <c:set var="attendanceAllowed"
+                                   value="${candidate.sectionRequired and candidate.practicalAttendanceAllowed}" />
                             <c:set var="actionAllowed"
                                    value="${candidate.sectionRequired and candidate.practicalEntryAllowed}" />
 
@@ -97,7 +99,7 @@
                                 <%--attendance--%>
                                 <td>
                                     <%--case 1: mark present--%>
-                                    <c:if test="${actionAllowed and candidate.markPresentEligible}">
+                                    <c:if test="${attendanceAllowed and candidate.markPresentEligible}">
                                         <form method="post" action="${pageUrl}">
                                             <input type="hidden" name="action" value="markPresent">
                                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
@@ -109,7 +111,7 @@
                                     </c:if>
 
                                     <%--case 2: undo present--%>
-                                    <c:if test="${actionAllowed and candidate.undoPresentEligible}">
+                                    <c:if test="${candidate.sectionRequired and candidate.undoPresentEligible}">
                                         <form method="post" action="${pageUrl}">
                                             <input type="hidden" name="action" value="undoPresent">
                                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
@@ -124,11 +126,13 @@
                                 <%--call--%>
                                 <td>
                                     <c:if test="${actionAllowed and candidate.actionEligible}">
+                                        <c:set var="callArea"
+                                               value="${not empty candidate.examAreaName ? candidate.examAreaName : (not empty examinerSchedule.examArea.areaName ? examinerSchedule.examArea.areaName : 'khu vực thi')}" />
                                         <form method="post"
                                               action="${pageUrl}"
                                               class="js-call-candidate"
                                               data-sbd="${candidate.candidateNumber}"
-                                              data-name="${candidate.fullName}">
+                                              data-area="${callArea}">
                                             <input type="hidden" name="action" value="call">
                                             <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
                                             <button type="submit"
