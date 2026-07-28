@@ -11,6 +11,7 @@ import policestaff.dto.PoliceSubmissionDTO;
 import policestaff.dto.PoliceCandidateDTO;
 import policestaff.dto.OfficialExamCandidateDTO;
 import shared.dbconnection.DBContext;
+import shared.util.TentativeExamDatePolicy;
 
 public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissionDAO {
 
@@ -347,6 +348,10 @@ public class PoliceSubmissionDAOImpl extends DBContext implements PoliceSubmissi
             }
             if (pending > 0) throw new IllegalArgumentException("Vẫn còn " + pending + " hồ sơ chưa thẩm định.");
             if (approved == 0) throw new IllegalArgumentException("Danh sách không có hồ sơ nào được duyệt.");
+            if (approved > TentativeExamDatePolicy.MAX_REGISTRATIONS) {
+                throw new IllegalArgumentException("Danh sách chính thức không được vượt quá "
+                        + TentativeExamDatePolicy.MAX_REGISTRATIONS + " thí sinh.");
+            }
             String syncSql = """
                     INSERT INTO OfficialExamCandidate
                       (ExamDateId,ExamRegistrationId,LicenceId,FullName,DateOfBirth,

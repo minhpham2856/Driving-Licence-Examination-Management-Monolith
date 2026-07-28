@@ -58,10 +58,14 @@
                             <tr class="paper-tr paper-tr-${q.answerStatus}<c:if test="${st.index % 2 == 1}"> paper-tr-alt</c:if>"
                                 data-answer-status="${q.answerStatus}">
                                 <td class="paper-td paper-td-no">
-                                    ${st.count} (${q.questionNo} - ${q.correctAnswer}<c:if test="${q.critical}"> - ĐL</c:if>)
+                                    ${st.count} (${q.questionNo}<c:if test="${q.critical}"> - ĐL</c:if>)
                                 </td>
                                 <td class="paper-td paper-td-content">
-                                    <img src="${q.imageUrl}" class="paper-img"/>
+                                    <c:if test="${not empty q.imageUrl}">
+                                        <img src="<c:out value='${q.imageUrl}'/>"
+                                             class="paper-img"
+                                             alt="Hình câu hỏi số ${q.questionNo}"/>
+                                    </c:if>
                                 </td>
                                 <td class="paper-td paper-td-answer">${q.correctAnswer}</td>
                                 <td class="paper-td paper-td-student">

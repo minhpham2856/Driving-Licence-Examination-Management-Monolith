@@ -67,7 +67,7 @@
         </tbody>
     </table></div></section>
 </main>
-<jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include></div>
+</div>
 
 <form id="delForm" action="${ctx}/admin/licence-class" method="POST" style="display:none;"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" id="delId"></form>
 

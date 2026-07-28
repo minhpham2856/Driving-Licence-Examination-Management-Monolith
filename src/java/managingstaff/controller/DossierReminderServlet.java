@@ -20,7 +20,6 @@ import java.util.Set;
 @WebServlet("/manager/dossiers/remind")
 public class DossierReminderServlet extends HttpServlet {
 
-    private static final Set<String> REMINDER_STATUSES = Set.of("Pending", "Submitted", "Rejected");
     private static final Set<String> FILTERS = Set.of(
             "all", "draft", "pending", "supplement", "approved", "rejected", "present", "completed");
 
@@ -45,9 +44,9 @@ public class DossierReminderServlet extends HttpServlet {
             response.sendRedirect(redirect);
             return;
         }
-        if (!REMINDER_STATUSES.contains(dossier.getStatus())) {
+        if (!"Rejected".equals(dossier.getStatus())) {
             request.getSession().setAttribute("reminderError",
-                    "Chỉ hồ sơ chờ duyệt hoặc đã từ chối mới được gửi email nhắc.");
+                    "Chỉ hồ sơ đã bị từ chối mới được gửi email nhắc hoàn thiện lại.");
             response.sendRedirect(redirect);
             return;
         }
@@ -57,12 +56,9 @@ public class DossierReminderServlet extends HttpServlet {
             return;
         }
 
-        boolean rejected = "Rejected".equals(dossier.getStatus());
-        String subject = rejected
-                ? "[Lái Vui] Nhắc cập nhật hồ sơ sát hạch đã bị từ chối"
-                : "[Lái Vui] Nhắc hoàn thiện hồ sơ sát hạch";
+        String subject = "[Lái Vui] Nhắc cập nhật hồ sơ sát hạch đã bị từ chối";
         boolean sent = emailService.sendHtmlEmail(
-                dossier.getUser().getEmail(), subject, reminderEmailHtml(dossier, rejected));
+                dossier.getUser().getEmail(), subject, reminderEmailHtml(dossier));
 
         if (sent) {
             AuditLogHelper.persist(request.getSession(), "REMIND Dossier",
@@ -76,21 +72,12 @@ public class DossierReminderServlet extends HttpServlet {
         response.sendRedirect(redirect);
     }
 
-    private static String reminderEmailHtml(DossierDTO dossier, boolean rejected) {
-        String detail;
-        if (rejected) {
-            String reason = dossier.getReviewMessage();
-            detail = "<p>Hồ sơ của bạn đang ở trạng thái <strong>đã từ chối</strong>. "
-                    + "Vui lòng kiểm tra và cập nhật lại thông tin.</p>"
-                    + (reason == null || reason.isBlank() ? ""
-                            : "<p><strong>Lý do gần nhất:</strong> " + html(reason) + "</p>");
-        } else {
-            String missing = String.join(", ", dossier.getMissingRequiredDocumentLabels());
-            detail = "<p>Hồ sơ của bạn hiện đang <strong>chờ duyệt</strong>. "
-                    + "Vui lòng đăng nhập để kiểm tra và hoàn thiện hồ sơ.</p>"
-                    + (missing.isBlank() ? ""
-                            : "<p><strong>Tài liệu còn thiếu:</strong> " + html(missing) + "</p>");
-        }
+    private static String reminderEmailHtml(DossierDTO dossier) {
+        String reason = dossier.getReviewMessage();
+        String detail = "<p>Hồ sơ của bạn đang ở trạng thái <strong>đã từ chối</strong>. "
+                + "Vui lòng kiểm tra và cập nhật lại thông tin.</p>"
+                + (reason == null || reason.isBlank() ? ""
+                        : "<p><strong>Lý do gần nhất:</strong> " + html(reason) + "</p>");
         return "<div style='font-family:Arial,sans-serif;line-height:1.6;color:#1f2937'>"
                 + "<h2 style='color:#0052cc'>Nhắc hoàn thiện hồ sơ sát hạch</h2>"
                 + "<p>Kính gửi <strong>" + html(dossier.getProfile().getFullName()) + "</strong>,</p>"

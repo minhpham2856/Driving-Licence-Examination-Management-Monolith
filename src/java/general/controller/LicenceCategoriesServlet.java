@@ -1,9 +1,12 @@
 package general.controller;
 
+import general.dao.LicenceFeeDAO;
+import general.dao.impl.LicenceFeeDAOImpl;
 import general.dto.LicenceSearchCriteriaDTO;
 import general.dto.ServiceResult;
 import shared.Attributes;
 import shared.model.Licence;
+import shared.model.LicenceFee;
 import general.service.LicenceService;
 import general.service.impl.LicenseServiceImpl;
 import jakarta.servlet.ServletException;
@@ -12,13 +15,16 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/license-categories")
 public class LicenceCategoriesServlet extends HttpServlet {
 
     private final LicenceService licenceService = new LicenseServiceImpl();
+    private final LicenceFeeDAO licenceFeeDAO = new LicenceFeeDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,7 +34,9 @@ public class LicenceCategoriesServlet extends HttpServlet {
         ServiceResult<List<Licence>> result = licenceService.searchLicenceCategories(criteria);
 
         if (result.isSuccess()) {
-            request.setAttribute(Attributes.Request.LICENCES, result.getData());
+            List<Licence> licences = result.getData();
+            request.setAttribute(Attributes.Request.LICENCES, licences);
+            request.setAttribute("licenceFeesByLicenceId", buildFeesByLicence(licences));
         } else {
             request.setAttribute(Attributes.Request.ERROR, result.getMessage());
         }
@@ -40,17 +48,29 @@ public class LicenceCategoriesServlet extends HttpServlet {
         request.getRequestDispatcher("/views/general/license-categories.jsp").forward(request, response);
     }
 
+    private Map<Integer, List<LicenceFee>> buildFeesByLicence(List<Licence> licences) {
+        Map<Integer, List<LicenceFee>> grouped = licenceFeeDAO.getAllGroupedByLicenceId();
+        Map<Integer, List<LicenceFee>> byLicence = new HashMap<>();
+        if (licences == null) {
+            return byLicence;
+        }
+        for (Licence licence : licences) {
+            if (licence == null) {
+                continue;
+            }
+            List<LicenceFee> specific = grouped.get(licence.getLicenceId());
+            byLicence.put(licence.getLicenceId(),
+                    specific != null ? specific : new ArrayList<>());
+        }
+        return byLicence;
+    }
+
     private LicenceSearchCriteriaDTO buildCriteria(HttpServletRequest request) {
         LicenceSearchCriteriaDTO criteria = new LicenceSearchCriteriaDTO();
 
         String keyword = request.getParameter("q");
         if (keyword != null && !keyword.isBlank()) {
             criteria.setKeyword(keyword.trim());
-        }
-
-        String[] durations = request.getParameterValues("duration");
-        if (durations != null && durations.length > 0) {
-            criteria.setDurations(Arrays.asList(durations));
         }
 
         String sortBy = request.getParameter("sortBy");

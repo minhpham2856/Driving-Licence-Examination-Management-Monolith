@@ -9,7 +9,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Quản lý phiên thi - Lái Vui</title>
+    <title>Quản lý kỳ thi - Lái Vui</title>
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
     <style>
@@ -134,12 +134,12 @@
         <nav class="breadcrumbs">
             <a href="${ctx}/manager/dashboard">Dashboard</a>
             <span class="breadcrumbs__separator">/</span>
-            <span class="breadcrumbs__current">Quản lý phiên thi</span>
+            <span class="breadcrumbs__current">Quản lý kỳ thi</span>
         </nav>
 
         <header class="page-header">
             <div class="page-title-wrap">
-                <h1 class="page-title">Quản Lý Phiên Thi</h1>
+                <h1 class="page-title">Quản Lý Kỳ Thi</h1>
                 <p class="page-subtitle">
                     Managing Staff tạo phiên thi từ danh sách chính thức đã nhận và quản lý trạng thái các phiên.
                 </p>
@@ -282,7 +282,7 @@
                                            style="padding:.4rem .55rem;text-decoration:none">${not empty viewSession and viewSession.id eq s.id ? 'Đang xem' : 'Danh sách'}</a>
                                         <c:if test="${s.editable}"><a class="btn-filter" href="${ctx}/manager/exam-schedules?edit=${s.id}" style="padding:.4rem .55rem;text-decoration:none">Sửa</a></c:if>
                                     </div>
-                                    <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi? Danh sách thí sinh vẫn được giữ lại.');">
+                                    <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi?');">
                                         <input type="hidden" name="action" value="cancel"><input type="hidden" name="sessionId" value="${s.id}">
                                         <input name="reason" required minlength="5" placeholder="Lý do hủy" style="width:125px;height:30px"><button type="submit" class="btn-reset" style="height:30px;width:auto;padding:0 .45rem">Hủy phiên</button>
                                     </form></c:if>

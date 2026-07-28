@@ -11,6 +11,8 @@ import managingstaff.dao.DossierDAO;
 import managingstaff.dao.impl.DossierDAOImpl;
 import managingstaff.dao.ExamSessionDAO;
 import managingstaff.dao.impl.ExamSessionDAOImpl;
+import managingstaff.dao.TentativeExamDateDAO;
+import managingstaff.dao.impl.TentativeExamDateDAOImpl;
 import managingstaff.dto.SessionDTO;
 import java.util.List;
 import managingstaff.util.SessionUtil;
@@ -21,6 +23,7 @@ public class ManagingDashboardServlet extends HttpServlet {
     private static final String VIEW = "/views/staff/managingstaff/dashboard.jsp";
     private final DossierDAO dossierDAO = new DossierDAOImpl();
     private final ExamSessionDAO sessionDAO = new ExamSessionDAOImpl();
+    private final TentativeExamDateDAO tentativeExamDateDAO = new TentativeExamDateDAOImpl();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -39,7 +42,7 @@ public class ManagingDashboardServlet extends HttpServlet {
         List<SessionDTO> upcoming = sessionDAO.findPage("upcoming", List.of(), 1, 5);
         request.setAttribute("upcomingSessions", upcoming);
         request.setAttribute("upcomingCount", sessionDAO.count("upcoming", List.of()));
-        request.setAttribute("emptyRosterCount", upcoming.stream().filter(s -> s.getRegisteredCount() == 0).count());
+        request.setAttribute("tentativeExamDateCount", tentativeExamDateDAO.countAll("active"));
         request.getRequestDispatcher(VIEW).forward(request, response);
     }
 }

@@ -53,6 +53,33 @@ public final class RegistrantDocumentHelper {
         return MARK_SUPPLEMENT_DOC + " " + body;
     }
 
+    /**
+     * Trích lý do staff ghi trong ExamRegistration.Notes (marker ;MESSAGE=... do managing staff).
+     * Trả về null nếu không có nội dung hiển thị được.
+     */
+    public static String parseStaffMessageFromNotes(String notes) {
+        if (notes == null || notes.isBlank()) {
+            return null;
+        }
+        int marker = notes.lastIndexOf("MESSAGE=");
+        if (marker >= 0) {
+            String message = notes.substring(marker + "MESSAGE=".length()).trim();
+            int separator = message.indexOf(';');
+            if (separator >= 0) {
+                message = message.substring(0, separator).trim();
+            }
+            return message.isBlank() ? null : message;
+        }
+        String cleaned = notes
+                .replace(MARK_PROFILE_DOC, " ")
+                .replace(MARK_SUPPLEMENT_DOC, " ")
+                .replace(MARK_LICENCE_DOC, " ")
+                .replaceAll("#SUPPLEMENT_ER#\\d+#", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        return cleaned.isBlank() ? null : cleaned;
+    }
+
     /** Ghép notes xin duyệt thêm hạng (tái sử dụng hồ sơ đã duyệt). */
     public static String buildLicenceDocExamRegistrationNotes(String message) {
         String body = message != null && !message.isBlank() ? message.trim() : "Xin duyệt hạng với hồ sơ đã có.";

@@ -27,6 +27,9 @@
         <c:if test="${not empty requestScope.examControlError}">
             <div class="examstaff-flash examstaff-flash--error">${requestScope.examControlError}</div>
         </c:if>
+        <c:if test="${exportError}">
+            <div class="examstaff-flash examstaff-flash--error">Không xuất được file Excel. Vui lòng thử lại.</div>
+        </c:if>
 
         <c:if test="${not empty currentExam}">
         <section class="report-pane dashboard-exam-panel" aria-label="Điều hành kỳ thi" style="margin-bottom: 1.25rem;">
@@ -44,8 +47,8 @@
             <div class="page-actions">
                 <a href="${pageContext.request.contextPath}/examstaff/report?exportExcel=true"
                    class="btn-filter"
-                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; ${missingPhotoCount > 0 ? 'background-color: #94a3b8; border-color: #94a3b8; pointer-events: none; opacity: 0.65;' : 'background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);'}"
-                   title="${missingPhotoCount > 0 ? 'Còn thí sinh chưa chụp ảnh - không thể xuất hồ sơ' : 'Xuất Excel'}">
+                   style="height: 42px; padding: 0 1.25rem; font-size: 0.9rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background-color: #10b981; border-color: #10b981; color: #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);"
+                   title="${missingPhotoCount > 0 ? 'Xuất Excel (còn thí sinh chưa chụp ảnh)' : 'Xuất Excel'}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
                         <path d="M14 2v6h6M8 13h8M8 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>

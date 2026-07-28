@@ -98,6 +98,24 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
 
     @Override
     public int cancel(int id, String reason, int cancelledByUserId) {
+        return cancelInternal(id, reason, cancelledByUserId, false);
+    }
+
+    @Override
+    public List<TentativeExamDateDTO> findDeadlineReviewDates() {
+        return query(SELECT + """
+                 WHERE COALESCE(ed.Status,'Open') IN ('Open','Locked')
+                   AND COALESCE(ed.PoliceStatus,'NOT_SENT')='NOT_SENT'
+                 ORDER BY ed.ExamDate,ed.ExamDateId
+                """, List.of());
+    }
+
+    @Override
+    public int autoCancelInsufficient(int id, String reason) {
+        return cancelInternal(id, reason, 0, true);
+    }
+
+    private int cancelInternal(int id, String reason, int cancelledByUserId, boolean automatic) {
         String normalizedReason = reason == null ? "" : reason.trim();
         if (normalizedReason.isEmpty()) {
             throw new IllegalArgumentException("Vui lòng nhập lý do hủy ngày thi dự kiến.");
@@ -115,8 +133,11 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
             connection.setAutoCommit(false);
             Date examDate;
             String status;
+            String policeStatus;
             try (PreparedStatement lock = connection.prepareStatement(
-                    "SELECT ExamDate,COALESCE(Status,'Open') Status FROM ExamDates WITH (UPDLOCK,HOLDLOCK) WHERE ExamDateId=?")) {
+                    "SELECT ExamDate,COALESCE(Status,'Open') Status,"
+                            + "COALESCE(PoliceStatus,'NOT_SENT') PoliceStatus "
+                            + "FROM ExamDates WITH (UPDLOCK,HOLDLOCK) WHERE ExamDateId=?")) {
                 lock.setInt(1, id);
                 try (ResultSet rs = lock.executeQuery()) {
                     if (!rs.next()) {
@@ -124,25 +145,41 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                     }
                     examDate = rs.getDate("ExamDate");
                     status = rs.getString("Status");
+                    policeStatus = rs.getString("PoliceStatus");
                 }
             }
             if ("Cancelled".equalsIgnoreCase(status)) {
                 throw new IllegalArgumentException("Ngày thi dự kiến này đã được hủy trước đó.");
             }
-            if (!"Open".equalsIgnoreCase(status)) {
+            if (!"Open".equalsIgnoreCase(status)
+                    && !(automatic && "Locked".equalsIgnoreCase(status))) {
                 throw new IllegalArgumentException("Ngày thi dự kiến đã khóa nên không thể hủy.");
             }
-            if (TentativeExamDatePolicy.shouldBeLocked(examDate.toLocalDate(), LocalDate.now())) {
+            if (!"NOT_SENT".equalsIgnoreCase(policeStatus)) {
+                throw new IllegalArgumentException(
+                        "Danh sách đã gửi CSGT nên trung tâm không thể tự hủy.");
+            }
+            boolean reachedDeadline = TentativeExamDatePolicy.shouldBeLocked(
+                    examDate.toLocalDate(), LocalDate.now());
+            if (!automatic && reachedDeadline) {
                 throw new IllegalArgumentException(
                         "Ngày thi dự kiến đã đến mốc khóa trước 07 ngày làm việc nên không thể hủy.");
             }
+            if (automatic && !reachedDeadline) {
+                throw new IllegalArgumentException("Ngày thi dự kiến chưa đến hạn tự động kiểm tra.");
+            }
             int affected;
             try (PreparedStatement count = connection.prepareStatement(
-                    "SELECT COUNT(*) FROM RegistrationDates WHERE ExamDateId=? AND IsActive=1")) {
+                    "SELECT COUNT(*) FROM RegistrationDates WITH (UPDLOCK,HOLDLOCK) "
+                            + "WHERE ExamDateId=? AND IsActive=1")) {
                 count.setInt(1, id);
                 try (ResultSet rs = count.executeQuery()) {
                     affected = rs.next() ? rs.getInt(1) : 0;
                 }
+            }
+            if (automatic && affected >= TentativeExamDatePolicy.MIN_REGISTRATIONS) {
+                throw new IllegalArgumentException(
+                        "Ngày thi dự kiến đã đủ số lượng tối thiểu nên không tự động hủy.");
             }
             try (PreparedStatement updateDate = connection.prepareStatement("""
                     UPDATE ExamDates
@@ -181,17 +218,25 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
     public List<Integer> lockDueDates() {
         List<Integer> dueIds = new ArrayList<>();
         List<Integer> lockedIds = new ArrayList<>();
-        String select = "SELECT ExamDateId,ExamDate FROM ExamDates "
-                + "WHERE COALESCE(Status,'Open')='Open'";
+        String select = """
+                SELECT ed.ExamDateId,ed.ExamDate
+                FROM ExamDates ed
+                WHERE COALESCE(ed.Status,'Open')='Open'
+                  AND COALESCE(ed.PoliceStatus,'NOT_SENT')='NOT_SENT'
+                  AND (SELECT COUNT(*) FROM RegistrationDates rd
+                       WHERE rd.ExamDateId=ed.ExamDateId AND rd.IsActive=1) >= ?
+                """;
         String update = "UPDATE ExamDates SET Status='Locked' "
                 + "WHERE ExamDateId=? AND COALESCE(Status,'Open')='Open'";
-        try (PreparedStatement find = getConnection().prepareStatement(select);
-             ResultSet rs = find.executeQuery()) {
-            while (rs.next()) {
-                int id = rs.getInt("ExamDateId");
-                Date date = rs.getDate("ExamDate");
-                if (date != null && TentativeExamDatePolicy.shouldBeLocked(date.toLocalDate(), LocalDate.now())) {
-                    dueIds.add(id);
+        try (PreparedStatement find = getConnection().prepareStatement(select)) {
+            find.setInt(1, TentativeExamDatePolicy.MIN_REGISTRATIONS);
+            try (ResultSet rs = find.executeQuery()) {
+                while (rs.next()) {
+                    int id = rs.getInt("ExamDateId");
+                    Date date = rs.getDate("ExamDate");
+                    if (date != null && TentativeExamDatePolicy.shouldBeLocked(date.toLocalDate(), LocalDate.now())) {
+                        dueIds.add(id);
+                    }
                 }
             }
         } catch (SQLException e) {
@@ -249,8 +294,14 @@ public class TentativeExamDateDAOImpl extends DBContext implements TentativeExam
                 ps.setInt(1, id);
                 try (ResultSet rs = ps.executeQuery()) { count = rs.next() ? rs.getInt(1) : 0; }
             }
-            if (count == 0) {
-                throw new IllegalArgumentException("Ngày dự kiến chưa có thí sinh nên không thể gửi CSGT.");
+            if (count < TentativeExamDatePolicy.MIN_REGISTRATIONS) {
+                throw new IllegalArgumentException("Cần tối thiểu "
+                        + TentativeExamDatePolicy.MIN_REGISTRATIONS
+                        + " thí sinh mới được gửi danh sách tới CSGT. Hiện có " + count + " thí sinh.");
+            }
+            if (count > TentativeExamDatePolicy.MAX_REGISTRATIONS) {
+                throw new IllegalArgumentException("Danh sách vượt quá giới hạn "
+                        + TentativeExamDatePolicy.MAX_REGISTRATIONS + " thí sinh.");
             }
             try (PreparedStatement ps = connection.prepareStatement(
                     "UPDATE RegistrationDates SET PoliceStatus=N'PENDING',PoliceReason=NULL "

@@ -1,0 +1,35 @@
+{
+  "skill_name": "git-conventions",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Commit my changes to the examiner dashboard - I fixed a null pointer that happened when no exam was selected.",
+      "expected_output": "Single-line commit 'Fix examiner dashboard null pointer' with NO co-author trailer (examiner module never gets a co-author, and this is a minor fix).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Push a new branch for the examstaff allocation feature and commit the new servlet I just wrote in controller/staff/examstaff.",
+      "expected_output": "Create branch named minhpn_examstaff-allocation (do NOT rename current branch). Commit 'Add examiner allocation servlet' with trailer 'Co-Authored-By: Wuan0706 <wuan0706@users.noreply.github.com>'.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Commit the theory exam timer feature I added under controller/exam.",
+      "expected_output": "Commit 'Add theory exam timer' with trailer 'Co-Authored-By: shikynon <shikynon@users.noreply.github.com>' (major feature in the exam/candidate/computer module).",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I fixed a typo in the login page (controller/auth/general/LoginServlet.jsp). Please commit it.",
+      "expected_output": "Single-line commit like 'Fix login page typo' with NO co-author (registrant module, but a minor fix - no co-author).",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Stage everything and commit - I refactored the managing dashboard query and also tweaked a few examiner JSP labels.",
+      "expected_output": "Prefer splitting into small commits. Primary module is managing (major-ish) → 'Update managing dashboard query' with trailer 'Co-Authored-By: batoi12 <batoi12@users.noreply.github.com>'. Examiner label tweak committed separately as a minor fix with no co-author. No Claude co-author anywhere.",
+      "files": []
+    }
+  ]
+}

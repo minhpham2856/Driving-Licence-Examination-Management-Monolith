@@ -1068,6 +1068,38 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         return fallbackLegacyProfileDocumentStatus(profileId);
     }
 
+    /** Lý do từ chối hồ sơ gốc (MESSAGE= trong Notes) — null nếu không Rejected/không có lý do. */
+    @Override
+    public String findProfileDocumentRejectionReason(int profileId) {
+        if (profileId <= 0 || getConnection() == null) {
+            return null;
+        }
+        String sql = """
+                SELECT TOP 1 RegistrationStatus, Notes
+                FROM ExamRegistration
+                WHERE ProfileId = ?
+                  AND RegistrationStatus IN (N'Draft', N'Pending', N'Approved', N'Rejected')
+                  AND (Notes IS NULL OR (
+                        Notes NOT LIKE N'%#SUPPLEMENT_DOC#%'
+                        AND Notes NOT LIKE N'%#LICENCE_DOC#%'
+                      ))
+                ORDER BY ExamRegistrationId ASC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, profileId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()
+                        && ProfileRegistrationStatus.REJECTED.equalsIgnoreCase(rs.getString("RegistrationStatus"))) {
+                    return RegistrantDocumentHelper.parseStaffMessageFromNotes(rs.getString("Notes"));
+                }
+            }
+        } catch (SQLException e) {
+            LOG.log(Level.WARNING, "Không đọc lý do từ chối hồ sơ gốc {0}: {1}",
+                    new Object[] { profileId, e.getMessage() });
+        }
+        return null;
+    }
+
     /** Các hạng UI đã được duyệt kèm hồ sơ. */
     @Override
     public List<String> listApprovedDocumentLicenceCodes(int profileId) {

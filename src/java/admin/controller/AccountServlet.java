@@ -133,12 +133,12 @@ public class AccountServlet extends HttpServlet {
             boolean ok = dao.resetPassword(id, tempPw);
             if (ok) {
                 AdminAuditLog.persist(req.getSession(), "UPDATE", "Cấp lại mật khẩu tài khoản: " + acc.getUsername(), id);
-                boolean sent = sendCredentialsEmail(acc.getEmail(), acc.getUsername(), tempPw, true);
-                if (sent) {
+                String mailError = sendCredentialsEmailAndGetError(acc.getEmail(), acc.getUsername(), tempPw, true);
+                if (mailError == null) {
                     SessionUtil.flash(req, "success", "Đã cấp lại mật khẩu và gửi email tới " + acc.getEmail() + ".");
                 } else {
                     SessionUtil.flash(req, "warning", "Đã cấp lại mật khẩu cho \"" + acc.getUsername()
-                            + "\" nhưng gửi email thất bại (kiểm tra cấu hình email). Hãy thử \"Cấp lại mật khẩu\" lại.");
+                            + "\" nhưng gửi email thất bại: " + mailError + " Hãy sửa cấu hình rồi thử \"Cấp lại mật khẩu\" lại.");
                 }
             } else SessionUtil.flash(req, "danger", "Cấp lại mật khẩu thất bại.");
             resp.sendRedirect(ctx + "/admin/accounts");
@@ -182,7 +182,7 @@ public class AccountServlet extends HttpServlet {
         String error = validateAccountInput(username, email, fullName, phone, sex, govId, dob, roleId);
 
         if (error != null) {
-            SessionUtil.flash(req, "danger", error);
+            reopenAccountModal(req, error, username, email, roleId, fullName, phone, dobStr, sex, govId, address, active);
             resp.sendRedirect(ctx + "/admin/accounts");
             return;
         }
@@ -197,15 +197,16 @@ public class AccountServlet extends HttpServlet {
         int newId = dao.create(a, roleId, sexMale, tempPw);
         if (newId > 0) {
             AdminAuditLog.persist(req.getSession(), "INSERT", "Tạo tài khoản: " + username, newId);
-            boolean sent = sendCredentialsEmail(email, username, tempPw, false);
-            if (sent) {
+            String mailError = sendCredentialsEmailAndGetError(email, username, tempPw, false);
+            if (mailError == null) {
                 SessionUtil.flash(req, "success", "Đã tạo tài khoản \"" + username + "\" và gửi mật khẩu tạm tới email " + email + ".");
             } else {
                 SessionUtil.flash(req, "warning", "Đã tạo tài khoản \"" + username
-                        + "\" nhưng gửi email thất bại (kiểm tra cấu hình email). Hãy dùng \"Cấp lại mật khẩu\" để gửi lại.");
+                        + "\" nhưng gửi email thất bại: " + mailError + " Hãy sửa cấu hình rồi dùng \"Cấp lại mật khẩu\" để gửi lại.");
             }
         } else {
-            SessionUtil.flash(req, "danger", "Tạo tài khoản thất bại (kiểm tra dữ liệu trùng).");
+            reopenAccountModal(req, "Tạo tài khoản thất bại (dữ liệu trùng với tài khoản khác). Vui lòng kiểm tra lại.",
+                    username, email, roleId, fullName, phone, dobStr, sex, govId, address, active);
         }
         resp.sendRedirect(ctx + "/admin/accounts");
     }
@@ -251,6 +252,7 @@ public class AccountServlet extends HttpServlet {
         List<RoleOption> roles = dao.listRoles();
         int created = 0, mailed = 0;
         List<String> errors = new ArrayList<>();
+        String lastMailError = null;
 
         for (AccountExcelService.ImportRow r : rows) {
             String username = Validator.normalize(r.username);
@@ -286,7 +288,9 @@ public class AccountServlet extends HttpServlet {
             if (newId > 0) {
                 created++;
                 AdminAuditLog.persist(req.getSession(), "INSERT", "Import tài khoản: " + username, newId);
-                if (sendCredentialsEmail(email, username, tempPw, false)) mailed++;
+                String mailError = sendCredentialsEmailAndGetError(email, username, tempPw, false);
+                if (mailError == null) mailed++;
+                else if (lastMailError == null) lastMailError = mailError;
             } else {
                 errors.add("Dòng " + r.rowNumber + ": tạo tài khoản thất bại (dữ liệu trùng).");
             }
@@ -298,11 +302,12 @@ public class AccountServlet extends HttpServlet {
             if (mailed == created) {
                 msg.append("Đã gửi mật khẩu tạm qua email cho tất cả ").append(mailed).append(" tài khoản.");
             } else if (mailed == 0) {
-                msg.append("CHƯA gửi được email mật khẩu cho tài khoản nào (kiểm tra cấu hình email trong file .env) — ")
-                   .append("người dùng chưa thể đăng nhập. Hãy dùng nút \"Cấp lại MK\" sau khi cấu hình xong.");
+                msg.append("CHƯA gửi được email mật khẩu cho tài khoản nào — người dùng chưa thể đăng nhập. Lý do: ")
+                   .append(lastMailError).append(" Hãy sửa cấu hình rồi dùng nút \"Cấp lại MK\" cho từng tài khoản.");
             } else {
                 msg.append("Gửi email mật khẩu thành công ").append(mailed).append('/').append(created)
-                   .append(" tài khoản; số còn lại hãy dùng nút \"Cấp lại MK\" để gửi lại.");
+                   .append(" tài khoản. Lý do các tài khoản còn lại chưa nhận được: ").append(lastMailError)
+                   .append(" Hãy dùng nút \"Cấp lại MK\" để gửi lại.");
             }
         }
         if (!errors.isEmpty()) {
@@ -412,8 +417,30 @@ public class AccountServlet extends HttpServlet {
         if (error == null && dao.usernameExists(username)) error = "Tên đăng nhập \"" + username + "\" đã tồn tại.";
         if (error == null && dao.emailExists(email))       error = "Email \"" + email + "\" đã được sử dụng.";
         if (error == null && dao.phoneExists(phone))       error = "Số điện thoại \"" + phone + "\" đã được sử dụng.";
-        if (error == null && dao.govIdExists(govId))       error = "Số CCCD/CMND \"" + govId + "\" đã tồn tại.";
+        if (error == null && dao.govIdExists(govId))       error = "Số CCCD \"" + govId + "\" đã tồn tại.";
         return error;
+    }
+
+    /**
+     * Lưu lại dữ liệu vừa nhập + thông báo lỗi vào session để mở lại đúng modal
+     * "Tạo tài khoản mới" kèm lỗi hiển thị tại chỗ, thay vì chỉ hiện banner đầu trang và mất dữ liệu đã nhập.
+     */
+    private void reopenAccountModal(HttpServletRequest req, String errorMessage, String username, String email,
+                                     int roleId, String fullName, String phone, String dobStr, String sex,
+                                     String govId, String address, boolean active) {
+        SessionUtil.flash(req, "danger", errorMessage);
+        var s = req.getSession();
+        s.setAttribute("reopenModal", "account");
+        s.setAttribute("f_username", username);
+        s.setAttribute("f_email", email);
+        s.setAttribute("f_role", roleId > 0 ? String.valueOf(roleId) : "");
+        s.setAttribute("f_fullName", fullName);
+        s.setAttribute("f_phone", phone);
+        s.setAttribute("f_dateOfBirth", dobStr);
+        s.setAttribute("f_sex", sex);
+        s.setAttribute("f_govId", govId);
+        s.setAttribute("f_address", address);
+        s.setAttribute("f_status", active ? "active" : "inactive");
     }
 
     /**
@@ -436,11 +463,12 @@ public class AccountServlet extends HttpServlet {
     // ------------------------------------------------------------- helpers
 
     /**
-     * Gửi email mật khẩu tạm cho người dùng. Trả về true nếu gửi thành công.
+     * Gửi email mật khẩu tạm cho người dùng.
      * Dùng chung cho luồng tạo tài khoản mới, import và cấp lại mật khẩu.
+     * @return null nếu gửi thành công; mô tả lý do cụ thể nếu thất bại (hiện thẳng cho Admin xem).
      */
-    private boolean sendCredentialsEmail(String to, String username, String tempPw, boolean isReset) {
-        if (to == null || to.isBlank()) return false;
+    private String sendCredentialsEmailAndGetError(String to, String username, String tempPw, boolean isReset) {
+        if (to == null || to.isBlank()) return "Địa chỉ email của tài khoản đang trống.";
         String subject = isReset
                 ? "[Lái Vui] Mật khẩu của bạn đã được cấp lại"
                 : "[Lái Vui] Tài khoản của bạn đã được tạo";
@@ -454,9 +482,9 @@ public class AccountServlet extends HttpServlet {
                 + "Vì lý do bảo mật, bạn BẮT BUỘC phải đổi mật khẩu ngay trong lần đăng nhập đầu tiên.\n\n"
                 + "Trân trọng,\nBan quản trị Lái Vui";
         try {
-            return emailService.sendTextEmail(to, subject, content);
+            return emailService.sendTextEmailAndGetError(to, subject, content);
         } catch (Exception e) {
-            return false;
+            return "Lỗi không xác định: " + e.getMessage();
         }
     }
 }
