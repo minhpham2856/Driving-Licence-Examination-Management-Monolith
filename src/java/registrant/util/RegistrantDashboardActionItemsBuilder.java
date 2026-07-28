@@ -98,8 +98,8 @@ public final class RegistrantDashboardActionItemsBuilder {
                     "neutral"));
         } else if (upcoming != null && !upcoming.isSessionTimePublished()) {
             add(items, item(
-                    "Chờ cập nhật giờ ca thi",
-                    "Ngày thi đã có; giờ ca sẽ hiển thị khi Ban sát hạch mở ca.",
+                    "Chờ cập nhật giờ kỳ thi",
+                    "Ngày thi đã có; giờ kỳ thi sẽ hiển thị khi Ban sát hạch mở kỳ thi.",
                     "Xem lịch thi",
                     "/registrant/my-exams",
                     "neutral"));

@@ -18,7 +18,7 @@ public final class AuditEntityLabels {
             Map.entry("RegistrantPayment", "Thanh toán"),
             Map.entry("EXAMSCORE", "Điểm thi"),
             Map.entry("EXAMDEVICE", "Thiết bị thi"),
-            Map.entry("SESSION", "Ca thi"),
+            Map.entry("SESSION", "Kỳ thi"),
             Map.entry("SESSION_EXAMINER", "Phân công sát hạch viên"),
             Map.entry("SESSION_EXAMINERAREA", "Phân công phòng sát hạch viên"),
             Map.entry("CANDIDATECALL", "Gọi thí sinh"),

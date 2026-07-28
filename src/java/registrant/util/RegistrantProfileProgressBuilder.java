@@ -246,8 +246,8 @@ public final class RegistrantProfileProgressBuilder {
             boolean registered = isExamLifecyclePastDocuments(status)
                     || ExamRegistrationLifecycleStatus.PRE_REGISTERED.equalsIgnoreCase(status);
             step.setDescription(registered
-                    ? "Đăng ký ca thi đã được ghi nhận. Ban sát hạch sẽ cấp SBD khi công bố danh sách chính thức."
-                    : "Sau khi đăng ký ca thi, SBD sẽ được cập nhật khi Ban sát hạch import danh sách thí sinh.");
+                    ? "Đăng ký kỳ thi đã được ghi nhận. Ban sát hạch sẽ cấp SBD khi công bố danh sách chính thức."
+                    : "Sau khi đăng ký kỳ thi, SBD sẽ được cập nhật khi Ban sát hạch import danh sách thí sinh.");
             step.setFooterType("clock");
             step.setFooterText("Theo dõi tại Lịch thi & kết quả");
             step.setStatusHint("Đang chờ");
@@ -274,7 +274,7 @@ public final class RegistrantProfileProgressBuilder {
     }
 
     private static final String DEFAULT_APPROVED_DESCRIPTION =
-            "Tất cả giấy tờ bắt buộc đã được phê duyệt. Bạn có thể đăng ký ca thi sát hạch.";
+            "Tất cả giấy tờ bắt buộc đã được phê duyệt. Bạn có thể đăng ký kỳ thi sát hạch.";
 
     /** Ưu tiên log duyệt cấp hồ sơ (ExamRegistration), không lấy metadata tài liệu còn #PENDING#. */
     private static RegistrantTrackingLog findBestApprovalLog(List<RegistrantTrackingLog> logs) {

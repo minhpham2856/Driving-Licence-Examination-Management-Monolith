@@ -392,7 +392,7 @@
 
                                 <div class="payment-footer-text register-exam-date-hint" style="margin-top:12px;">
                                     Bước này chỉ ghi <strong>nguyện vọng ngày thi</strong>.
-                                    Lịch thi chính thức, giờ ca và kết quả do trung tâm cập nhật sau — vui lòng chờ thông báo từ phía trung tâm.
+                                    Lịch thi chính thức, giờ kỳ thi và kết quả do trung tâm cập nhật sau — vui lòng chờ thông báo từ phía trung tâm.
                                 </div>
 
                                 <div class="payment-footer-text register-exam-sbd-hint" style="margin-top:12px;">

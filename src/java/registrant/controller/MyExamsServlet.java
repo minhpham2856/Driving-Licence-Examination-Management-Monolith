@@ -34,7 +34,7 @@ public class MyExamsServlet extends HttpServlet {
 
         if ("registered".equals(request.getParameter("success"))) {
             request.setAttribute("successMessage",
-                    "Đã ghi nhận nguyện vọng ngày thi. Trạng thái: nguyện vọng — chờ lịch chính thức. Số báo danh và giờ ca sẽ cập nhật tại đây khi trung tâm công bố.");
+                    "Đã ghi nhận nguyện vọng ngày thi. Trạng thái: nguyện vọng — chờ lịch chính thức. Số báo danh và giờ kỳ thi sẽ cập nhật tại đây khi trung tâm công bố.");
         }
 
         RegistrantServletSupport.forwardView(request, response, VIEW);
