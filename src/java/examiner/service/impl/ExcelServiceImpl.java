@@ -5,9 +5,11 @@ import examiner.dto.EnrollmentDTO;
 import examiner.dto.ExamStatsDTO;
 import examiner.dto.ExportContextDTO;
 import examiner.dto.ExportPayloadDTO;
+import examiner.dto.PrintPreviewDTO;
 import examiner.dto.XmlExportDocument;
 import examiner.dto.XmlExportTable;
 import shared.enums.FileType;
+import shared.enums.SectionType;
 import shared.model.Audit;
 import shared.model.Exam;
 import shared.model.ExaminerSchedule;
@@ -16,9 +18,12 @@ import examiner.dao.ExamDAO;
 import examiner.dao.impl.DeductionRecordViewDAOImpl;
 import examiner.dao.impl.ExamDAOImpl;
 import examiner.service.AuditService;
-import examiner.service.DocumentService;
 import examiner.service.ExamViewService;
-import examiner.service.RegistrationService;
+import static examiner.util.FormatUtil.formatDocumentType;
+import static examiner.util.FormatUtil.formatPrintTitle;
+import static examiner.util.FormatUtil.formatSbdFilter;
+import static examiner.util.FormatUtil.isCandidateResultDocument;
+import static examiner.util.FormatUtil.isSessionDocumentType;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -37,33 +42,33 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import examiner.service.FileService;
+import examiner.service.EnrollmentService;
 
-public class ExcelServiceImpl implements DocumentService {
+// Builds Excel exports for examiner reports using Apache POI.
+public class ExcelServiceImpl implements FileService {
 
     private final AuditService auditService = new AuditServiceImpl();
     private final ExamDAO examDAO = new ExamDAOImpl();
     private final DeductionRecordViewDAO deductionRecordViewDAO = new DeductionRecordViewDAOImpl();
-    private final ExamViewService viewDataService = new ExamViewServiceImpl();
-    private final RegistrationService registrationService = new RegistrationServiceImpl();
+    private final ExamViewService viewService = new ExamViewServiceImpl();
+    private final EnrollmentService enrollmentService = new EnrollmentServiceImpl();
 
     private static final SimpleDateFormat DATE_FMT = new SimpleDateFormat("dd/MM/yyyy");
     private static final SimpleDateFormat TIME_FMT = new SimpleDateFormat("HH:mm");
     private static final SimpleDateFormat AUDIT_DATE_FMT = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private static final int AUDIT_LIMIT = 5000;
     private static final List<String> CANDIDATE_FIELDS = List.of(
-            "stt", "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
-            "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi",
-            "dung", "sai", "khongTraLoi", "diemLyThuyet", "ketQuaLt",
-            "diemThucHanh");
+            "sbd", "hoVaTen", "ngaySinh", "gioiTinh", "cccd", "email", "soDienThoai",
+            "diaChi", "hangGplx", "lyDoThi", "ngayThi", "vangThi", "tinhTrangThi");
     private static final List<String> CANDIDATE_HEADERS = List.of(
-            "STT", "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
-            "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi",
-            "Đúng", "Sai", "Không TL", "Điểm lý thuyết", "Kết quả LT",
-            "Điểm thực hành");
+            "SBD", "Họ và tên", "Ngày sinh", "Giới tính", "Số căn cước", "Email", "Số điện thoại",
+            "Địa chỉ", "Hạng GPLX", "Lý do thi", "Ngày thi", "Vắng thi", "Tình trạng thi");
 
+    // Loads exam code and shift times for export preamble metadata.
     private Map<String, Object> getExamExportMeta(int examId) {
         Map<String, Object> meta = new LinkedHashMap<>();
-        Exam e = examDAO.getById(examId);
+        Exam e = examDAO.get(examId);
         if (e != null) {
             meta.put("shiftLabel", false);
             meta.put("startTime", e.getStartTime() != null ? e.getStartTime().toString() : "");
@@ -73,67 +78,45 @@ public class ExcelServiceImpl implements DocumentService {
         return meta;
     }
 
-    public ExportPayloadDTO buildCandidatesExport(ExportContextDTO ctx) {
-        List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.examId(), ctx.isTheory(), ctx.sectionName());
+    // Builds candidates export from session data.
+    private ExportPayloadDTO buildCandidatesExport(ExportContextDTO ctx) {
+        List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+                ctx.examId(), ctx.section(), null);
         List<List<Object>> rows = new ArrayList<>();
-        int index = 1;
         for (CandidateRowDTO c : candidates) {
-            rows.add(Arrays.asList(
-                    index++,
-                    c.getCandidateNumber(),
-                    c.getFullName(),
-                    c.getDob(),
-                    c.getSex() != null ? c.getSex().getValue() : "",
-                    c.getGovernmentId(),
-                    c.getEmail(),
-                    c.getPhoneNo(),
-                    c.getAddress(),
-                    c.getLicenceClass(),
-                    c.getReasonForTaking(),
-                    c.getExamDate(),
-                    "Không",
-                    c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                    c.getCorrect(),
-                    c.getWrong(),
-                    c.getUnanswered(),
-                    c.getScoreTheory(),
-                    c.getResultLabel(),
-                    c.getScorePractical()));
+            rows.add(candidateInfoRow(c));
         }
         XmlExportTable table = new XmlExportTable(
                 "danhSachThiSinh", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Danh sách thí sinh", "danhSachThiSinh", Map.of(), List.of(table), null);
+                "Danh sách thí sinh", "danhSachThiSinh", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
-    public ExportPayloadDTO buildResultsExport(ExportContextDTO ctx) {
-        List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.examId(), ctx.isTheory(), ctx.sectionName());
+    // Builds results export from session data.
+    private ExportPayloadDTO buildResultsExport(ExportContextDTO ctx) {
+        List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+                ctx.examId(), ctx.section(), null);
         List<String> fields;
         List<String> headers;
         List<List<Object>> rows = new ArrayList<>();
-        int index = 1;
         if (ctx.isTheory() == false) {
-            fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
+            fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
+            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
-                        index++,
                         c.getCandidateNumber(),
                         c.getFullName(),
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "Không"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         } else {
-            fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+            fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
+            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
                     "Vắng thi");
             for (CandidateRowDTO c : candidates) {
                 rows.add(Arrays.asList(
-                        index++,
                         c.getCandidateNumber(),
                         c.getFullName(),
                         c.getCorrect(),
@@ -141,31 +124,34 @@ public class ExcelServiceImpl implements DocumentService {
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "Không"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         XmlExportTable table = new XmlExportTable("ketQuaThi", "ketQua", fields, headers, rows);
-        return new ExportPayloadDTO("Kết quả thi", "ketQuaThi", Map.of(), List.of(table), null);
+        return new ExportPayloadDTO(
+                "Tổng hợp kết quả thi", "tongHopKetQuaThi", Map.of(), List.of(table), exportTimestampPreamble());
     }
 
+    // Builds minutes export from session data.
     public ExportPayloadDTO buildMinutesExport(ExportContextDTO ctx) {
         Map<String, Object> meta = getExamExportMeta(ctx.examId());
-        ExamStatsDTO summary = viewDataService.buildCandidateSummary(
-                ctx.examId(), ctx.isTheory(), ctx.sectionName());
-        List<CandidateRowDTO> candidates = viewDataService.loadCandidateRows(
-                ctx.examId(), ctx.isTheory(), ctx.sectionName());
+        ExamStatsDTO summary = viewService.getStatsByExam(
+                ctx.examId(), ctx.section());
+        List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+                ctx.examId(), ctx.section(), null);
         Map<String, Object> metadata = buildMinutesMetadata(meta, summary, ctx.schedule(), ctx.isTheory(),
-                ctx.sectionName());
+                ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
         List<List<Object>> preamble = buildMinutesPreamble(meta, summary, ctx.schedule(), ctx.isTheory(),
-                ctx.sectionName());
+                ctx.section() != null ? ctx.section().getValue() : SectionType.LAYOUT.getValue());
+        preamble.add(0, Arrays.asList("Thời gian xuất", nowExportTimestamp()));
         List<String> fields;
         List<String> headers;
         if (ctx.isTheory() == false) {
-            fields = List.of("stt", "sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
+            fields = List.of("sbd", "hoVaTen", "diem", "ketQua", "tinhTrang", "vangThi");
+            headers = List.of("SBD", "Họ và tên", "Điểm", "Kết quả", "Tình trạng", "Vắng thi");
         } else {
-            fields = List.of("stt", "sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
-            headers = List.of("STT", "SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
+            fields = List.of("sbd", "hoVaTen", "dung", "sai", "khongTraLoi", "ketQua", "tinhTrang", "vangThi");
+            headers = List.of("SBD", "Họ và tên", "Đúng", "Sai", "Không TL", "Kết quả", "Tình trạng",
                     "Vắng thi");
         }
         XmlExportTable table = new XmlExportTable(
@@ -174,84 +160,45 @@ public class ExcelServiceImpl implements DocumentService {
                 "Biên bản thi", "bienBanThi", metadata, List.of(table), preamble);
     }
 
-    public ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx) {
+    // Builds violations export payload without SBD filter.
+    private ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx) {
         return buildViolationsExport(ctx, null);
     }
 
-    public ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx, String sbdFilterRaw) {
-        Map<String, Object> meta = getExamExportMeta(ctx.examId());
-        List<Audit> auditViolations = auditService.getViolationLogsForExam(ctx.examId(), AUDIT_LIMIT);
-        Map<Long, String> changerNames = auditService.loadChangerNames(auditViolations);
-        List<Map<String, Object>> scoreViolations = deductionRecordViewDAO.getViolationRowsForExam(ctx.examId());
-        Integer sbdFilter = parseSbdFilter(sbdFilterRaw);
+    // Builds violations export payload, optionally filtered to one SBD.
+    private ExportPayloadDTO buildViolationsExport(ExportContextDTO ctx, String sbdFilterRaw) {
+        Integer sbdFilter = formatSbdFilter(sbdFilterRaw);
+        java.util.LinkedHashSet<Integer> violationSbds = collectViolationSbds(ctx.examId());
         if (sbdFilter != null) {
-            final String sbdText = String.valueOf(sbdFilter);
-            List<Map<String, Object>> filteredScore = new ArrayList<>();
-            for (Map<String, Object> row : scoreViolations) {
-                if (sbdFilter.equals(toInteger(row.get("sbd")))) {
-                    filteredScore.add(row);
-                }
+            java.util.LinkedHashSet<Integer> filtered = new java.util.LinkedHashSet<>();
+            if (violationSbds.contains(sbdFilter)) {
+                filtered.add(sbdFilter);
             }
-            scoreViolations = filteredScore;
-            Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.examId());
-            List<Audit> filteredAudits = new ArrayList<>();
-            for (Audit log : auditViolations) {
-                if (sbdText.equals(auditService.extractSbdForDisplay(log, sbdByRecordId))) {
-                    filteredAudits.add(log);
-                }
+            violationSbds = filtered;
+        }
+
+        List<CandidateRowDTO> candidates = viewService.getAllFilteredByExam(
+                ctx.examId(), ctx.section(), null);
+        List<List<Object>> rows = new ArrayList<>();
+        for (CandidateRowDTO c : candidates) {
+            if (violationSbds.contains(c.getCandidateNumber())) {
+                rows.add(candidateInfoRow(c));
             }
-            auditViolations = filteredAudits;
         }
-        Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("tieuDe", "BIÊN BẢN VI PHẠM");
-        metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
-        metadata.put("maDotThi", nullToDash(meta.get("examCode")));
-        List<List<Object>> auditRows = new ArrayList<>();
-        int index = 1;
-        for (Audit log : auditViolations) {
-            String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
-            String time = log.getCreatedAt() != null ? AUDIT_DATE_FMT.format(log.getCreatedAt()) : "-";
-            auditRows.add(Arrays.asList(
-                    index++,
-                    nullToDash(changerName),
-                    nullToDash(log.getNewValue()),
-                    nullToDash(log.getReason()),
-                    time));
-        }
-        List<List<Object>> scoreRows = new ArrayList<>();
-        index = 1;
-        for (Map<String, Object> row : scoreViolations) {
-            scoreRows.add(Arrays.asList(
-                    index++,
-                    row.get("sbd"),
-                    row.get("fullName"),
-                    row.get("sectionName"),
-                    row.get("violationReason"),
-                    row.get("deductionPoints"),
-Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
-                    row.get("currentScore")));
-        }
-        XmlExportTable auditTable = new XmlExportTable(
-                "viPhamQuyChe",
-                "viPham",
-                List.of("stt", "nguoiGhi", "noiDung", "lyDo", "thoiGian"),
-                List.of("STT", "Người ghi", "Nội dung", "Lý do", "Thời gian"),
-                auditRows);
-        XmlExportTable scoreTable = new XmlExportTable(
-                "truDiemThi",
-                "banTruDiem",
-                List.of("stt", "sbd", "hoVaTen", "phanThi", "lyDoTruDiem", "diemTru", "loiNghiemTrong", "diemHienTai"),
-                List.of("STT", "SBD", "Họ và tên", "Phần thi", "Lý do trừ điểm", "Điểm trừ",
-                        "Lỗi nghiêm trọng", "Điểm hiện tại"),
-                scoreRows);
-        List<List<Object>> excelRows = buildViolationsExcelRows(meta, auditViolations, changerNames, scoreViolations);
+        XmlExportTable table = new XmlExportTable(
+                "danhSachThiSinhViPham", "thiSinh", CANDIDATE_FIELDS, CANDIDATE_HEADERS, rows);
         return new ExportPayloadDTO(
-                "Biên bản vi phạm", "bienBanViPham", metadata, List.of(auditTable, scoreTable), excelRows);
+                "Danh sách thí sinh vi phạm",
+                "danhSachThiSinhViPham",
+                Map.of(),
+                List.of(table),
+                exportTimestampPreamble());
     }
 
-    public ExportPayloadDTO buildAuditExport(ExportContextDTO ctx, String searchQuery) {
-        List<Audit> logs = auditService.getLogsForExamPaginated(ctx.examId(), 1, AUDIT_LIMIT, searchQuery);
-        Map<Long, String> changerNames = auditService.loadChangerNames(logs);
+    // Builds audit export from session data.
+    private ExportPayloadDTO buildAuditExport(ExportContextDTO ctx, String searchQuery) {
+        List<Audit> logs = auditService.getAllByExam(ctx.examId(), 1, AUDIT_LIMIT, searchQuery);
+        Map<Long, String> changerNames = auditService.getAllChangerNamesByAudit(logs);
         Map<Integer, String> sbdByRecordId = buildSbdLookup(ctx.examId());
         List<List<Object>> rows = new ArrayList<>();
         for (Audit log : logs) {
@@ -282,11 +229,12 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         if (searchQuery != null && !searchQuery.isBlank()) {
             metadata = Map.of("tuKhoa", searchQuery.trim());
         }
-        return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), null);
+        return new ExportPayloadDTO("Nhật ký", "nhatKyHeThong", metadata, List.of(table), exportTimestampPreamble());
     }
 
+    // Private helper: build minutes metadata.
     private Map<String, Object> buildMinutesMetadata(Map<String, Object> meta, ExamStatsDTO summary,
-            ExaminerSchedule schedule, boolean isTheory, String sectionName) {
+            ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         Map<String, Object> metadata = new LinkedHashMap<>();
         metadata.put("tieuDe", "BIÊN BẢN TỔ CHỨC THI");
         metadata.put("caThi", nullToDash(meta.get("shiftLabel")));
@@ -298,7 +246,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
             metadata.put("khuVucPhong", nullToDash(schedule.getExamArea().getAreaName()));
         }
         metadata.put("phanThi",
-!isTheory ? nullToDash(sectionName) : "Lý thuyết");
+                !isTheory ? nullToDash(sectionType) : "Lý thuyết");
         Map<String, Object> thongKe = new LinkedHashMap<>();
         thongKe.put("tongThiSinh", summary.getTotal());
         thongKe.put("daThi", summary.getDone());
@@ -310,8 +258,9 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return metadata;
     }
 
+    // Private helper: build minutes preamble.
     private List<List<Object>> buildMinutesPreamble(Map<String, Object> meta, ExamStatsDTO summary,
-            ExaminerSchedule schedule, boolean isTheory, String sectionName) {
+            ExaminerSchedule schedule, boolean isTheory, String sectionType) {
         List<List<Object>> preamble = new ArrayList<>();
         preamble.add(Arrays.asList("BIÊN BẢN TỔ CHỨC THI"));
         preamble.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
@@ -323,7 +272,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
             preamble.add(Arrays.asList("Khu vực / Phòng", nullToDash(schedule.getExamArea().getAreaName())));
         }
         preamble.add(Arrays.asList("Phần thi",
-!isTheory ? nullToDash(sectionName) : "Lý thuyết"));
+                !isTheory ? nullToDash(sectionType) : "Lý thuyết"));
         preamble.add(Arrays.asList());
         preamble.add(Arrays.asList("Tổng thí sinh", summary.getTotal()));
         preamble.add(Arrays.asList("Đã thi", summary.getDone()));
@@ -335,23 +284,21 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return preamble;
     }
 
+    // Private helper: build minutes rows.
     private static List<List<Object>> buildMinutesRows(List<CandidateRowDTO> candidates,
             boolean isTheory) {
         List<List<Object>> rows = new ArrayList<>();
-        int index = 1;
         for (CandidateRowDTO c : candidates) {
             if (!isTheory) {
                 rows.add(Arrays.asList(
-                        index++,
                         c.getCandidateNumber(),
                         c.getFullName(),
                         c.getExamScore(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "Không"));
+                        c.isAbsent() ? "Có" : "Không"));
             } else {
                 rows.add(Arrays.asList(
-                        index++,
                         c.getCandidateNumber(),
                         c.getFullName(),
                         c.getCorrect(),
@@ -359,57 +306,66 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                         c.getUnanswered(),
                         c.getResultLabel(),
                         c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "",
-                        "Không"));
+                        c.isAbsent() ? "Có" : "Không"));
             }
         }
         return rows;
     }
 
-    private List<List<Object>> buildViolationsExcelRows(Map<String, Object> meta, List<Audit> auditViolations,
-            Map<Long, String> changerNames, List<Map<String, Object>> scoreViolations) {
-        List<List<Object>> rows = new ArrayList<>();
-        rows.add(Arrays.asList("BIÊN BẢN VI PHẠM"));
-        rows.add(Arrays.asList("Ca thi", nullToDash(meta.get("shiftLabel"))));
-        rows.add(Arrays.asList("Mã đợt thi", nullToDash(meta.get("examCode"))));
-        rows.add(Arrays.asList());
-        rows.add(Arrays.asList("I. Vi phạm quy chế thi (nhật ký)"));
-        rows.add(Arrays.asList("STT", "Người ghi", "Nội dung", "Lý do", "Thời gian"));
-        int index = 1;
-        for (Audit log : auditViolations) {
-            String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
-            String time = log.getCreatedAt() != null ? AUDIT_DATE_FMT.format(log.getCreatedAt()) : "-";
-            rows.add(Arrays.asList(
-                    index++,
-                    nullToDash(changerName),
-                    nullToDash(log.getNewValue()),
-                    nullToDash(log.getReason()),
-                    time));
-        }
-        if (auditViolations.isEmpty()) {
-            rows.add(Arrays.asList("-", "-", "Không có vi phạm", "-", "-"));
-        }
-        rows.add(Arrays.asList());
-        rows.add(Arrays.asList("II. Trừ điểm thi"));
-        rows.add(Arrays.asList("STT", "SBD", "Họ và tên", "Phần thi", "Lý do trừ điểm", "Điểm trừ",
-                "Lỗi nghiêm trọng", "Điểm hiện tại"));
-        index = 1;
-        for (Map<String, Object> row : scoreViolations) {
-            rows.add(Arrays.asList(
-                    index++,
-                    row.get("sbd"),
-                    row.get("fullName"),
-                    row.get("sectionName"),
-                    row.get("violationReason"),
-                    row.get("deductionPoints"),
-Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
-                    row.get("currentScore")));
-        }
-        if (scoreViolations.isEmpty()) {
-            rows.add(Arrays.asList("-", "-", "Không có trừ điểm", "-", "-", "-", "-", "-"));
-        }
-        return rows;
+    // Private helper: candidate info row.
+    private static List<Object> candidateInfoRow(CandidateRowDTO c) {
+        return Arrays.asList(
+                c.getCandidateNumber(),
+                c.getFullName(),
+                c.getDob(),
+                c.getSex() != null ? c.getSex().getValue() : "",
+                c.getGovernmentId(),
+                c.getEmail(),
+                c.getPhoneNo(),
+                c.getAddress(),
+                c.getLicenceClass(),
+                c.getReasonForTaking(),
+                c.getExamDate(),
+                c.isAbsent() ? "Có" : "Không",
+                c.getSectionStatus() != null ? c.getSectionStatus().getValue() : "");
     }
 
+    // Private helper: collect violation sbds.
+    private java.util.LinkedHashSet<Integer> collectViolationSbds(int examId) {
+        java.util.LinkedHashSet<Integer> sbds = new java.util.LinkedHashSet<>();
+        List<Map<String, Object>> scoreViolations = deductionRecordViewDAO.getViolationRowsForExam(examId);
+        for (Map<String, Object> row : scoreViolations) {
+            Integer sbd = toInteger(row.get("sbd"));
+            if (sbd != null && sbd > 0) {
+                sbds.add(sbd);
+            }
+        }
+        List<Audit> auditViolations = auditService.getAllViolationsByExam(examId, AUDIT_LIMIT);
+        Map<Integer, String> sbdByRecordId = buildSbdLookup(examId);
+        for (Audit log : auditViolations) {
+            Integer sbd = toInteger(auditService.extractSbdForDisplay(log, sbdByRecordId));
+            if (sbd != null && sbd > 0) {
+                sbds.add(sbd);
+            }
+        }
+        return sbds;
+    }
+
+    // Adds export timestamp row used as sheet preamble in payloads.
+    private static List<List<Object>> exportTimestampPreamble() {
+        List<List<Object>> preamble = new ArrayList<>();
+        preamble.add(Arrays.asList("Thời gian xuất", nowExportTimestamp()));
+        return preamble;
+    }
+
+    // Returns current timestamp formatted for export preambles.
+    private static String nowExportTimestamp() {
+        synchronized (AUDIT_DATE_FMT) {
+            return AUDIT_DATE_FMT.format(new Date());
+        }
+    }
+
+    // Private helper: format date.
     private static String formatDate(Object value) {
         if (value instanceof Date) {
             Date date = (Date) value;
@@ -420,6 +376,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return nullToDash(value);
     }
 
+    // Private helper: format time.
     private static String formatTime(Object value) {
         if (value instanceof Time) {
             Time time = (Time) value;
@@ -436,6 +393,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return nullToDash(value);
     }
 
+    // Converts null or blank values to dash for display fields.
     private static String nullToDash(Object value) {
         if (value == null) {
             return "-";
@@ -444,26 +402,16 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return text.isEmpty() ? "-" : text;
     }
 
+    // Maps candidate record id to SBD string for audit export rows.
     private Map<Integer, String> buildSbdLookup(int examId) {
         Map<Integer, String> lookup = new LinkedHashMap<>();
-        for (EnrollmentDTO reg : registrationService.getCandidatesByExam(examId)) {
-            lookup.put(reg.getId(), String.valueOf(reg.getCandidateNumber()));
+        for (EnrollmentDTO enrollment : enrollmentService.getAllByExam(examId)) {
+            lookup.put(enrollment.getCandidateId(), String.valueOf(enrollment.getCandidateNumber()));
         }
         return lookup;
     }
 
-    private static Integer parseSbdFilter(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
-        try {
-            int value = Integer.parseInt(raw.trim());
-            return value > 0 ? value : null;
-        } catch (NumberFormatException ex) {
-            return null;
-        }
-    }
-
+    // Private helper: to integer.
     private static Integer toInteger(Object value) {
         if (value instanceof Number) {
             return ((Number) value).intValue();
@@ -478,7 +426,9 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return null;
     }
 
-    private ExportPayloadDTO buildPayload(ExportContextDTO ctx, String documentType, String searchQuery) {
+    // Private helper: build payload.
+    private ExportPayloadDTO buildPayload(ExportContextDTO ctx, String documentType, String searchQuery)
+            throws IOException {
         String normalized = documentType == null ? "" : documentType.trim().toLowerCase();
         return switch (normalized) {
             case "candidates" ->
@@ -490,16 +440,18 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
             case "audit" ->
                 buildAuditExport(ctx, searchQuery);
             default ->
-                throw new IllegalArgumentException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
+                throw new IOException("Loại tài liệu xuất không được hỗ trợ: " + documentType);
         };
     }
 
     // === Rendering (from XmlServiceImpl) ===
+    // Writes a simple Excel sheet with headers and data rows.
     private void exportToExcel(String sheetName, List<String> headers, List<List<Object>> rows, OutputStream out)
             throws IOException {
         exportToExcel(sheetName, null, headers, rows, out);
     }
 
+    // Writes an Excel sheet with optional preamble rows, headers, and data rows.
     private void exportToExcel(String sheetName, List<List<Object>> preambleRows, List<String> headers,
             List<List<Object>> rows, OutputStream out) throws IOException {
         try (Workbook workbook = new XSSFWorkbook()) {
@@ -548,6 +500,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         }
     }
 
+    // Private helper: write cell.
     private void writeCell(Cell cell, Object value, CellStyle dateStyle) {
         if (value == null) {
             cell.setBlank();
@@ -563,6 +516,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         }
     }
 
+    // Private helper: export to xml.
     private void exportToXml(XmlExportDocument document, OutputStream out) throws IOException {
         if (document == null || document.rootElement() == null || document.rootElement().isBlank()) {
             throw new IllegalArgumentException("XML root element is required.");
@@ -584,12 +538,14 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    // Writes nested metadata map entries into XML export document body.
     private void appendMetadata(StringBuilder sb, Map<String, Object> metadata, String indent) {
         for (Map.Entry<String, Object> entry : metadata.entrySet()) {
             appendValueElement(sb, entry.getKey(), entry.getValue(), indent);
         }
     }
 
+    // Private helper: append value element.
     private void appendValueElement(StringBuilder sb, String elementName, Object value, String indent) {
         if (value instanceof Map) {
             @SuppressWarnings("unchecked")
@@ -607,6 +563,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         sb.append('\n');
     }
 
+    // Private helper: append table.
     private void appendTable(StringBuilder sb, XmlExportTable table, String indent) {
         if (table == null || table.listElement() == null || table.listElement().isBlank()) {
             return;
@@ -635,6 +592,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         sb.append('\n');
     }
 
+    // Private helper: format xml value.
     private static String formatXmlValue(Object value) {
         if (value == null) {
             return "";
@@ -646,6 +604,7 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
         return value.toString();
     }
 
+    // Private helper: escape xml.
     private static String escapeXml(String text) {
         if (text == null || text.isEmpty()) {
             return "";
@@ -658,47 +617,71 @@ Boolean.TRUE.equals(row.get("critical")) ? "Có" : "Không",
                 .replace("'", "&apos;");
     }
 
+    // Appends an XML open tag without indent.
     private static void appendOpenTag(StringBuilder sb, String tag) {
         sb.append('<').append(tag).append('>');
     }
 
+    // Appends an XML open tag with leading indent.
     private static void appendOpenTag(StringBuilder sb, String indent, String tag) {
         sb.append(indent).append('<').append(tag).append('>');
     }
 
+    // Appends an XML close tag without indent.
     private static void appendCloseTag(StringBuilder sb, String tag) {
         sb.append("</").append(tag).append('>');
     }
 
+    // Appends an XML close tag with leading indent.
     private static void appendCloseTag(StringBuilder sb, String indent, String tag) {
         sb.append(indent).append("</").append(tag).append('>');
     }
 
-    // === DocumentService ===
+    // === FileService ===
+
+    // Exports examiner session reports to Excel; rejects DOCX and per-candidate result forms.
     @Override
     public void export(ExportContextDTO ctx, String documentType, FileType format,
-            String searchQuery, OutputStream out) throws IOException {
+            String searchQuery, int sbd, OutputStream out) throws IOException {
+        validateExport(documentType, format, sbd);
         ExportPayloadDTO payload = buildPayload(ctx, documentType, searchQuery);
-        switch (format) {
-            case EXCEL -> {
-                if (payload.excelPreambleRows() != null) {
-                    exportToExcel(payload.excelSheetName(), payload.excelPreambleRows(),
-                            payload.primaryHeaders(), payload.primaryRows(), out);
-                } else {
-                    exportToExcel(payload.excelSheetName(), payload.primaryHeaders(),
-                            payload.primaryRows(), out);
-                }
-            }
-            case DOCX ->
-                throw new IOException("ExcelService không hỗ trợ xuất DOCX.");
-            default ->
-                throw new IOException("Định dạng xuất không được hỗ trợ.");
+        if (payload.excelPreambleRows() != null) {
+            exportToExcel(payload.excelSheetName(), payload.excelPreambleRows(),
+                    payload.tables().get(0).headers(), payload.tables().get(0).rows(), out);
+        } else {
+            exportToExcel(payload.excelSheetName(), payload.tables().get(0).headers(),
+                    payload.tables().get(0).rows(), out);
         }
     }
 
+    // Builds session-wide table print preview for browser printing.
     @Override
-    public void print(ExportContextDTO ctx, String documentType, int sbd, OutputStream out) throws IOException {
-        throw new UnsupportedOperationException("ExcelService không hỗ trợ in tài liệu.");
+    public PrintPreviewDTO print(ExportContextDTO ctx, String documentType,
+            int sbd, String searchQuery) throws IOException {
+        String normalized = formatDocumentType(documentType);
+        if (!isSessionDocumentType(normalized) || isCandidateResultDocument(normalized, sbd)) {
+            throw new IOException("ExcelService không hỗ trợ in loại tài liệu này.");
+        }
+        ExportPayloadDTO payload = buildPayload(ctx, normalized, searchQuery);
+        return new PrintPreviewDTO(
+                "/views/examiner/print/table.jsp",
+                payload,
+                null,
+                formatPrintTitle(normalized, sbd));
+    }
+
+    // Validates export request for Excel-only session document types.
+    private void validateExport(String documentType, FileType format, int sbd) throws IOException {
+        String normalized = formatDocumentType(documentType);
+        if (format == FileType.DOCX) {
+            throw new IOException("Loại tài liệu này chỉ xuất Excel, không xuất DOCX.");
+        }
+        if (format != FileType.EXCEL) {
+            throw new IOException("Định dạng xuất không được hỗ trợ.");
+        }
+        if (isCandidateResultDocument(normalized, sbd)) {
+            throw new IOException("Biên bản kết quả thi chỉ xuất DOCX.");
+        }
     }
 }
 
