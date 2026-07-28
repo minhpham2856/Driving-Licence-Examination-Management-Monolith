@@ -18,13 +18,16 @@ public final class CloudinaryDocumentReader {
     private CloudinaryDocumentReader() { }
 
     public static boolean supports(String storedRef) {
-        return storedRef != null && storedRef.startsWith(PREFIX);
+        return storedRef != null
+                && (storedRef.startsWith(PREFIX) || isTrustedPublicUrl(storedRef));
     }
 
     public static Resource read(String storedRef) throws IOException {
-        Ref ref = parse(storedRef);
+        URI deliveryUri = isTrustedPublicUrl(storedRef)
+                ? URI.create(storedRef)
+                : URI.create(signedDeliveryUrl(parse(storedRef)));
         try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(signedDeliveryUrl(ref))).GET().build();
+            HttpRequest request = HttpRequest.newBuilder(deliveryUri).GET().build();
             HttpResponse<byte[]> response = HttpClient.newBuilder()
                     .followRedirects(HttpClient.Redirect.NORMAL).build()
                     .send(request, HttpResponse.BodyHandlers.ofByteArray());
@@ -35,11 +38,30 @@ public final class CloudinaryDocumentReader {
                 throw new IOException("Tài liệu vượt quá giới hạn cho phép.");
             }
             String contentType = response.headers().firstValue("Content-Type")
-                    .orElse("raw".equalsIgnoreCase(ref.resourceType) ? "application/octet-stream" : "image/jpeg");
+                    .orElse(deliveryUri.getPath().contains("/raw/")
+                            ? "application/octet-stream" : "image/jpeg");
             return new Resource(response.body(), contentType);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IOException("Quá trình tải tài liệu bị gián đoạn.", ex);
+        }
+    }
+
+    private static boolean isTrustedPublicUrl(String storedRef) {
+        if (storedRef == null || storedRef.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(storedRef);
+            if (!"https".equalsIgnoreCase(uri.getScheme())
+                    || !"res.cloudinary.com".equalsIgnoreCase(uri.getHost())) {
+                return false;
+            }
+            String path = uri.getPath();
+            return path != null
+                    && path.matches("^/[^/]+/(image|raw)/upload/.+");
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
     }
 
