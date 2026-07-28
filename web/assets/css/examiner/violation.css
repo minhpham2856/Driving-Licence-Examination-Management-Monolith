@@ -1,37 +1,10 @@
-/* Violation create / view — flat layout, no nested cards */
-
-.vio-page {
-    max-width: 720px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.vio-back {
-    align-self: flex-start;
-    flex-shrink: 0;
-}
-
-.vio-title {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.3;
-    color: #131b2e;
-}
-
-.vio-meta {
-    margin: 0;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #434654;
-}
+/* Violation create / view — reuse examiner card shell */
 
 .vio-form {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 8px;
+    padding: 0 4px 8px;
 }
 
 .vio-label {
@@ -79,6 +52,7 @@
     grid-template-columns: 160px 1fr;
     gap: 10px 16px;
     align-items: start;
+    padding: 0 4px 8px;
 }
 
 .vio-dl dt {

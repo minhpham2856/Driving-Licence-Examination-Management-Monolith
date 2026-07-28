@@ -11,8 +11,8 @@ import java.sql.Statement;
 // JDBC implementation for ExamScore; examiner module DAO layer only.
 public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
 
-    private static final String BASE_SELECT =
-            "SELECT ExamScoreId, ExamResultId, ExamSectionId, Score FROM ExamScore";
+    private static final String BASE_SELECT
+            = "SELECT ExamScoreId, ExamResultId, ExamSectionId, Score FROM ExamScore";
 
     // Loads the score row for one exam result and section pair.
     @Override
@@ -117,13 +117,13 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
             e.printStackTrace();
             return false;
         }
-        // Lỗi điểm liệt → điểm 0 (trượt). Còn lại: 100 − tổng điểm trừ.
+        // Lỗi điểm liệt -> 0 (trượt). Còn lại: 100 − tổng điểm trừ.
         double score = hasCritical ? 0 : Math.max(0, 100 - totalDeduction);
         if (!updateScore(examScoreId, score)) {
             return false;
         }
-        // Đồng bộ ExamResult.IsPassed theo điểm vừa tính (≥ 80 và không bị liệt).
-        return syncExamResultPassed(examScoreId, score >= PRACTICAL_PASS_SCORE);
+        // Đồng bộ ExamResult.IsPassed theo điểm vừa tính (>= 80 và không bị liệt).
+        return syncExamResultPassed(examScoreId, score >= 80);
     }
 
     private boolean syncExamResultPassed(int examScoreId, boolean passed) {
@@ -161,7 +161,6 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return null;
     }
 
-    // Private helper: map.
     private static ExamScore map(ResultSet rs) throws SQLException {
         ExamScore score = new ExamScore();
         score.setExamScoreId(rs.getInt("ExamScoreId"));
@@ -171,4 +170,3 @@ public class ExamScoreDAOImpl extends DBContext implements ExamScoreDAO {
         return score;
     }
 }
-

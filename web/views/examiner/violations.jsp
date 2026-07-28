@@ -3,6 +3,7 @@
 
 <%--context variable--%>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
+<c:set var="actionUrl" value="${ctx}/examiner/action" />
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -23,17 +24,21 @@
             <main class="main scroll">
                 <jsp:include page="/views/examiner/components/messages.jsp" />
 
+                <div class="page-head">
+                    <a href="${actionUrl}" class="btn white">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Quay lại thao tác
+                    </a>
+                </div>
+
                 <c:choose>
                     <%--case 1: create violation form--%>
                     <c:when test="${param.mode eq 'create' and not empty candidate}">
-                        <div class="vio-page">
-                            <a href="${ctx}/examiner/action" class="btn white vio-back">
-                                <span class="material-symbols-outlined">arrow_back</span>
-                                Quay lại
-                            </a>
-
-                            <h1 class="vio-title">Đình chỉ thí sinh</h1>
-                            <p class="vio-meta">
+                        <section class="card">
+                            <div class="card-head">
+                                <h2>Đình chỉ thí sinh</h2>
+                            </div>
+                            <p class="selected-label">
                                 SBD <strong>${candidate.candidateNumber}</strong>
                                 · ${candidate.fullName}
                                 <c:if test="${not empty candidate.licenceClass}"> · Hạng ${candidate.licenceClass}</c:if>
@@ -91,22 +96,19 @@
                                         <span class="material-symbols-outlined">gavel</span>
                                         Xác nhận đình chỉ
                                     </button>
-                                    <a href="${ctx}/examiner/action" class="btn white">Hủy</a>
+                                    <a href="${actionUrl}" class="btn white">Hủy</a>
                                 </div>
                             </form>
-                        </div>
+                        </section>
                     </c:when>
 
                     <%--case 2: view violation--%>
                     <c:when test="${param.mode eq 'view' and not empty candidate}">
-                        <div class="vio-page">
-                            <a href="${ctx}/examiner/action" class="btn white vio-back">
-                                <span class="material-symbols-outlined">arrow_back</span>
-                                Quay lại
-                            </a>
-
-                            <h1 class="vio-title">Chi tiết vi phạm</h1>
-                            <p class="vio-meta">
+                        <section class="card">
+                            <div class="card-head">
+                                <h2>Chi tiết vi phạm</h2>
+                            </div>
+                            <p class="selected-label">
                                 SBD <strong>${candidate.candidateNumber}</strong>
                                 · ${candidate.fullName}
                                 <c:if test="${not empty candidate.licenceClass}"> · Hạng ${candidate.licenceClass}</c:if>
@@ -141,12 +143,12 @@
                                     </dl>
                                 </c:otherwise>
                             </c:choose>
-                        </div>
+                        </section>
                     </c:when>
 
                     <%--case 3: redirect to action--%>
                     <c:otherwise>
-                        <c:redirect url="${ctx}/examiner/action" />
+                        <c:redirect url="${actionUrl}" />
                     </c:otherwise>
                 </c:choose>
             </main>

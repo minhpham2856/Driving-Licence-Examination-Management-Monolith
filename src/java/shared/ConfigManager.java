@@ -4,26 +4,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public final class ConfigManager {
 
-    /**
-     * Nạp lại file .env tối đa mỗi RELOAD_INTERVAL_MS mili-giây thay vì chỉ đọc
-     * một lần lúc classloader khởi tạo. Nhờ vậy sửa .env (vd điền email/app password)
-     * có hiệu lực trong vài giây mà KHÔNG cần restart lại Tomcat.
-     */
+    // Reload .env every 3 seconds.
     private static final long RELOAD_INTERVAL_MS = 3000;
+
+    // Cached environment values.
     private static volatile Map<String, String> ENV = loadDotEnv();
+
+    // Last reload timestamp.
     private static volatile long lastLoadedAt = System.currentTimeMillis();
 
     private ConfigManager() {
     }
 
-    // OS env first, then values from .env file.
+    // Returns config value, preferring OS environment variables.
     public static String get(String key) {
         maybeReload();
         String fromOs = System.getenv(key);
@@ -33,18 +31,23 @@ public final class ConfigManager {
         return ENV.get(key);
     }
 
+    // Reloads .env if the cache has expired.
     private static synchronized void maybeReload() {
         long now = System.currentTimeMillis();
-        if (now - lastLoadedAt < RELOAD_INTERVAL_MS) return;
+        if (now - lastLoadedAt < RELOAD_INTERVAL_MS) {
+            return;
+        }
         lastLoadedAt = now;
         ENV = loadDotEnv();
     }
 
+    // Returns config value or the default.
     public static String get(String key, String defaultValue) {
         String value = get(key);
         return value != null ? value : defaultValue;
     }
 
+    // Returns config value as an integer.
     public static int getInt(String key, int defaultValue) {
         String value = get(key);
         if (value == null) {
@@ -57,6 +60,7 @@ public final class ConfigManager {
         }
     }
 
+    // Returns config value as a boolean.
     public static boolean getBoolean(String key, boolean defaultValue) {
         String value = get(key);
         if (value == null) {
@@ -65,62 +69,30 @@ public final class ConfigManager {
         return Boolean.parseBoolean(value.trim());
     }
 
+    // Loads configuration from project-root .env only.
     private static Map<String, String> loadDotEnv() {
         Map<String, String> map = new HashMap<>();
-        for (Path path : candidatePaths()) {
-            if (!Files.isRegularFile(path)) {
-                continue;
-            }
-            try {
-                parseFile(path, map);
-                return map;
-            } catch (IOException ignored) {
-            }
+        Path path = envFilePath();
+        if (path == null || !Files.isRegularFile(path)) {
+            return map;
+        }
+        try {
+            parseFile(path, map);
+        } catch (IOException ignored) {
         }
         return map;
     }
 
-    private static List<Path> candidatePaths() {
-        List<Path> paths = new ArrayList<>();
-
-        String explicitPath = System.getenv("DLEM_ENV_FILE");
-        if (explicitPath != null && !explicitPath.isBlank()) {
-            paths.add(Paths.get(explicitPath.trim()));
-        }
-
-        explicitPath = System.getProperty("dlem.env.file");
-        if (explicitPath != null && !explicitPath.isBlank()) {
-            paths.add(Paths.get(explicitPath.trim()));
-        }
-
+    // Single location: <projectRoot>/.env
+    private static Path envFilePath() {
         Path projectRoot = projectRoot();
-        if (projectRoot != null) {
-            paths.add(projectRoot.resolve(".env"));
+        if (projectRoot == null) {
+            return null;
         }
-
-        Path userDir = Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
-        Path current = userDir;
-        for (int i = 0; i < 10 && current != null; i++) {
-            paths.add(current.resolve(".env"));
-            current = current.getParent();
-        }
-
-        String catalinaBase = System.getProperty("catalina.base");
-        if (catalinaBase != null && !catalinaBase.isBlank()) {
-            paths.add(Paths.get(catalinaBase, ".env"));
-            paths.add(Paths.get(catalinaBase, "conf", ".env"));
-            paths.add(Paths.get(catalinaBase, "webapps", "Driving-Licence-Examination-Management-Monolith", "WEB-INF", ".env"));
-        }
-
-        String catalinaHome = System.getProperty("catalina.home");
-        if (catalinaHome != null && !catalinaHome.isBlank()) {
-            paths.add(Paths.get(catalinaHome, ".env"));
-            paths.add(Paths.get(catalinaHome, "conf", ".env"));
-        }
-
-        return paths;
+        return projectRoot.resolve(".env");
     }
 
+    // Parses key-value pairs from a .env file.
     private static void parseFile(Path path, Map<String, String> map) throws IOException {
         for (String line : Files.readAllLines(path)) {
             String trimmed = line.trim();
@@ -143,6 +115,7 @@ public final class ConfigManager {
         }
     }
 
+    // Finds the project root directory (folder that has src/ and .env).
     private static Path projectRoot() {
         Path fromCwd = findRoot(Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize());
         if (fromCwd != null) {
@@ -159,6 +132,7 @@ public final class ConfigManager {
         }
     }
 
+    // Searches parent directories for the project root.
     private static Path findRoot(Path start) {
         Path current = start;
         for (int i = 0; i < 10 && current != null; i++) {

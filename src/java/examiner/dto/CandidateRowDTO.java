@@ -49,6 +49,7 @@ public class CandidateRowDTO {
     private boolean wrongInfoEligible;
     private boolean completeEligible;
     private boolean practicalEntryAllowed = true;
+    private boolean practicalAttendanceAllowed = true;
     private boolean sectionRequired = true;
     private boolean scoreEntryEligible;
     private boolean active;
@@ -396,6 +397,14 @@ public class CandidateRowDTO {
 
     public void setPracticalEntryAllowed(boolean practicalEntryAllowed) {
         this.practicalEntryAllowed = practicalEntryAllowed;
+    }
+
+    public boolean isPracticalAttendanceAllowed() {
+        return practicalAttendanceAllowed;
+    }
+
+    public void setPracticalAttendanceAllowed(boolean practicalAttendanceAllowed) {
+        this.practicalAttendanceAllowed = practicalAttendanceAllowed;
     }
 
     public boolean isSectionRequired() {

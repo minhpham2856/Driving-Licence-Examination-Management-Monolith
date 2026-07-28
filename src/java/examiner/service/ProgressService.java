@@ -23,4 +23,7 @@ public interface ProgressService {
 
     // Returns whether practical entry is allowed given theory/layout flags and theory completion.
     boolean isPracticalEntryAllowed(int examEnrollmentId, boolean takeTheory, boolean takeLayout);
+
+    // Returns whether practical attendance is allowed (theory checked-in when takeTheory).
+    boolean isPracticalAttendanceAllowed(int examEnrollmentId, boolean takeTheory, boolean takeLayout);
 }

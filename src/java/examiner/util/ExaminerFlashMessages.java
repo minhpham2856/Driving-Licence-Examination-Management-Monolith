@@ -130,6 +130,8 @@ public final class ExaminerFlashMessages {
                 return "Thí sinh chưa được điểm danh.";
             case "candidateNotEligibleForPractical":
                 return "Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.";
+            case "theoryAttendanceRequired":
+                return "Thí sinh phải điểm danh lý thuyết trước khi điểm danh thực hành.";
             case "procedureIncomplete":
                 return "Thí sinh chưa hoàn tất thủ tục (thanh toán/ảnh) nên chưa điểm danh được.";
             case "vehicleInvalid":

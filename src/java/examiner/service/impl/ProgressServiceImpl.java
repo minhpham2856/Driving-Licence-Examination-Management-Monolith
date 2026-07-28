@@ -88,4 +88,22 @@ public class ProgressServiceImpl implements ProgressService {
                 examEnrollmentId, SectionType.THEORY.getValue());
         return theoryScore != null && theoryScore >= THEORY_PASS_CORRECT;
     }
+
+    // Practical attendance: takeLayout + (takeTheory ? LT đã CheckedInAt : true).
+    @Override
+    public boolean isPracticalAttendanceAllowed(int examEnrollmentId, boolean takeTheory, boolean takeLayout) {
+        if (!takeLayout) {
+            return false;
+        }
+        if (!takeTheory) {
+            return true;
+        }
+        if (examEnrollmentId <= 0) {
+            return false;
+        }
+        Map<Integer, Boolean> checkedIn = enrollmentSectionDAO.getCheckedInByEnrollmentIds(
+                List.of(examEnrollmentId), SectionType.THEORY.getValue());
+        Boolean theoryPresent = checkedIn.get(examEnrollmentId);
+        return theoryPresent != null && theoryPresent.booleanValue();
+    }
 }

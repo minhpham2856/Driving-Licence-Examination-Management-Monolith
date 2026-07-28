@@ -109,11 +109,22 @@ public class ExamViewServiceImpl implements ExamViewService {
         // Load theory statistics per enrollment (correct/wrong/unanswered)
         Map<Integer, int[]> theoryStats = viewDAO.getAllTheoryStatsByExam(examId);
 
-        // Load section-specific scores for the active section
+        // Load scores for both sections (overall result columns)
         Map<Integer, Double> sectionScores = viewDAO.getAllSectionScoresByExam(examId, sectionTypeValue(sectionType));
+        Map<Integer, Double> theoryScores = viewDAO.getAllSectionScoresByExam(examId, SectionType.THEORY.getValue());
+        Map<Integer, Double> practicalScores = viewDAO.getAllSectionScoresByExam(examId, SectionType.LAYOUT.getValue());
 
         // Load pass/fail flags for each enrollment
         Map<Integer, Boolean> passFlags = viewDAO.getAllPassFlagsByExam(examId);
+
+        List<Integer> enrollmentIds = new ArrayList<>();
+        for (EnrollmentDTO en : enrollments) {
+            enrollmentIds.add(en.getExamEnrollmentId());
+        }
+        Map<Integer, String> theoryStatuses = enrollmentSectionDAO.getStatusByEnrollmentIds(
+                enrollmentIds, SectionType.THEORY.getValue());
+        Map<Integer, String> layoutStatuses = enrollmentSectionDAO.getStatusByEnrollmentIds(
+                enrollmentIds, SectionType.LAYOUT.getValue());
 
         // Format exam date for display
         String examDate = formatExamDate(examId);
@@ -127,8 +138,17 @@ public class ExamViewServiceImpl implements ExamViewService {
 
         // For each enrollment, build a candidate row DTO and add to list
         for (EnrollmentDTO en : enrollments) {
-            rows.add(buildCandidateRow(en, theoryStats, sectionScores, passFlags,
-                    examDate, licenceClass, deviceNames, sectionType));
+            CandidateRowDTO row = buildCandidateRow(en, theoryStats, sectionScores, passFlags,
+                    examDate, licenceClass, deviceNames, sectionType);
+            int enrollmentId = en.getExamEnrollmentId();
+            applyOverallScoresAndResult(row,
+                    en.isTakeTheory(),
+                    en.isTakeLayout(),
+                    theoryScores.get(enrollmentId),
+                    practicalScores.get(enrollmentId),
+                    candidateStatusOf(theoryStatuses.get(enrollmentId)),
+                    candidateStatusOf(layoutStatuses.get(enrollmentId)));
+            rows.add(row);
         }
         return rows;
     }
@@ -162,18 +182,27 @@ public class ExamViewServiceImpl implements ExamViewService {
             String searchQuery) {
         List<ExamEnrollment> enrollments = enrollmentDAO.getWithCandidateByExam(examId, searchQuery);
         List<Integer> enrollmentIds = enrollmentIdsOf(enrollments);
-        Map<Integer, Double> sectionScores = viewDAO.getAllSectionScoresByExam(examId, sectionTypeValue(sectionType));
-        Map<Integer, String> sectionStatuses = enrollmentSectionDAO.getStatusByEnrollmentIds(
-                enrollmentIds, sectionTypeValue(sectionType));
+        Map<Integer, Double> theoryScores = viewDAO.getAllSectionScoresByExam(
+                examId, SectionType.THEORY.getValue());
+        Map<Integer, Double> practicalScores = viewDAO.getAllSectionScoresByExam(
+                examId, SectionType.LAYOUT.getValue());
+        Map<Integer, String> theoryStatuses = enrollmentSectionDAO.getStatusByEnrollmentIds(
+                enrollmentIds, SectionType.THEORY.getValue());
+        Map<Integer, String> layoutStatuses = enrollmentSectionDAO.getStatusByEnrollmentIds(
+                enrollmentIds, SectionType.LAYOUT.getValue());
         String examDate = formatExamDate(examId);
         String licenceClass = loadLicenceClass(examId);
         List<CandidateRowDTO> rows = new ArrayList<>();
         for (ExamEnrollment enrollment : enrollments) {
             Candidate candidate = enrollment.getCandidate();
             if (candidate != null) {
+                int enrollmentId = enrollment.getExamEnrollmentId();
                 rows.add(buildDashboardCandidateRow(enrollment, candidate, examDate, licenceClass,
-                        sectionScores.get(enrollment.getExamEnrollmentId()),
-                        sectionStatuses.get(enrollment.getExamEnrollmentId()), sectionType));
+                        theoryScores.get(enrollmentId),
+                        practicalScores.get(enrollmentId),
+                        theoryStatuses.get(enrollmentId),
+                        layoutStatuses.get(enrollmentId),
+                        sectionType));
             }
         }
         return rows;
@@ -666,10 +695,15 @@ public class ExamViewServiceImpl implements ExamViewService {
 
     // Builds the minimal candidate row used by the dashboard.
     private CandidateRowDTO buildDashboardCandidateRow(ExamEnrollment enrollment, Candidate candidate,
-            String examDate, String licenceClass, Double score, String sectionStatusValue, SectionType sectionType) {
+            String examDate, String licenceClass, Double theoryScore, Double practicalScore,
+            String theoryStatusValue, String layoutStatusValue, SectionType sectionType) {
         CandidateRowDTO row = new CandidateRowDTO();
         Sex sex = candidate.isSex() ? Sex.FEMALE : Sex.MALE;
-        CandidateStatus sectionStatus = candidateStatusOf(sectionStatusValue);
+        boolean takeTheory = Boolean.TRUE.equals(candidate.getTakeTheory());
+        boolean takeLayout = Boolean.TRUE.equals(candidate.getTakeLayout());
+        CandidateStatus theoryStatus = candidateStatusOf(theoryStatusValue);
+        CandidateStatus layoutStatus = candidateStatusOf(layoutStatusValue);
+        CandidateStatus sectionStatus = sectionType == SectionType.THEORY ? theoryStatus : layoutStatus;
         row.setCandidateNumber(parseCandidateNumber(candidate.getCandidateNumber()));
         row.setEnrollmentId(enrollment.getExamEnrollmentId());
         row.setFullName(candidate.getFullName());
@@ -691,7 +725,8 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setStatusLabel(resolveStatusLabel(sectionStatus, candidate.isSuspended()));
         row.setSexValue(sex == Sex.FEMALE ? "1" : "0");
         row.setSexLabel(resolveSexLabel(sex));
-        applyDashboardScore(row, score, sectionType);
+        applyOverallScoresAndResult(row, takeTheory, takeLayout, theoryScore, practicalScore,
+                theoryStatus, layoutStatus);
         return row;
     }
 
@@ -735,13 +770,19 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setResultPrinted(resultPrinted);
         row.setSectionRequired(sectionRequired);
         boolean practicalEntryAllowed = sectionRequired;
+        boolean practicalAttendanceAllowed = sectionRequired;
         if (practicalSection && enrollmentId > 0) {
             practicalEntryAllowed = sectionProgressService.isPracticalEntryAllowed(
                     enrollmentId,
                     enrollment.isTakeTheory(),
                     enrollment.isTakeLayout());
+            practicalAttendanceAllowed = sectionProgressService.isPracticalAttendanceAllowed(
+                    enrollmentId,
+                    enrollment.isTakeTheory(),
+                    enrollment.isTakeLayout());
         }
         practicalEntryAllowed = practicalEntryAllowed && sectionRequired;
+        practicalAttendanceAllowed = practicalAttendanceAllowed && sectionRequired;
         if (practicalSection && !enrollment.isSuspended() && !practicalEntryAllowed) {
             sectionStatus = CandidateStatus.NOT_STARTED;
             row.setSectionStatus(sectionStatus);
@@ -751,12 +792,13 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setResultPrinted(false);
             resultPrinted = false;
         }
-        row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone);
+        row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone
+                && practicalEntryAllowed);
         row.setViolationEligible(sectionRequired && !enrollment.isSuspended());
         row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
-                && practicalEntryAllowed
+                && practicalAttendanceAllowed
                 && enrollment.isPaymentCompleted()
                 && enrollment.isValidCapturedPhoto());
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
@@ -765,6 +807,7 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setWrongInfoEligible(sectionRequired && !enrollment.isSuspended() && notDone);
         row.setCompleteEligible(sectionRequired && sectionStatus == CandidateStatus.AWAITING_SIGNATURE && resultPrinted);
         row.setPracticalEntryAllowed(practicalEntryAllowed);
+        row.setPracticalAttendanceAllowed(practicalAttendanceAllowed);
         row.setScoreEntryEligible(practicalSection
                 && sectionRequired
                 && practicalEntryAllowed
@@ -777,6 +820,8 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setAwaitingSignature(false);
             row.setResultPrinted(false);
             row.setScoreEntryEligible(false);
+            row.setActionEligible(false);
+            row.setMarkPresentEligible(false);
         }
         Integer displayScore = score != null ? Integer.valueOf(score.intValue()) : scoreFromEnrollment(enrollment, sectionType);
         row.setExamScore(displayScore);
@@ -841,13 +886,19 @@ public class ExamViewServiceImpl implements ExamViewService {
         boolean practicalSection = sectionType == null || sectionType == SectionType.LAYOUT;
         boolean sectionRequired = isSectionRequired(enrollment, sectionType);
         boolean practicalEntryAllowed = true;
+        boolean practicalAttendanceAllowed = true;
         if (practicalSection && enrollmentId > 0 && enrollment.getCandidateId() > 0) {
             practicalEntryAllowed = sectionProgressService.isPracticalEntryAllowed(
                     enrollmentId,
                     enrollment.isTakeTheory(),
                     enrollment.isTakeLayout());
+            practicalAttendanceAllowed = sectionProgressService.isPracticalAttendanceAllowed(
+                    enrollmentId,
+                    enrollment.isTakeTheory(),
+                    enrollment.isTakeLayout());
         }
         practicalEntryAllowed = practicalEntryAllowed && sectionRequired;
+        practicalAttendanceAllowed = practicalAttendanceAllowed && sectionRequired;
         // Practical section must stay "NOT_STARTED" until theory is completed.
         if (practicalSection && !enrollment.isSuspended() && !practicalEntryAllowed) {
             sectionStatus = CandidateStatus.NOT_STARTED;
@@ -858,6 +909,7 @@ public class ExamViewServiceImpl implements ExamViewService {
             row.setResultPrinted(false);
         }
         row.setPracticalEntryAllowed(practicalEntryAllowed);
+        row.setPracticalAttendanceAllowed(practicalAttendanceAllowed);
         row.setScoreEntryEligible(practicalSection
                 && sectionRequired
                 && practicalEntryAllowed
@@ -874,12 +926,13 @@ public class ExamViewServiceImpl implements ExamViewService {
         }
         // Action eligibility for examiner table buttons.
         boolean notDone = sectionStatus != CandidateStatus.COMPLETED;
-        row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone);
+        row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone
+                && practicalEntryAllowed);
         row.setViolationEligible(sectionRequired && !enrollment.isSuspended());
         row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
-                && practicalEntryAllowed
+                && practicalAttendanceAllowed
                 && enrollment.isPaymentCompleted()
                 && enrollment.isValidCapturedPhoto());
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
@@ -986,18 +1039,46 @@ public class ExamViewServiceImpl implements ExamViewService {
         return status != null ? status : CandidateStatus.NOT_STARTED;
     }
 
-    private void applyDashboardScore(CandidateRowDTO row, Double score, SectionType sectionType) {
-        if (score == null) {
+    private void applyOverallScoresAndResult(CandidateRowDTO row,
+            boolean takeTheory, boolean takeLayout,
+            Double theoryScore, Double practicalScore,
+            CandidateStatus theoryStatus, CandidateStatus layoutStatus) {
+        if (takeTheory && theoryScore != null) {
+            row.setScoreTheory(theoryScore.intValue());
+        } else {
+            row.setScoreTheory(null);
+        }
+        if (takeLayout && practicalScore != null) {
+            row.setScorePractical(practicalScore.intValue());
+        } else {
+            row.setScorePractical(null);
+        }
+
+        boolean theoryReady = !takeTheory || hasSectionOutcome(theoryStatus, theoryScore);
+        boolean layoutReady = !takeLayout || hasSectionOutcome(layoutStatus, practicalScore);
+        if (!theoryReady || !layoutReady) {
             row.setExamScore(null);
             row.setPassed(false);
             row.setResultLabel("");
             return;
         }
-        int roundedScore = score.intValue();
-        boolean passed = isDashboardScorePassed(roundedScore, sectionType);
-        row.setExamScore(roundedScore);
-        row.setPassed(passed);
-        row.setResultLabel(passed ? "Đạt" : "Trượt");
+
+        boolean theoryPass = !takeTheory
+                || (theoryScore != null && theoryScore >= THEORY_PASS_CORRECT);
+        boolean layoutPass = !takeLayout
+                || (practicalScore != null && practicalScore >= 80);
+        if (theoryPass && layoutPass) {
+            row.setPassed(true);
+            row.setResultLabel("Đạt");
+        } else {
+            row.setPassed(false);
+            row.setResultLabel("Trượt");
+        }
+        row.setExamScore(row.getScoreTheory() != null ? row.getScoreTheory() : row.getScorePractical());
+    }
+
+    private static boolean hasSectionOutcome(CandidateStatus status, Double score) {
+        return score != null;
     }
 
     private boolean isDashboardScorePassed(int score, SectionType sectionType) {

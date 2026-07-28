@@ -37,19 +37,18 @@
 
     function initCallButtons() {
         document.querySelectorAll('.js-call-candidate').forEach(function (form) {
-            form.addEventListener('submit', function () {
+            form.addEventListener('submit', function (event) {
                 if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
                     return;
                 }
+                event.preventDefault();
                 window.speechSynthesis.cancel();
                 if (!preferredVoice) {
                     refreshVoice();
                 }
                 var sbd = form.dataset.sbd || '';
-                var name = form.dataset.name || '';
-                var text = 'Mời thí sinh số báo danh ' + sbd
-                        + (name ? ', ' + name : '')
-                        + ', nhanh chóng đến khu vực thi.';
+                var area = form.dataset.area || 'khu vực thi';
+                var text = 'Thí sinh số báo danh ' + sbd + ' vào ' + area;
                 var utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'vi-VN';
                 utterance.rate = 0.92;
@@ -57,7 +56,18 @@
                 if (preferredVoice) {
                     utterance.voice = preferredVoice;
                 }
+                var submitted = false;
+                function submitForm() {
+                    if (submitted) {
+                        return;
+                    }
+                    submitted = true;
+                    form.submit();
+                }
+                utterance.onend = submitForm;
+                utterance.onerror = submitForm;
                 window.speechSynthesis.speak(utterance);
+                window.setTimeout(submitForm, 6000);
             });
         });
     }

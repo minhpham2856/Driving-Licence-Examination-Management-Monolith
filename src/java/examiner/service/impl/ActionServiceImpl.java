@@ -516,10 +516,10 @@ public class ActionServiceImpl implements ActionService {
                 Candidate candidate = candidateDAO.get(enrollment.getCandidateId());
                 boolean takeTheory = candidate != null && Boolean.TRUE.equals(candidate.getTakeTheory());
                 boolean takeLayout = candidate != null && Boolean.TRUE.equals(candidate.getTakeLayout());
-                if (!sectionProgressService.isPracticalEntryAllowed(
+                if (!sectionProgressService.isPracticalAttendanceAllowed(
                         enrollmentRecord.getExamEnrollmentId(), takeTheory, takeLayout)) {
                     return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                            "candidateNotEligibleForPractical");
+                            "theoryAttendanceRequired");
                 }
             }
         }
