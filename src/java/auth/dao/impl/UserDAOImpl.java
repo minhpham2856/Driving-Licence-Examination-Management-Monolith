@@ -145,9 +145,11 @@ public class UserDAOImpl extends DBContext implements UserDAO {
 
     @Override
     public boolean updatePassword(int userId, String passwordHash) {
+        // Đổi mật khẩu thành công thì luôn xóa cờ bắt buộc đổi mật khẩu (MustChangePassword),
+        // nếu không MustChangePasswordFilter sẽ bắt đổi lại ngay lần đăng nhập kế tiếp -> vòng lặp vô hạn.
         String sql = """
                      update [User]
-                     set PasswordHash = ?
+                     set PasswordHash = ?, MustChangePassword = 0
                      where UserId = ?
                      """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

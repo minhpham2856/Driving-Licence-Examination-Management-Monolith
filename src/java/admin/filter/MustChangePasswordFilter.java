@@ -3,7 +3,10 @@ package admin.filter;
 import admin.dao.UserSecurityDAO;
 import admin.dao.impl.UserSecurityDAOImpl;
 import auth.dto.UserDTO;
+import auth.enums.RoleRoute;
 import shared.Attributes;
+import shared.enums.RoleType;
+import shared.model.Role;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,10 +15,15 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 /**
- * Ép đổi mật khẩu lần đầu (cờ MustChangePassword). Chạy song song AuthFilter của nhóm.
- * Đọc user từ session bằng UserDTO + key Attributes.Session.USER (đúng quy ước nhóm).
+ * Ép đổi mật khẩu lần đầu (cờ MustChangePassword) cho MỌI vai trò nhân sự do Admin tạo
+ * (Admin, Cán bộ kỳ thi, Sát hạch viên, Cán bộ quản lý, Cán bộ CSGT) — không chỉ riêng Admin.
+ * Trước đây chỉ theo dõi /admin/*, nên 4 vai trò còn lại có thể dùng mãi mật khẩu tạm gửi qua email.
+ * Điều hướng về đúng trang đổi mật khẩu của TỪNG vai trò (RoleRoute), tránh đưa nhầm
+ * sang /admin/change-password khiến vai trò khác bị AdminFilter chặn 403.
  */
-@WebFilter(urlPatterns = {"/admin/*", "/views/staff/*"})
+@WebFilter(urlPatterns = {
+    "/admin/*", "/examstaff/*", "/examiner/*", "/manager/*", "/managingstaff/*", "/police/*", "/views/staff/*"
+})
 public class MustChangePasswordFilter implements Filter {
 
     private final UserSecurityDAO securityDAO = new UserSecurityDAOImpl();
@@ -39,10 +47,21 @@ public class MustChangePasswordFilter implements Filter {
 
         if (securityDAO.mustChangePassword(user.getUserId())) {
             session.setAttribute("forceChangePassword", true);
-            resp.sendRedirect(req.getContextPath() + "/admin/change-password");
+            resp.sendRedirect(req.getContextPath() + changePasswordPathFor(user));
             return;
         }
         session.removeAttribute("forceChangePassword");
         chain.doFilter(request, response);
+    }
+
+    /** Đúng URL đổi mật khẩu của vai trò user đang đăng nhập; mặc định /admin/change-password nếu không xác định được vai trò. */
+    private String changePasswordPathFor(UserDTO user) {
+        Role role = user.getRole();
+        if (role != null) {
+            RoleType roleType = RoleType.fromValue(role.getRoleName());
+            RoleRoute route = RoleRoute.fromRole(roleType);
+            if (route != null) return route.getChangePasswordPath();
+        }
+        return "/admin/change-password";
     }
 }
