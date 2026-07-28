@@ -52,7 +52,7 @@ public class PoliceSubmissionServlet extends HttpServlet {
             req.getSession().setAttribute("policeSuccess",
                     "REJECTED".equals(decision)
                             ? "Đã từ chối hồ sơ và thực hiện gửi email thông báo."
-                            : "Đã duyệt hồ sơ. Email sẽ được gửi khi ban hành danh sách chính thức.");
+                            : "Đã duyệt hồ sơ.");
         } catch (Exception ex) {
             req.getSession().setAttribute("policeError", ex.getMessage());
         }
