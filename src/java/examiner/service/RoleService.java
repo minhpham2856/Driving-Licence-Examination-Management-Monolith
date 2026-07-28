@@ -2,12 +2,12 @@ package examiner.service;
 
 import shared.model.Role;
 
+// Service contract for resolving role records.
 public interface RoleService {
 
-    Role getById(int id);
+    // Loads one role row by primary key.
+    Role get(int id);
 
-    String getRoleNameById(int id);
-
-    int getRoleIdByName(String roleName);
+    // Loads one role row by Vietnamese display name.
+    Role getByName(String name);
 }
-
