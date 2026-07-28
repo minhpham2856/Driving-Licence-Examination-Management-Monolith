@@ -50,7 +50,9 @@ public class PoliceSubmissionServlet extends HttpServlet {
                     value(req.getParameter("participationType"))))
                 throw new IllegalArgumentException("Hồ sơ đã được xử lý hoặc danh sách đã hoàn tất.");
             req.getSession().setAttribute("policeSuccess",
-                    "Đã lưu kết quả thẩm định và gửi email thông báo cho thí sinh.");
+                    "REJECTED".equals(decision)
+                            ? "Đã từ chối hồ sơ và thực hiện gửi email thông báo."
+                            : "Đã duyệt hồ sơ. Email sẽ được gửi khi ban hành danh sách chính thức.");
         } catch (Exception ex) {
             req.getSession().setAttribute("policeError", ex.getMessage());
         }
