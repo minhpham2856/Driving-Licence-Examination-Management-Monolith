@@ -227,7 +227,7 @@
                                                 </span>
                                             </div>
                                             <div class="ticket-meta-item">
-                                                <span class="ticket-meta-label">Giờ ca thi</span>
+                                                <span class="ticket-meta-label">Giờ kỳ thi</span>
                                                 <span class="ticket-meta-value">
                                                     <c:choose>
                                                         <c:when test="${selectedExam.preferredDate}">
@@ -239,7 +239,7 @@
                                                         <c:when test="${selectedExam.sessionTimePublished}">
                                                             <fmt:formatDate value="${selectedExam.sessionStart}" pattern="HH:mm"/>
                                                         </c:when>
-                                                        <c:otherwise>Chờ Ban sát hạch mở ca</c:otherwise>
+                                                        <c:otherwise>Chờ Ban sát hạch mở kỳ thi</c:otherwise>
                                                     </c:choose>
                                                 </span>
                                             </div>

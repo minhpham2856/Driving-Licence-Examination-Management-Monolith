@@ -101,6 +101,12 @@
     color: #ef4444;
 }
 
+/* Chi tiết column */
+.audit-td-detail {
+    white-space: pre-line;
+    max-width: 28rem;
+}
+
 /* Cũ column: gray text */
 .audit-td-old {
     color: #434654;

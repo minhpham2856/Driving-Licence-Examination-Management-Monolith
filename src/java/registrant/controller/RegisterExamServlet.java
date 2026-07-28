@@ -12,7 +12,7 @@ import java.io.IOException;
 
 /**
  * Đăng ký ngày thi mong muốn — GET/POST /registrant/register-exam.
- * GET — lấy data: Profile Approved + hạng GPLX + danh sách ExamDates (+ phí UI hardcode tham khảo, không phải Licence_Fee desk).
+ * GET — lấy data: Profile Approved + hạng GPLX + danh sách ExamDates.
  * POST confirmRegistration=1: validate → MERGE RegistrationDates (ExamRegistrationId, ExamDateId, IsActive=1) → redirect /registrant/my-exams?success=registered.
  * Không tạo Candidate / ExamEnrollment / Payment / SePay checkout.
  */

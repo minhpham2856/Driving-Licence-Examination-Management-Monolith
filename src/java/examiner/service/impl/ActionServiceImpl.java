@@ -286,7 +286,8 @@ public class ActionServiceImpl implements ActionService {
         if (!isSectionRequired(enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
-        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED
+                && enrollment.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
         }
         String auditReason = buildReasonText(reasonCode, reasonDetail);
@@ -323,7 +324,8 @@ public class ActionServiceImpl implements ActionService {
         if (!isSectionRequired(enrollment, targetSection)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
         }
-        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED
+                && enrollment.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
         }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
@@ -374,7 +376,8 @@ public class ActionServiceImpl implements ActionService {
         if (!isSectionRequired(enrollment, targetSection)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
         }
-        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED) {
+        if (enrollment.getSectionStatus() != CandidateStatus.COMPLETED
+                && enrollment.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "scoreEditNotAllowed");
         }
         ExamEnrollment enrollmentRecord = enrollmentDAO.getByExamAndCandidate(examId, enrollment.getCandidateId());
@@ -499,6 +502,10 @@ public class ActionServiceImpl implements ActionService {
         if (!isSectionRequired(enrollment, sectionType)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh không thi phần này.");
         }
+        // Phải hoàn tất thủ tục (thanh toán + ảnh) trước khi điểm danh
+        if (!enrollment.isPaymentCompleted() || !enrollment.isValidCapturedPhoto()) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "procedureIncomplete");
+        }
         if (enrollment.getSectionStatus() == CandidateStatus.COMPLETED) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Thí sinh đã hoàn tất phần thi.");
         }
@@ -512,7 +519,7 @@ public class ActionServiceImpl implements ActionService {
                 if (!sectionProgressService.isPracticalEntryAllowed(
                         enrollmentRecord.getExamEnrollmentId(), takeTheory, takeLayout)) {
                     return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                            "Thí sinh chưa đủ điều kiện thi thực hành.");
+                            "candidateNotEligibleForPractical");
                 }
             }
         }

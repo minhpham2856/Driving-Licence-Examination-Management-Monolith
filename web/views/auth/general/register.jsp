@@ -122,7 +122,9 @@
                                        name="phoneNo"
                                        placeholder="0912345678"
                                        required
-                                       maxlength="20"
+                                       maxlength="10"
+                                       pattern="0[0-9]{9}"
+                                       inputmode="numeric"
                                        autocomplete="tel">
                             </div>
                             <div class="form-group form-group--half">

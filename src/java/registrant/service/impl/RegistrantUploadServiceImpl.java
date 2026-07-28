@@ -436,7 +436,6 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
                 case "A" -> "Xe mô tô trên 125 cm³";
                 default -> "Xe mô tô ba bánh";
             });
-            opt.setExamFee(RegistrantExamSupport.defaultExamFee(code));
             opt.setVehicleType(RegistrantExamSupport.inferVehicleType(code));
             fallback.add(opt);
         }

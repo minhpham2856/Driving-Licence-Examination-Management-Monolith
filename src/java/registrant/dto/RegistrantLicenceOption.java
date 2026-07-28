@@ -2,14 +2,13 @@ package registrant.dto;
 
 /**
  * DTO tuỳ chọn hạng GPLX trên wizard đăng ký đợt thi (register-exam.jsp).
- * Chứa mã hạng (khớp seed DB: A, A1, B1…), tên hiển thị, phí tham khảo UI và loại phương tiện (icon moto/car).
+ * Chứa mã hạng (khớp seed DB: A, A1, B1…), tên hiển thị và loại phương tiện (icon moto/car).
  */
 public class RegistrantLicenceOption {
 
     /** Mã hạng GPLX hiển thị (khớp DB seed: A, A1, B1, …). */
     private String code;
     private String name;
-    private long examFee;
     /** Gợi ý loại phương tiện để chọn icon (moto / car). */
     private String vehicleType;
 
@@ -27,14 +26,6 @@ public class RegistrantLicenceOption {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public long getExamFee() {
-        return examFee;
-    }
-
-    public void setExamFee(long examFee) {
-        this.examFee = examFee;
     }
 
     public String getVehicleType() {
