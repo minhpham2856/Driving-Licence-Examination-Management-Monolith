@@ -15,8 +15,9 @@ import java.util.Locale;
  *
  * Biểu phí thủ tục:
  * getProcedureFees dùng OUTER APPLY chọn mức phí theo hạng LicenceClass,
- * lọc FeeType thủ tục (không học phí), tách logic xe máy (isMotorcycleGroup)
- * vs ô tô khi requiresRoadTest.
+ * lọc FeeType thủ tục (không học phí). Phí thi thực hành được áp dụng cho
+ * mọi hạng có cấu hình trong Licence_Fee; trường hợp thí sinh được miễn/bảo
+ * lưu phần thực hành được lọc theo hồ sơ ở tầng service.
  *
  * Phí theo payment:
  * getFeesByPaymentId JOIN Payment_Fee → Fee → Licence_Fee
@@ -32,7 +33,8 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
      * Truy vấn Fee OUTER APPLY Licence_Fee để lấy mức phí theo hạng,
      * sau đó lọc theo loại phí thủ tục (không gồm học phí).
      * @param licenseCode      mã hạng bằng (ví dụ: B1, A1)
-     * @param requiresRoadTest có phần thi đường trường hay không (ảnh hưởng lọc phí TH)
+     * @param requiresRoadTest giữ tương thích contract DAO; miễn/bảo lưu phần thi
+     *                         được quyết định theo hồ sơ ở tầng service
      * @return danh sách Fee phù hợp thủ tục
      */
     @Override
@@ -41,7 +43,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
             return List.of();
         }
         String licenceClass = licenseCode.trim().toUpperCase(Locale.ROOT);
-        boolean motorcycle = isMotorcycleGroup(licenceClass);
         List<Fee> applicable = new ArrayList<>();
         String sql = """
                 SELECT f.FeeId, f.FeeName, f.FeeType, f.IsActive,
@@ -72,7 +73,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 while (rs.next()) {
                     // Ánh xạ ResultSet → Fee và lọc theo quy tắc thủ tục
                     Fee fee = mapRow(rs);
-                    if (appliesToProcedure(fee, motorcycle, requiresRoadTest)) {
+                    if (appliesToProcedure(fee)) {
                         applicable.add(fee);
                     }
                 }
@@ -126,13 +127,13 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
     }
 
     /**
-     * Lọc phí thủ tục theo loại/tên (loại trừ học phí, áp dụng quy tắc xe máy/TH).
-     * @param fee               entity phí cần kiểm tra
-     * @param motorcycle        true nếu hạng thuộc nhóm xe máy (A/A1)
-     * @param requiresRoadTest  có phần thi đường trường hay không
+     * Lọc phí thủ tục theo loại/tên (loại trừ học phí).
+     * Phí thi thực hành không bị loại theo nhóm phương tiện tại đây vì biểu phí
+     * đã được cấu hình riêng theo từng hạng trong Licence_Fee.
+     * @param fee entity phí cần kiểm tra
      * @return true nếu phí thuộc nhóm lệ phí thủ tục áp dụng
      */
-    private boolean appliesToProcedure(Fee fee, boolean motorcycle, boolean requiresRoadTest) {
+    static boolean appliesToProcedure(Fee fee) {
         String name = normalize(fee.getFeeName());
         String type = normalize(fee.getFeeType());
 
@@ -150,7 +151,7 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
                 return true;
             }
             if (containsAny(name, "trong hinh", "sa hinh", "thuc hanh trong")) {
-                return !motorcycle;
+                return true;
             }
             return true;
         }
@@ -185,19 +186,6 @@ public class FeeDAOImpl extends DBContext implements FeeDAO {
             }
         }
         return false;
-    }
-
-    /**
-     * Xác định hạng GPLX thuộc nhóm xe máy (A hoặc A1).
-     * @param licenseCode mã hạng bằng
-     * @return true nếu là A hoặc A1
-     */
-    static boolean isMotorcycleGroup(String licenseCode) {
-        if (licenseCode == null || licenseCode.isBlank()) {
-            return false;
-        }
-        String lc = licenseCode.toUpperCase(Locale.ROOT).trim();
-        return lc.equals("A1") || lc.equals("A");
     }
 
     /**
