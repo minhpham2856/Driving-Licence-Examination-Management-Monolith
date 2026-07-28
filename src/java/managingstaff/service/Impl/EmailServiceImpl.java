@@ -111,7 +111,7 @@ public class EmailServiceImpl implements EmailService {
         }
 
         if (!isDeliverableRecipient(to)) {
-            LOG.warning("Email skipped: recipient address is empty, invalid or belongs to a demo domain.");
+            LOG.warning("Email skipped: recipient address is empty, invalid or belongs to an invalid domain.");
             return false;
         }
 
@@ -161,7 +161,7 @@ public class EmailServiceImpl implements EmailService {
             return false;
         }
         String domain = addressValue.substring(separator + 1).toLowerCase(java.util.Locale.ROOT);
-        if (domain.endsWith(".local") || domain.endsWith(".invalid")) {
+        if (domain.endsWith(".invalid")) {
             return false;
         }
         try {

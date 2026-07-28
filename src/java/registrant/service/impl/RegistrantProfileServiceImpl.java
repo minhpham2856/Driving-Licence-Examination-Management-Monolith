@@ -52,7 +52,7 @@ public class RegistrantProfileServiceImpl implements RegistrantProfileService {
             request.setAttribute("birthday",
                     profile.getDateOfBirth().toLocalDateTime().toLocalDate().toString());
         }
-        request.setAttribute("gender", profile.isSex() ? "Nữ" : "Nam");
+        request.setAttribute("gender", profile.isSex() ? "Nam" : "Nữ");
         request.setAttribute("phone", profile.getPhoneNumber());
         request.setAttribute("address", profile.getAddress());
         request.setAttribute("idCardNumber", profile.getGovernmentIdNumber());

@@ -61,6 +61,13 @@ public class RegisterServlet extends HttpServlet {
             return;
         }
 
+        // validate full name
+        if (!ValidationUtil.isValidFullName(fullName)) {
+            forwardWithError(request, response,
+                    "Họ và tên chỉ gồm chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+            return;
+        }
+
         // validate government id
         if (!ValidationUtil.isValidCccd(govIdNo)) {
             forwardWithError(request, response, "Số căn cước phải gồm đúng 12 chữ số.");
@@ -69,7 +76,7 @@ public class RegisterServlet extends HttpServlet {
 
         // validate phone number
         if (!ValidationUtil.isValidPhone(phoneNo)) {
-            forwardWithError(request, response, "Số điện thoại không hợp lệ.");
+            forwardWithError(request, response, "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.");
             return;
         }
 
@@ -91,6 +98,12 @@ public class RegisterServlet extends HttpServlet {
         // validate future date
         if (dob.isAfter(LocalDate.now())) {
             forwardWithError(request, response, "Ngày sinh không thể chọn.");
+            return;
+        }
+
+        // validate adult age at registration
+        if (!ValidationUtil.isAdult(dob)) {
+            forwardWithError(request, response, "Bạn phải đủ 18 tuổi trở lên để đăng ký.");
             return;
         }
 

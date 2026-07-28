@@ -129,7 +129,17 @@
                             <section class="p-alert-banner" style="margin-bottom:1.25rem;background:#fff7ed;border-color:#fdba74;" aria-label="Hồ sơ bị từ chối">
                                 <div class="p-alert-banner__content">
                                     <span class="p-alert-banner__title">Hồ sơ bị từ chối</span>
-                                    <span>Vui lòng sửa lại giấy tờ tại 4 mục bên dưới (tải lên thay thế) rồi bấm <strong>Gửi yêu cầu duyệt</strong> lại.</span>
+                                    <span>
+                                        <c:choose>
+                                            <c:when test="${not empty rejectionReason}">
+                                                Lý do từ ban quản lý: <strong><c:out value="${rejectionReason}"/></strong>.
+                                            </c:when>
+                                            <c:otherwise>
+                                                Ban quản lý đã từ chối hồ sơ nhưng chưa ghi lý do chi tiết trên hệ thống.
+                                            </c:otherwise>
+                                        </c:choose>
+                                        Vui lòng sửa lại giấy tờ tại 4 mục bên dưới (tải lên thay thế) rồi bấm <strong>Gửi yêu cầu duyệt</strong> lại.
+                                    </span>
                                 </div>
                             </section>
                         </c:if>
@@ -268,8 +278,8 @@
                                                 <div class="upload-other-item__preview">
                                                     <c:choose>
                                                         <c:when test="${fn:contains(fn:toLowerCase(other.documentUrl), '.pdf')
-                                                                or fn:contains(fn:toLowerCase(other.fileName), '.pdf')}">
-                                                            <span class="upload-other-item__pdf">PDF</span>
+                                                                        or fn:contains(fn:toLowerCase(other.fileName), '.pdf')}">
+                                                                <span class="upload-other-item__pdf">PDF</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <img src="${other.documentUrl}" alt="">
@@ -412,7 +422,7 @@
                                                 <c:forEach var="licence" items="${approvalLicenceOptions}">
                                                     <option value="${licence.code}" title="${licence.name}">
                                                         Hạng ${licence.code}<c:if test="${not empty licence.name}"> — ${licence.name}</c:if>
-                                                    </option>
+                                                        </option>
                                                 </c:forEach>
                                             </select>
                                         </div>

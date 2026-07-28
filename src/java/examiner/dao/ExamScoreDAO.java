@@ -8,6 +8,9 @@ public interface ExamScoreDAO {
     // Loads the score row for one exam result and section pair.
     ExamScore getByExamResultAndSection(int examResultId, int examSectionId);
 
+    // Score for one enrollment + section type (e.g. Lý thuyết), or null if missing.
+    Double getScoreByEnrollmentAndSectionType(int examEnrollmentId, String sectionType);
+
     // Inserts a new exam score row and returns generated id.
     int add(ExamScore score);
 

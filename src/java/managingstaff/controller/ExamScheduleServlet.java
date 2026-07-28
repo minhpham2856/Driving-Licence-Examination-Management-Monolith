@@ -75,7 +75,7 @@ public class ExamScheduleServlet extends HttpServlet {
         int id=parseInt(request.getParameter("sessionId"),0);String reason=trim(request.getParameter("reason"));
         SessionDTO exam=sessionDAO.findById(id);
         if(exam==null||!exam.isEditable()||reason.length()<5){request.getSession().setAttribute("scheduleError","Chỉ được hủy phiên chưa thi và phải nhập lý do.");}
-        else if(sessionDAO.cancel(id)){int sent=sendCancellationEmails(exam,reason);request.getSession().setAttribute("scheduleSuccess","Đã hủy phiên thi; danh sách vẫn được giữ lại. Đã gửi "+sent+" email.");AuditLogHelper.persist(request.getSession(),"CANCEL SESSION","Hủy phiên "+exam.getSessionName()+". Lý do: "+reason,id);}
+        else if(sessionDAO.cancel(id)){int sent=sendCancellationEmails(exam,reason);request.getSession().setAttribute("scheduleSuccess","Đã hủy phiên thi. Đã gửi "+sent+" email.");AuditLogHelper.persist(request.getSession(),"CANCEL SESSION","Hủy phiên "+exam.getSessionName()+". Lý do: "+reason,id);}
         else request.getSession().setAttribute("scheduleError","Không thể hủy phiên thi.");
         response.sendRedirect(request.getContextPath()+"/manager/exam-schedules?tab=cancelled");
     }

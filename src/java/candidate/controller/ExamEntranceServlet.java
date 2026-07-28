@@ -60,6 +60,19 @@ public class ExamEntranceServlet extends HttpServlet {
             return;
         }
 
+        // Kết quả có thể xem sau khi đã clear context lúc nộp bài
+        if ("/exam/result".equals(path)) {
+            CandidateExamResultDTO result = (CandidateExamResultDTO) request.getSession()
+                    .getAttribute(CANDIDATE_EXAM_RESULT);
+            if (result == null) {
+                response.sendRedirect(request.getContextPath() + "/exam/entrance");
+                return;
+            }
+            request.setAttribute("result", result);
+            request.getRequestDispatcher("/views/exam/exam-results.jsp").forward(request, response);
+            return;
+        }
+
         CandidateExamContextDTO context = current(request);
         if (context == null) {
             response.sendRedirect(request.getContextPath() + "/exam/entrance");
@@ -81,15 +94,7 @@ public class ExamEntranceServlet extends HttpServlet {
             request.getRequestDispatcher("/views/exam/exam-questions.jsp").forward(request, response);
             return;
         }
-
-        CandidateExamResultDTO result = (CandidateExamResultDTO) request.getSession()
-                .getAttribute(CANDIDATE_EXAM_RESULT);
-        if (result == null) {
-            response.sendRedirect(request.getContextPath() + "/exam/questions");
-            return;
-        }
-        request.setAttribute("result", result);
-        request.getRequestDispatcher("/views/exam/exam-results.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/exam/entrance");
     }
 
     @Override

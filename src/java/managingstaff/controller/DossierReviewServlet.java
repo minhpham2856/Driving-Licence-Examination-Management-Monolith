@@ -113,13 +113,6 @@ public class DossierReviewServlet extends HttpServlet {
             response.sendRedirect(detailRedirect);
             return;
         }
-        if (!emailService.isConfigured()) {
-            request.getSession().setAttribute("reviewError",
-                    "Chưa cấu hình SMTP nên chưa thể gửi thông báo cho người đăng ký.");
-            response.sendRedirect(detailRedirect);
-            return;
-        }
-
         boolean updated = dossierDAO.updateStatus(registrationId, status,
                 reviewMessage, reviewer.getUserId());
         if (!updated) {
@@ -127,36 +120,32 @@ public class DossierReviewServlet extends HttpServlet {
             response.sendRedirect(detailRedirect);
             return;
         }
-        boolean emailSent = true;
-        if ("Rejected".equals(status)) {
+        boolean emailConfigured = emailService.isConfigured();
+        boolean emailSent = false;
+        if (emailConfigured && "Rejected".equals(status)) {
             emailSent = emailService.sendHtmlEmail(
                     dossier.getUser().getEmail(),
                     "[Lái Vui] Hồ sơ sát hạch bị từ chối",
                     rejectionEmailHtml(dossier, reviewMessage));
-        } else if ("Approved".equals(status)) {
+        } else if (emailConfigured && "Approved".equals(status)) {
             emailSent = emailService.sendHtmlEmail(
                     dossier.getUser().getEmail(),
                     "[Lái Vui] Hồ sơ sát hạch đã được duyệt",
                     approvalEmailHtml(dossier));
         }
 
-        if (!emailSent) {
-            dossierDAO.updateStatus(registrationId, dossier.getStatus(),
-                    "Tự động khôi phục trạng thái do gửi email thất bại", reviewer.getUserId());
-            request.getSession().setAttribute("reviewError",
-                    "Email chưa gửi được nên hệ thống đã khôi phục trạng thái hồ sơ. "
-                    + "Vui lòng kiểm tra SMTP rồi thực hiện lại.");
-            response.sendRedirect(detailRedirect);
-            return;
-        }
-
         AuditLogHelper.persist(request.getSession(), "REVIEW Dossier",
                 status + " hồ sơ #" + registrationId, registrationId);
-        String successMessage = "Approved".equals(status)
-                ? "Đã duyệt hồ sơ và gửi email xác nhận đến "
-                : "Đã từ chối hồ sơ và gửi email kèm lý do đến ";
+        String decisionMessage = "Approved".equals(status)
+                ? "Đã duyệt hồ sơ."
+                : "Đã từ chối hồ sơ.";
+        String emailMessage = emailSent
+                ? " Đã gửi email thông báo đến " + dossier.getUser().getEmail() + "."
+                : emailConfigured
+                        ? " Email chưa gửi được."
+                        : " Chưa gửi email vì SMTP chưa được cấu hình.";
         request.getSession().setAttribute("reviewSuccess",
-                successMessage + dossier.getUser().getEmail() + ".");
+                decisionMessage + emailMessage);
         response.sendRedirect(listRedirect);
     }
 

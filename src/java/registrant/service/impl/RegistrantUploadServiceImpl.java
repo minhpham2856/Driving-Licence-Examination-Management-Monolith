@@ -74,6 +74,10 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         model.put("otherDocumentCount", otherDocs.size());
         model.put("profileApproved", profileApproved);
         model.put("profileRejected", profileRejected);
+        if (profileRejected) {
+            model.put("rejectionReason",
+                    registrantdao.findProfileDocumentRejectionReason(ctx.getProfileId()));
+        }
         model.put("primaryPendingReview", primaryPending);
         model.put("approvalLicenceOptions", listApprovalLicenceOptions());
         model.put("hasSupplementAwaitingSubmit", RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs));

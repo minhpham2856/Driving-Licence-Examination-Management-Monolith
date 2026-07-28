@@ -103,7 +103,7 @@
         </tbody>
     </table></div></section>
 </main>
-<jsp:include page="/views/layout/footer.jsp"><jsp:param name="standalone" value="false" /></jsp:include></div>
+</div>
 
 <form id="delLFForm" action="${ctx}/admin/exam-fee" method="POST" style="display:none;"><input type="hidden" name="action" value="deleteLF"><input type="hidden" name="id" id="delLFId"></form>
 <form id="delFeeForm" action="${ctx}/admin/exam-fee" method="POST" style="display:none;"><input type="hidden" name="action" value="deleteFee"><input type="hidden" name="id" id="delFeeId"></form>

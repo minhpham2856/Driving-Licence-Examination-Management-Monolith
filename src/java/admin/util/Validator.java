@@ -9,7 +9,7 @@ public final class Validator {
     private static final Pattern USERNAME  = Pattern.compile("^[a-zA-Z][a-zA-Z0-9._]{3,49}$");
     private static final Pattern EMAIL     = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Pattern PHONE_VN  = Pattern.compile("^0\\d{9}$");
-    private static final Pattern GOV_ID    = Pattern.compile("^(\\d{9}|\\d{12})$");
+    private static final Pattern GOV_ID    = Pattern.compile("^\\d{12}$");
     private static final Pattern FULLNAME  = Pattern.compile("^[\\p{L} ]{2,255}$");
     private static final Pattern LIC_CLASS = Pattern.compile("^[A-Z0-9]{1,10}$");
     private static final Pattern GENERIC_NAME = Pattern.compile("^[\\p{L}\\p{N} .,\\-/()]+$");
@@ -54,7 +54,7 @@ public final class Validator {
     public static String govId(String s) {
         s = normalize(s);
         if (s.isEmpty()) return "Vui lòng nhập số CCCD/CMND.";
-        if (!GOV_ID.matcher(s).matches()) return "Số CCCD/CMND phải gồm 9 hoặc 12 chữ số.";
+        if (!GOV_ID.matcher(s).matches()) return "Số CCCD phải gồm đúng 12 chữ số.";
         return null;
     }
 

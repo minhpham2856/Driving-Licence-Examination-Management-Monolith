@@ -81,17 +81,28 @@ public class ProfileServiceImpl implements ProfileService {
         if (fullName == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Họ và tên không được để trống.");
         }
+        if (!ValidationUtil.isValidFullName(fullName)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
+                    "Họ và tên chỉ gồm chữ cái và khoảng trắng, không chứa số hoặc ký tự đặc biệt.");
+        }
         if (phone == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại không được để trống.");
         }
-        if (!phone.matches("^0\\d{9,10}$")) {
-            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại không hợp lệ.");
+        if (!ValidationUtil.isValidPhone(phone)) {
+            return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0.");
         }
         if (govId == null) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số căn cước không được để trống.");
         }
         if (!ValidationUtil.isValidCccd(govId)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "Số căn cước phải gồm đúng 12 chữ số.");
+        }
+        if (input.getDateOfBirth() != null) {
+            java.time.LocalDate dob = input.getDateOfBirth().toLocalDateTime().toLocalDate();
+            if (!ValidationUtil.isAdult(dob)) {
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
+                        "Ngày sinh phải đủ 18 tuổi trở lên.");
+            }
         }
 
         User existingUser = userDAO.getById(userId);

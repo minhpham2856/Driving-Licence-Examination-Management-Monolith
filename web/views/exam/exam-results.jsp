@@ -20,6 +20,11 @@
         <span class="material-symbols-outlined exam-result-icon">${result.passed ? 'verified' : 'cancel'}</span>
         <p class="exam-result-eyebrow">Kết quả bài thi lý thuyết</p>
         <h1 class="${result.passed ? 'is-pass' : 'is-fail'}">${result.passed ? 'Đạt' : 'Không đạt'}</h1>
+        <c:if test="${result.criticalFailed}">
+            <p class="exam-result-note" style="color:#b91c1c;font-weight:600;">
+                Sai câu điểm liệt — điểm 0
+            </p>
+        </c:if>
         <div class="exam-result-stats">
             <div><span>Đúng</span><strong>${result.correct}</strong></div>
             <div><span>Sai</span><strong>${result.wrong}</strong></div>

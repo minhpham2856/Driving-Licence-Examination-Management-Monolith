@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <jsp:include page="/views/layout/header.jsp">
@@ -15,6 +16,7 @@
 <c:set var="searchQuery" value="${requestScope.searchQuery}" />
 <c:set var="sortBy" value="${requestScope.sortBy}" />
 <c:set var="sortDir" value="${requestScope.sortDir}" />
+<c:set var="feesByLicence" value="${requestScope.licenceFeesByLicenceId}" />
 
 <%--case 1: flash error--%>
 <c:if test="${not empty requestScope.error}">
@@ -25,7 +27,6 @@
 
 <%--first-load / filter param tokens--%>
 <c:set var="isFirstLoad" value="${empty param.submit}" />
-<c:set var="durationParams" value="${fn:join(paramValues.duration, ',')}" />
 
 <main class="public-main categories-page">
     <div class="categories-container">
@@ -60,26 +61,6 @@
                                value="<c:out value='${searchQuery}' />">
                     </div>
 
-                    <div class="filter-group filter-group--bordered">
-                        <h3 class="filter-group__title">THỜI GIAN ĐÀO TẠO</h3>
-                        <div class="filter-group__options">
-                            <label class="filter-option">
-                                <input type="checkbox"
-                                       name="duration"
-                                       value="duoi-3-thang"
-                                       <c:if test="${fn:contains(durationParams, 'duoi-3-thang')}">checked</c:if>>
-                                <span class="filter-label-text">Dưới 3 tháng</span>
-                            </label>
-                            <label class="filter-option">
-                                <input type="checkbox"
-                                       name="duration"
-                                       value="tu-3-6-thang"
-                                       <c:if test="${fn:contains(durationParams, 'tu-3-6-thang')}">checked</c:if>>
-                                <span class="filter-label-text">Từ 3–6 tháng</span>
-                            </label>
-                        </div>
-                    </div>
-
                     <button type="submit" class="btn-filter-submit">Áp dụng bộ lọc</button>
                 </form>
             </aside>
@@ -103,34 +84,14 @@
                             <c:set var="preservedParams"
                                    value="${preservedParams}&q=${fn:escapeXml(searchQuery)}" />
                         </c:if>
-                        <c:forTokens var="d" items="${durationParams}" delims=",">
-                            <c:if test="${not empty d}">
-                                <c:set var="preservedParams" value="${preservedParams}&duration=${d}" />
-                            </c:if>
-                        </c:forTokens>
 
-                        <%--next sort direction per column--%>
                         <c:set var="nextDirClass"
                                value="${sortBy eq 'licenceClass' and sortDir eq 'asc' ? 'desc' : 'asc'}" />
-                        <c:set var="nextDirAge"
-                               value="${sortBy eq 'minimumAge' and sortDir eq 'asc' ? 'desc' : 'asc'}" />
-                        <c:set var="nextDirYears"
-                               value="${sortBy eq 'validForYears' and sortDir eq 'asc' ? 'desc' : 'asc'}" />
 
                         <a href="?sortBy=licenceClass&sortDir=${nextDirClass}&${preservedParams}"
                            class="sort-chip ${sortBy eq 'licenceClass' ? 'sort-chip--active' : ''}
                                   ${sortBy eq 'licenceClass' and sortDir eq 'desc' ? 'sort-chip--desc' : ''}">
                             Mã hạng
-                        </a>
-                        <a href="?sortBy=minimumAge&sortDir=${nextDirAge}&${preservedParams}"
-                           class="sort-chip ${sortBy eq 'minimumAge' ? 'sort-chip--active' : ''}
-                                  ${sortBy eq 'minimumAge' and sortDir eq 'desc' ? 'sort-chip--desc' : ''}">
-                            Độ tuổi
-                        </a>
-                        <a href="?sortBy=validForYears&sortDir=${nextDirYears}&${preservedParams}"
-                           class="sort-chip ${sortBy eq 'validForYears' ? 'sort-chip--active' : ''}
-                                  ${sortBy eq 'validForYears' and sortDir eq 'desc' ? 'sort-chip--desc' : ''}">
-                            Thời hạn
                         </a>
                     </div>
                 </div>
@@ -140,21 +101,7 @@
                     <c:forEach var="licence" items="${requestScope.licences}">
                         <c:set var="lc" value="${licence.licenceClass}" />
                         <c:set var="hasResults" value="true" scope="page" />
-
-                        <c:choose>
-                            <%--case 1: a1 / a duration--%>
-                            <c:when test="${lc eq 'A1' or lc eq 'A'}">
-                                <c:set var="durationText" value="15 ngày" />
-                            </c:when>
-                            <%--case 2: b1 duration--%>
-                            <c:when test="${lc eq 'B1'}">
-                                <c:set var="durationText" value="3 tháng" />
-                            </c:when>
-                            <%--case 3: unknown--%>
-                            <c:otherwise>
-                                <c:set var="durationText" value="-" />
-                            </c:otherwise>
-                        </c:choose>
+                        <c:set var="fees" value="${feesByLicence[licence.licenceId]}" />
 
                         <article class="category-card">
                             <div class="category-card__body">
@@ -162,11 +109,9 @@
                                 <h2 class="category-card__title">Hạng <c:out value="${lc}" /></h2>
                                 <p class="category-card__desc">
                                     <c:choose>
-                                        <%--case 1: empty description--%>
                                         <c:when test="${empty licence.description}">
                                             Phạm vi sát hạch theo quy định hiện hành.
                                         </c:when>
-                                        <%--case 2: has description--%>
                                         <c:otherwise>
                                             <c:out value="${licence.description}" />
                                         </c:otherwise>
@@ -174,29 +119,29 @@
                                 </p>
                             </div>
                             <div class="category-card__footer">
-                                <div class="category-card__info-row">
-                                    <span class="info-label">Thời gian đào tạo</span>
-                                    <span class="info-value"><c:out value="${durationText}" /></span>
-                                </div>
-                                <div class="category-card__info-row">
-                                    <span class="info-label">Độ tuổi tối thiểu</span>
-                                    <span class="info-value">${licence.minimumAge} tuổi</span>
-                                </div>
-                                <div class="category-card__info-row">
-                                    <span class="info-label">Thời hạn GPLX</span>
-                                    <span class="info-value info-value--blue">
-                                        <c:choose>
-                                            <%--case 1: unlimited--%>
-                                            <c:when test="${empty licence.validForYears or licence.validForYears le 0}">
-                                                Vô thời hạn
-                                            </c:when>
-                                            <%--case 2: years--%>
-                                            <c:otherwise>
-                                                ${licence.validForYears} năm
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </div>
+                                <c:choose>
+                                    <c:when test="${empty fees}">
+                                        <div class="category-card__info-row">
+                                            <span class="info-label">Phí</span>
+                                            <span class="info-value">Chưa cập nhật</span>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:forEach var="lf" items="${fees}">
+                                            <div class="category-card__info-row">
+                                                <span class="info-label">
+                                                    <c:out value="${lf.fee.feeName}" />
+                                                </span>
+                                                <span class="info-value info-value--blue">
+                                                    <fmt:formatNumber value="${lf.amount}"
+                                                                      type="number"
+                                                                      groupingUsed="true"
+                                                                      maxFractionDigits="0" />đ
+                                                </span>
+                                            </div>
+                                        </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </article>
                     </c:forEach>
@@ -206,7 +151,7 @@
                 <c:if test="${not hasResults}">
                     <div class="no-results-panel">
                         <h3 class="no-results-title">Không tìm thấy kết quả phù hợp</h3>
-                        <p class="no-results-desc">Thử đổi bộ lọc hoặc đặt lại để xem các hạng A1, A, B1.</p>
+                        <p class="no-results-desc">Thử đổi từ khóa tìm kiếm hoặc đặt lại để xem các hạng A1, A, B1.</p>
                         <a href="${ctx}/license-categories" class="btn-reset-filters">Đặt lại bộ lọc</a>
                     </div>
                 </c:if>

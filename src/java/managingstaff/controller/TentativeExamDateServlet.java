@@ -152,7 +152,8 @@ public class TentativeExamDateServlet extends HttpServlet {
                 throw new IllegalArgumentException("Hạng GPLX không hợp lệ.");
             }
             int id = dateDAO.create(date, licenceId);
-            req.getSession().setAttribute("tentativeSuccess", "Đã tạo ngày thi dự kiến. Giới hạn đăng ký: 50 người.");
+            req.getSession().setAttribute("tentativeSuccess",
+                    "Đã tạo ngày thi dự kiến. Số lượng hợp lệ: từ 10 đến 50 thí sinh.");
             resp.sendRedirect(req.getContextPath() + "/manager/tentative-exam-dates?dateId=" + id);
         } catch (Exception e) {
             req.getSession().setAttribute("tentativeError", e.getMessage());

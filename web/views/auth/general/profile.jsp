@@ -9,6 +9,11 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="useExamstaffShell" value="${requestScope.accountShell eq 'examstaff'}" />
 <c:set var="useExaminerShell" value="${requestScope.accountShell eq 'examiner'}" />
+<c:set var="useManagingShell" value="${requestScope.accountShell eq 'managingstaff'}" />
+<c:set var="usePoliceShell" value="${requestScope.accountShell eq 'police'}" />
+<c:set var="useAdminShell" value="${requestScope.accountShell eq 'admin'}" />
+<c:set var="useStaffPortalShell"
+       value="${useManagingShell or usePoliceShell or useAdminShell}" />
 
 <%--shell open--%>
 <c:choose>
@@ -67,7 +72,44 @@
                     <main class="main scroll">
                         <div class="account-page account-page--portal">
     </c:when>
-    <%--case 3: public shell--%>
+    <%--case 3: managing / police / admin portal shell--%>
+    <c:when test="${useStaffPortalShell}">
+        <!DOCTYPE html>
+        <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <meta http-equiv="Cache-Control"
+                      content="no-cache, no-store, must-revalidate">
+                <title>Hồ sơ cá nhân - Lái Vui</title>
+                <link rel="stylesheet" href="${ctx}/assets/css/style.css">
+                <link rel="stylesheet" href="${ctx}/assets/css/layout.css">
+                <link rel="stylesheet"
+                      href="${ctx}/assets/css/examstaff/account.css?v=20260714c">
+            </head>
+            <body class="has-side-nav-bar account-portal">
+                <c:choose>
+                    <c:when test="${useManagingShell}">
+                        <jsp:include page="/views/layout/sidebar-managingstaff.jsp">
+                            <jsp:param name="activeSidebar" value="profile" />
+                        </jsp:include>
+                    </c:when>
+                    <c:when test="${usePoliceShell}">
+                        <jsp:include page="/views/layout/sidebar-policestaff.jsp">
+                            <jsp:param name="activeSidebar" value="profile" />
+                        </jsp:include>
+                    </c:when>
+                    <c:otherwise>
+                        <jsp:include page="/views/layout/sidebar-admin.jsp">
+                            <jsp:param name="activeSidebar" value="profile" />
+                        </jsp:include>
+                    </c:otherwise>
+                </c:choose>
+                <div class="dashboard-shell">
+                    <main class="main-content account-main">
+                        <div class="account-page account-page--portal">
+    </c:when>
+    <%--case 4: public shell--%>
     <c:otherwise>
         <jsp:include page="/views/layout/header.jsp">
             <jsp:param name="title" value="Lái Vui - Hồ sơ cá nhân" />
@@ -79,7 +121,12 @@
 </c:choose>
 
 <%--shared profile body--%>
-<div class="account-shell">
+<div class="account-shell account-shell--profile">
+    <header class="account-hero">
+        <p class="account-hero__eyebrow">Quản lý tài khoản</p>
+        <h1 class="account-hero__title">Hồ sơ cá nhân</h1>
+        <p class="account-hero__sub">Xem và cập nhật thông tin tài khoản đang đăng nhập.</p>
+    </header>
     <%--flash message--%>
     <c:if test="${not empty message}">
         <div class="account-alert account-alert--${messageType eq 'success' ? 'success' : 'error'}"
@@ -147,6 +194,8 @@
                                    id="fullName"
                                    name="fullName"
                                    required
+                                   maxlength="200"
+                                   title="Chỉ chữ cái và khoảng trắng"
                                    value="${fn:escapeXml(p.fullName)}">
                         </div>
                         <div class="account-field">
@@ -179,7 +228,10 @@
                                    id="phoneNumber"
                                    name="phoneNumber"
                                    required
-                                   pattern="0[0-9]{9,10}"
+                                   pattern="0[0-9]{9}"
+                                   maxlength="10"
+                                   inputmode="numeric"
+                                   title="Đúng 10 chữ số, bắt đầu bằng 0"
                                    value="${fn:escapeXml(p.phoneNumber)}">
                         </div>
                         <div class="account-field">
@@ -191,7 +243,7 @@
                                    id="governmentIdNumber"
                                    name="governmentIdNumber"
                                    required
-                                   pattern="\\d{12}"
+                                   pattern="[0-9]{12}"
                                    maxlength="12"
                                    inputmode="numeric"
                                    value="${fn:escapeXml(p.governmentIdNumber)}">
@@ -232,7 +284,18 @@
             </body>
         </html>
     </c:when>
-    <%--case 3: public shell--%>
+    <%--case 3: managing / police / admin portal shell--%>
+    <c:when test="${useStaffPortalShell}">
+                        </div>
+                    </main>
+                    <jsp:include page="/views/layout/footer.jsp">
+                        <jsp:param name="standalone" value="false" />
+                    </jsp:include>
+                </div>
+            </body>
+        </html>
+    </c:when>
+    <%--case 4: public shell--%>
     <c:otherwise>
         </main>
         <jsp:include page="/views/layout/footer.jsp" />

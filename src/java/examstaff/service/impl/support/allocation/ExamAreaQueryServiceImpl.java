@@ -2,16 +2,10 @@ package examstaff.service.impl.support.allocation;
 import examstaff.service.impl.support.assign.ExaminerAssignmentRules;
 
 import examstaff.dao.ExamAreaDAO;
-import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dao.impl.ExamAreaDAOImpl;
-import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
-import examstaff.util.ExamAreaTypeResolver;
 import shared.model.ExamArea;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Truy vấn khu vực thi đã có sát hạch viên phân công — phục vụ dropdown phân phòng thí sinh.
@@ -31,23 +25,20 @@ import java.util.Set;
 public class ExamAreaQueryServiceImpl {
 
     private final ExamAreaDAO examAreaDAO;
-    private final ExaminerAssignmentDAO assignmentDAO;
 
     /**
      * Wiring mặc định khi không inject từ composition root.
      */
     public ExamAreaQueryServiceImpl() {
-        this(new ExamAreaDAOImpl(), new ExaminerAssignmentDAOImpl());
+        this(new ExamAreaDAOImpl());
     }
 
     /**
      * Inject dependencies cho unit test / composition root.
-     * @param examAreaDAO    DAO khu vực thi
-     * @param assignmentDAO  DAO phân công sát hạch viên
+     * @param examAreaDAO DAO khu vực thi
      */
-    public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO, ExaminerAssignmentDAO assignmentDAO) {
+    public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO) {
         this.examAreaDAO = examAreaDAO;
-        this.assignmentDAO = assignmentDAO;
     }
 
     /**
@@ -60,12 +51,9 @@ public class ExamAreaQueryServiceImpl {
         if (examId <= 0) {
             return List.of();
         }
-        // load phòng gắn kỳ + tập areaId đã có SHV
-        List<ExamArea> examRooms = listExamAreasWithFallback(examId);
-        Set<Integer> staffed = ExaminerAssignmentRules.staffedTheoryAreaIds(
-                assignmentDAO.getByExamId(examId));
-        // result: chỉ phòng LT trong tập staffed
-        return ExaminerAssignmentRules.filterTheoryRoomsWithStaff(examRooms, staffed);
+        // load phòng LT gắn kỳ (Exam_ExamArea), không lọc theo SHV
+        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
+        return ExaminerAssignmentRules.filterTheoryRooms(examRooms);
     }
 
     /**
@@ -78,12 +66,9 @@ public class ExamAreaQueryServiceImpl {
         if (examId <= 0) {
             return List.of();
         }
-        // load phòng gắn kỳ + tập areaId đã có SHV
-        List<ExamArea> examRooms = listExamAreasWithFallback(examId);
-        Set<Integer> staffed = ExaminerAssignmentRules.staffedPracticalAreaIds(
-                assignmentDAO.getByExamId(examId));
-        // result: chỉ sân TH trong tập staffed
-        return ExaminerAssignmentRules.filterPracticalRoomsWithStaff(examRooms, staffed);
+        // load sân TH gắn kỳ (Exam_ExamArea), không lọc theo SHV
+        List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
+        return ExaminerAssignmentRules.filterPracticalRooms(examRooms);
     }
 
     /**
@@ -93,27 +78,5 @@ public class ExamAreaQueryServiceImpl {
      */
     public ExamArea findById(int examAreaId) {
         return examAreaDAO.getById(examAreaId);
-    }
-
-    /**
-     * Ưu tiên khu vực gắn qua Exam_ExamArea; nếu kỳ cũ chưa có liên kết thì
-     * fallback về danh mục phòng/sân và vẫn lọc theo phân công sát hạch viên.
-     */
-    private List<ExamArea> listExamAreasWithFallback(int examId) {
-        List<ExamArea> linked = examAreaDAO.getAreasByExamId(examId);
-        if (linked != null && !linked.isEmpty()) {
-            return linked;
-        }
-        Map<Integer, ExamArea> byId = new LinkedHashMap<>();
-        for (String type : List.of(
-                ExamAreaTypeResolver.theoryAreaTypeLabel(),
-                ExamAreaTypeResolver.theoryAreaTypeAlias(),
-                ExamAreaTypeResolver.practicalAreaTypeLabel(),
-                ExamAreaTypeResolver.practicalAreaTypeAlias())) {
-            for (ExamArea area : examAreaDAO.getAvailableAreasByType(type)) {
-                byId.putIfAbsent(area.getExamAreaId(), area);
-            }
-        }
-        return List.copyOf(byId.values());
     }
 }
