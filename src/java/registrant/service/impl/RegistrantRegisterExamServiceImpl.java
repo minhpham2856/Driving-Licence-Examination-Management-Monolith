@@ -186,7 +186,6 @@ public class RegistrantRegisterExamServiceImpl implements RegistrantRegisterExam
                 case "A" -> "Xe mô tô hai bánh có dung tích xi-lanh trên 125 cm³";
                 default -> "Xe mô tô ba bánh";
             });
-            opt.setExamFee(RegistrantExamSupport.defaultExamFee(code));
             opt.setVehicleType(RegistrantExamSupport.inferVehicleType(code));
             fallback.add(opt);
         }

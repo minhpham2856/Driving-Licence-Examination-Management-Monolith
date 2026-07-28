@@ -204,9 +204,6 @@
                                                             </div>
                                                             <span class="licence-card__code">Hạng ${licence.code}</span>
                                                             <span class="licence-card__name">${licence.name}</span>
-                                                            <span class="licence-card__fee">
-                                                                <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
-                                                            </span>
                                                             <span class="licence-card__hint">
                                                                 <c:choose>
                                                                     <c:when test="${not canRegisterExam}">Chưa đủ giấy tờ / chưa được duyệt</c:when>
@@ -247,9 +244,6 @@
                                                             </div>
                                                             <span class="licence-card__code">Hạng ${licence.code}</span>
                                                             <span class="licence-card__name">${licence.name}</span>
-                                                            <span class="licence-card__fee">
-                                                                <fmt:formatNumber value="${licence.examFee != null ? licence.examFee : 0}" type="number"/> đ
-                                                            </span>
                                                         </div>
                                                     </a>
                                                 </c:otherwise>
@@ -394,14 +388,6 @@
                                         <span>Số báo danh (SBD)</span>
                                         <span class="register-exam-sbd-pending">${sbdPendingDisplay}</span>
                                     </div>
-                                    <c:if test="${not empty selectedLicence}">
-                                        <div class="payment-summary-item payment-summary-item--total">
-                                            <span>Lệ phí tham khảo</span>
-                                            <span class="payment-summary-value--total">
-                                                <fmt:formatNumber value="${selectedLicence.examFee}" type="number"/> đ
-                                            </span>
-                                        </div>
-                                    </c:if>
                                 </div>
 
                                 <div class="payment-footer-text register-exam-date-hint" style="margin-top:12px;">
@@ -412,10 +398,6 @@
                                 <div class="payment-footer-text register-exam-sbd-hint" style="margin-top:12px;">
                                     Khi có lịch chính thức, bạn theo dõi tại
                                     <a href="${pageContext.request.contextPath}/registrant/my-exams" class="profile-checklist-link">Lịch thi &amp; kết quả</a>.
-                                </div>
-
-                                <div class="payment-footer-text" style="margin-top:12px;">
-                                    Lệ phí thi sát hạch sẽ thu tại trung tâm khi làm bài thực hành.
                                 </div>
 
                                 <div class="payment-footer-text" style="margin-top:12px;">

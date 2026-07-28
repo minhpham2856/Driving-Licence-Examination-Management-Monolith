@@ -94,7 +94,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     /** Query hạng đang mở đăng ký từ LicenceClass/ExamDates. */
     @Override
     public List<RegistrantLicenceOption> listOpenLicenceOptions() {
-        /* Lấy hạng GPLX từ bảng Licence (seed: A, A1, B1) — hiển thị đúng mã DB qua toUiLicenceCode. */
+        /* Lấy hạng GPLX từ bảng Licence (seed: A, A1, B1). */
         String sql = """
                 SELECT LicenceClass, Description
                 FROM Licence
@@ -106,10 +106,9 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             while (rs.next()) {
                 String dbCode = rs.getString("LicenceClass");
                 RegistrantLicenceOption opt = new RegistrantLicenceOption();
-                String uiCode = RegistrantExamSupport.toUiLicenceCode(dbCode);
+                String uiCode = RegistrantExamSupport.normalizeLicenceClass(dbCode);
                 opt.setCode(uiCode);
                 opt.setName(rs.getString("Description"));
-                opt.setExamFee(RegistrantExamSupport.defaultExamFee(uiCode));
                 opt.setVehicleType(RegistrantExamSupport.inferVehicleType(uiCode));
                 options.add(opt);
             }
@@ -122,14 +121,13 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     /** Resolve LicenceId từ mã hạng UI. */
     @Override
     public int resolveLicenceIdByUiCode(String uiLicenceCode) {
-        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
-        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
-        String sql = "SELECT TOP 1 LicenceId FROM Licence WHERE UPPER(LTRIM(RTRIM(LicenceClass))) IN ("
-                + placeholders + ")";
+        String licenceCode = RegistrantExamSupport.normalizeLicenceClass(uiLicenceCode);
+        String sql = """
+                SELECT TOP 1 LicenceId FROM Licence
+                WHERE UPPER(LTRIM(RTRIM(LicenceClass))) = ?
+                """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < licenceCodes.length; i++) {
-                ps.setString(i + 1, licenceCodes[i]);
-            }
+            ps.setString(1, licenceCode);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("LicenceId");
@@ -177,7 +175,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             ps.setInt(1, profileId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
+                    return RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass"));
                 }
             }
         } catch (SQLException e) {
@@ -193,8 +191,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
     /** Liệt kê ExamDates mở theo mã hạng UI. */
     @Override
     public List<RegistrantExamSessionOption> listOpenExamSessionsByLicenceCode(String uiLicenceCode) {
-        String[] licenceCodes = RegistrantExamSupport.licenceClassLookupCodes(uiLicenceCode);
-        String placeholders = String.join(", ", java.util.Collections.nCopies(licenceCodes.length, "?"));
+        String licenceCode = RegistrantExamSupport.normalizeLicenceClass(uiLicenceCode);
         // Nguồn: ExamDates (ngày dự kiến managing staff), không lấy từ bảng Exam kỳ thi chính thức
         String sql = """
                 SELECT ed.ExamDateId,
@@ -202,17 +199,14 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                        l.LicenceClass
                 FROM ExamDates ed
                 INNER JOIN Licence l ON l.LicenceId = ed.LicenceId
-                WHERE UPPER(LTRIM(RTRIM(l.LicenceClass))) IN (""" + placeholders + """
-                )
+                WHERE UPPER(LTRIM(RTRIM(l.LicenceClass))) = ?
                   AND ed.ExamDate >= CAST(GETDATE() AS DATE)
                   AND COALESCE(ed.Status, N'Open') = N'Open'
                 ORDER BY ed.ExamDate, ed.ExamDateId
                 """;
         List<RegistrantExamSessionOption> options = new ArrayList<>();
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            for (int i = 0; i < licenceCodes.length; i++) {
-                ps.setString(i + 1, licenceCodes[i]);
-            }
+            ps.setString(1, licenceCode);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     options.add(mapExamDateOption(rs));
@@ -408,7 +402,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         opt.setId(String.valueOf(examDateId));
         opt.setExamCode(code);
         opt.setExamName("Ngày thi dự kiến");
-        opt.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        opt.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         Date examDate = rs.getDate("ExamDate");
         opt.setExamDate(examDate);
         opt.setLocation("Theo lịch trung tâm");
@@ -1133,7 +1127,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
             ps.setInt(1, profileId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    String ui = RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
+                    String ui = RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass"));
                     if (ui != null && !ui.isBlank() && !codes.contains(ui)) {
                         codes.add(ui);
                     }
@@ -1465,7 +1459,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         opt.setId(examCode);
         opt.setExamCode(examCode);
         opt.setExamName(rs.getString("SessionName"));
-        opt.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        opt.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         Date examDate = rs.getDate("ExamDate");
         if (examDate == null) {
             Timestamp examTs = rs.getTimestamp("ExamDate");
@@ -1487,7 +1481,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         row.setId(rs.getInt("CandidateId"));
         row.setExamCode(rs.getString("ExamCode"));
         row.setExamName(rs.getString("SessionName"));
-        row.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        row.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         row.setLicenceClassDescription(
                 RegistrantExamSupport.licenceClassDescription(row.getLicenceClass()));
 
@@ -1523,7 +1517,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         row.setId(-registrationDateId);
         row.setExamName("Ngày thi nguyện vọng");
         row.setExamCode("DK-" + examDateId);
-        row.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        row.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         row.setLicenceClassDescription(
                 RegistrantExamSupport.licenceClassDescription(row.getLicenceClass()));
         row.setExamDate(rs.getDate("examDate"));
@@ -1545,7 +1539,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         row.setCandidateId(-registrationDateId);
         row.setExamTitle("Ngày thi nguyện vọng");
         row.setExamDate(rs.getDate("examDate"));
-        row.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        row.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         row.setSbd(null);
         row.setExamSectionName("Nguyện vọng");
         boolean active = rs.getInt("IsActive") == 1;
@@ -1574,7 +1568,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
         java.util.Date start = sessionStart != null ? new java.util.Date(sessionStart.getTime()) : null;
         java.util.Date end = sessionEnd != null ? new java.util.Date(sessionEnd.getTime()) : null;
         RegistrantExamSupport.applyPublishedSessionSchedule(row, sessionStatus, start, end);
-        row.setLicenceClass(RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")));
+        row.setLicenceClass(RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")));
         String rawSbd = rs.getString("CandidateNumber");
         row.setSbd(rawSbd);
         boolean sbdPending = RegistrantExamSupport.isSbdPending(rawSbd);
@@ -1626,7 +1620,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     act.setIconPath("M2 10h20");
                     act.setTitle("Thanh toán lệ phí thành công");
                     act.setDesc(String.format("Lệ phí thi Hạng %s — %,.0f VNĐ đã được xử lý",
-                            RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")),
+                            RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")),
                             rs.getDouble("TotalAmount")));
                     act.setTime(RegistrantExamSupport.formatActivityTime(paidAt));
                     act.setOccurredAt(paidAt);
@@ -1661,7 +1655,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     act.setTitle("Đăng ký đợt thi thành công");
                     act.setDesc(String.format("Đã đăng ký tham gia %s — Hạng %s",
                             rs.getString("SessionName"),
-                            RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"))));
+                            RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass"))));
                     act.setTime(RegistrantExamSupport.formatActivityTime(startTime));
                     act.setOccurredAt(startTime);
                     out.add(act);
@@ -1695,7 +1689,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                     Timestamp occurredAt = examDate != null
                             ? new Timestamp(examDate.getTime())
                             : new Timestamp(System.currentTimeMillis());
-                    String licence = RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass"));
+                    String licence = RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass"));
                     RegistrantDashboardActivity act = new RegistrantDashboardActivity();
                     act.setColorClass("green");
                     act.setIconPath("M20 6L9 17l-5-5");
@@ -1832,7 +1826,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                             rs.getString("PaymentMethod") != null ? rs.getString("PaymentMethod") : "Cổng thanh toán",
                             "approved", "Thành công",
                             String.format("Lệ phí sát hạch GPLX Hạng %s: %,.0f VNĐ đã được nhận.",
-                                    RegistrantExamSupport.toUiLicenceCode(rs.getString("LicenceClass")),
+                                    RegistrantExamSupport.normalizeLicenceClass(rs.getString("LicenceClass")),
                                     rs.getDouble("TotalAmount")),
                             rs.getTimestamp("PaidAt"), RegistrantTrackingCategories.RegistrantPayment);
                 }

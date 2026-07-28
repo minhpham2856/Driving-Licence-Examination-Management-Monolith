@@ -5117,13 +5117,6 @@ p {
     flex: 1 1 auto;
 }
 
-.licence-card__fee {
-    font-size: 13px;
-    font-weight: 700;
-    color: #059669;
-    margin-top: auto;
-}
-
 /* Exam Sessions Available List */
 .session-selector-list {
     display: flex;
@@ -5393,21 +5386,6 @@ p {
     justify-content: space-between;
     font-size: 13px;
     color: #94a3b8;
-}
-
-.payment-summary-item--total {
-    font-size: 16px;
-    font-weight: 800;
-    color: #ffffff;
-    border-top: 1px dashed #334155;
-    padding-top: 14px;
-    margin-top: 4px;
-}
-
-.payment-summary-value--total {
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 800;
 }
 
 .payment-method-section {
