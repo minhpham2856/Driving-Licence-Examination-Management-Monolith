@@ -46,30 +46,43 @@
                             <span class="badge-pill-status badge-pill-status--success">Lệ phí</span>
                         </td>
                         <td>
-                            <c:if test="${not empty activeTheoryRooms}">
-                                <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
-                                    <input type="hidden" name="action" value="allocateRoom">
-                                    <input type="hidden" name="id" value="${c.id}">
-                                    <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
-                                    <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
-                                    <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
-                                    <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
-                                    <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
-                                    <select name="areaId" class="allocation-area-select allocation-area-select--table"
-                                            onchange="this.form.submit()" title="Đổi phòng">
-                                        <c:if test="${empty c.allocatedAreaId}">
+                            <c:set var="currentTheoryRoomIsStaffed" value="false" />
+                            <c:forEach var="room" items="${activeTheoryRooms}">
+                                <c:if test="${c.allocatedAreaId eq room.id}">
+                                    <c:set var="currentTheoryRoomIsStaffed" value="true" />
+                                </c:if>
+                            </c:forEach>
+                            <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
+                                <input type="hidden" name="action" value="allocateRoom">
+                                <input type="hidden" name="id" value="${c.id}">
+                                <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
+                                <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
+                                <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
+                                <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
+                                <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
+                                <select name="areaId" class="allocation-area-select allocation-area-select--table"
+                                        onchange="this.form.submit()"
+                                        ${empty activeTheoryRooms ? 'disabled' : ''}
+                                        title="${empty activeTheoryRooms ? 'Chưa có phòng lý thuyết được phân công sát hạch viên' : 'Đổi phòng'}">
+                                    <c:choose>
+                                        <c:when test="${not empty c.allocatedAreaId and not currentTheoryRoomIsStaffed}">
+                                            <option value="${c.allocatedAreaId}" selected disabled>
+                                                ${not empty c.allocatedAreaName ? c.allocatedAreaName : 'Phòng đã phân'} (chưa có SHV)
+                                            </option>
+                                        </c:when>
+                                        <c:when test="${empty c.allocatedAreaId and empty activeTheoryRooms}">
+                                            <option value="" selected>Chưa có phòng có SHV</option>
+                                        </c:when>
+                                        <c:when test="${empty c.allocatedAreaId}">
                                             <option value="" disabled selected>-</option>
-                                        </c:if>
-                                        <c:forEach var="room" items="${activeTheoryRooms}">
-                                            <c:set var="roomLabel" value="${fn:replace(room.areaName, 'Phòng thi lý thuyết ', '')}" />
-                                            <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${roomLabel}</option>
-                                        </c:forEach>
-                                    </select>
-                                </form>
-                            </c:if>
-                            <c:if test="${empty activeTheoryRooms}">
-                                <span class="allocation-room-pending">-</span>
-                            </c:if>
+                                        </c:when>
+                                    </c:choose>
+                                    <c:forEach var="room" items="${activeTheoryRooms}">
+                                        <c:set var="roomLabel" value="${fn:replace(room.areaName, 'Phòng thi lý thuyết ', '')}" />
+                                        <option value="${room.id}" ${c.allocatedAreaId eq room.id ? 'selected' : ''}>${roomLabel}</option>
+                                    </c:forEach>
+                                </select>
+                            </form>
                         </td>
                         <td>
                             <c:choose>

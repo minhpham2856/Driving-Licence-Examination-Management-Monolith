@@ -133,10 +133,10 @@
                                 </svg>
                             </div>
                             <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #92400e;">Đã tạm dừng gọi số</h3>
-                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. Hàng đợi được giữ nguyên. Kỳ thi vẫn diễn ra — sát hạch viên vẫn đăng nhập và chấm thi bình thường. Nhấn nút bên dưới để tiếp tục gọi thí sinh đầu hàng.</p>
+                            <p style="margin: 0; font-size: 0.85rem; color: #64748b; max-width: 320px; line-height: 1.5;">Đã dừng gọi loa và bàn thủ tục. </p>
 
                             <a href="candidatecall?action=startCall" class="btn-batch" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-size: 0.88rem; height: 42px; margin-top: 1rem; width: auto; padding: 0 1.5rem;">
-                                Bắt đầu gọi thi (Tự động)
+                                Bắt đầu gọi thi
                             </a>
                         </div>
                     </c:when>
@@ -172,7 +172,7 @@
                                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" fill="currentColor"/>
                                                 </svg>
-                                                Bắt đầu gọi thi (Tự động)
+                                                Bắt đầu gọi thi
                                             </a>
                                         </c:otherwise>
                                     </c:choose>
