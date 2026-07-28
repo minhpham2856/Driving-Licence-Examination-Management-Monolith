@@ -67,7 +67,9 @@ public class ResultServlet extends HttpServlet {
 
             if (sbd != null && "/examiner/result-details-edit".equals(path)) {
                 CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
-                if (candidate == null || candidate.getSectionStatus() != CandidateStatus.COMPLETED) {
+                if (candidate == null
+                        || (candidate.getSectionStatus() != CandidateStatus.COMPLETED
+                        && candidate.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE)) {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
                             + RequestUtil.urlEncode(sbd) + "&error=scoreEditNotAllowed");
                     return;
@@ -111,7 +113,9 @@ public class ResultServlet extends HttpServlet {
 
             SectionType sectionType = ExaminerFilter.resolveSectionType(session);
             CandidateRowDTO candidate = viewService.getCandidateViewRow(activeExamId, sbd, sectionType);
-            if (candidate == null || candidate.getSectionStatus() != CandidateStatus.COMPLETED) {
+            if (candidate == null
+                    || (candidate.getSectionStatus() != CandidateStatus.COMPLETED
+                    && candidate.getSectionStatus() != CandidateStatus.AWAITING_SIGNATURE)) {
                 response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
                         + RequestUtil.urlEncode(sbd) + "&error=scoreEditNotAllowed");
                 return;

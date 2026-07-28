@@ -226,26 +226,18 @@ public class FileServiceImpl implements FileService {
         for (Audit log : logs) {
             String changerName = changerNames.getOrDefault(log.getAuditId(), "-");
             for (Map<String, Object> viewRow : auditService.toViewRows(log, changerName, sbdByRecordId)) {
-                String time = log.getCreatedAt() != null ? AUDIT_DATE_FMT.format(log.getCreatedAt()) : "";
-                Object reason = viewRow.get("reason");
                 rows.add(Arrays.asList(
                         viewRow.get("username"),
                         viewRow.get("actionLabel"),
-                        viewRow.get("entityName"),
-                        viewRow.get("sbd"),
-                        viewRow.get("info"),
-                        viewRow.get("oldValue") != null ? viewRow.get("oldValue") : "",
-                        viewRow.get("newValue"),
-                        "-".equals(reason) ? "" : reason,
-                        time));
+                        viewRow.get("detail"),
+                        viewRow.get("timestamp")));
             }
         }
         XmlExportTable table = new XmlExportTable(
                 "nhatKy",
                 "banGhi",
-                List.of("nguoiDung", "thaoTac", "doiTuong", "maBanGhi", "thongTin", "cu", "moi", "lyDo", "thoiGian"),
-                List.of("Người dùng", "Thao tác", "Đối tượng", "SBD", "Thông tin", "Cũ", "Mới", "Lý do",
-                        "Thời gian"),
+                List.of("nguoiDung", "thaoTac", "chiTiet", "thoiGian"),
+                List.of("Người dùng", "Thao tác", "Chi tiết", "Thời gian"),
                 rows);
         Map<String, Object> metadata = Map.of();
         if (searchQuery != null && !searchQuery.isBlank()) {
@@ -661,7 +653,7 @@ public class FileServiceImpl implements FileService {
         }
         data.put("A", deductionRows);
         data.put("TIMES", totalTimes);
-        data.put("TOTAL", formatNumber(totalDeducted));
+        data.put("TOTAL", formatNumber(Math.min(totalDeducted, 100.0)));
         data.put("SCORE", format(candidate.getExamScore()));
         boolean passed = isPracticalPassed(candidate);
         data.put("P", passed ? "X" : "");
@@ -685,8 +677,17 @@ public class FileServiceImpl implements FileService {
         data.put("REASON", format(violation.getReason()));
         data.put("TIME", violation.getCreatedAt() != null ? AUDIT_DATE_FMT.format(violation.getCreatedAt()) : "");
         data.put("DETAILS", format(violation.getDetails()));
-        data.put("VIOPIC", format(violation.getEvidenceUrl()));
-        data.put("VIOPIC_URL", format(violation.getEvidenceUrl()));
+        String evidenceUrl = violation.getEvidenceUrl();
+        String viewUrl = evidenceUrl;
+        try {
+            String resolved = shared.storage.CloudinaryDocumentStorage.resolveViewUrl(evidenceUrl);
+            if (resolved != null && !resolved.isBlank()) {
+                viewUrl = resolved;
+            }
+        } catch (Exception ignored) {
+        }
+        data.put("VIOPIC", format(viewUrl));
+        data.put("VIOPIC_URL", format(viewUrl));
         return data;
     }
 

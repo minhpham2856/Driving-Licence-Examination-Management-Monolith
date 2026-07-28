@@ -232,7 +232,7 @@
                                                         </c:if>
                                                     </c:when>
                                                     <c:otherwise>
-                                                        · Chờ Ban sát hạch mở ca
+                                                        · Chờ Ban sát hạch mở kỳ thi
                                                     </c:otherwise>
                                                 </c:choose>
                                                 <c:if test="${not empty exam.location}">

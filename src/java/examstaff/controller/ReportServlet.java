@@ -108,16 +108,29 @@ public class ReportServlet extends HttpServlet {
         // 4) Nhánh export hoặc hiển thị
         boolean exportExcel = "true".equals(request.getParameter("exportExcel"));
         boolean exportPdf = "true".equals(request.getParameter("exportPdf"));
-        boolean exportBlocked = (exportExcel || exportPdf) && missingPhotoCount > 0;
-        if (exportBlocked) {
+        boolean exportPdfBlocked = exportPdf && missingPhotoCount > 0;
+        if (exportPdfBlocked) {
             request.setAttribute("exportBlocked", true);
         }
-
-        if (exportExcel && !exportBlocked) {
-            streamExcel(response, request, currentExam, qList, examId);
-            return;
+        if (exportExcel && missingPhotoCount > 0) {
+            request.setAttribute("exportPhotoWarning", true);
         }
-        if (exportPdf && !exportBlocked) {
+
+        if (exportExcel) {
+            try {
+                streamExcel(response, request, currentExam, qList, examId);
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (!response.isCommitted()) {
+                    response.reset();
+                    request.setAttribute("exportError", true);
+                    request.getRequestDispatcher("/views/staff/examstaff/report.jsp").forward(request, response);
+                    return;
+                }
+            }
+        }
+        if (exportPdf && !exportPdfBlocked) {
             request.setAttribute("autoPrint", Boolean.TRUE);
             request.getRequestDispatcher("/views/staff/examstaff/report-print.jsp").forward(request, response);
             return;
@@ -137,8 +150,11 @@ public class ReportServlet extends HttpServlet {
         String datePart = new SimpleDateFormat("ddMMyyyy", Locale.forLanguageTag("vi-VN")).format(new Date());
         String filename = "bao_cao_ky_thi_" + token + "_" + datePart + ".xlsx";
 
+        response.reset();
+        response.setBufferSize(128 * 1024);
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
 
         ExamReportStatsDTO stats = viewService.computeReportStats(qList, examId);
         String exporterName = resolveExporterName(request.getSession());

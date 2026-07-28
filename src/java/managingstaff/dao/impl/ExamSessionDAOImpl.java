@@ -176,10 +176,9 @@ public class ExamSessionDAOImpl extends DBContext implements ExamSessionDAO {
                 s.setLicenceId(rs.getInt("LicenceId"));
                 s.setLicenseCode(rs.getString("LicenceClass"));
                 int officialCount = rs.getInt("OfficialCandidateCount");
-                if (officialCount < TentativeExamDatePolicy.MIN_REGISTRATIONS
+                if (officialCount < 1
                         || officialCount > TentativeExamDatePolicy.MAX_REGISTRATIONS) {
-                    throw new IllegalArgumentException("Danh sách chính thức phải có từ "
-                            + TentativeExamDatePolicy.MIN_REGISTRATIONS + " đến "
+                    throw new IllegalArgumentException("Danh sách chính thức phải có từ 1 đến "
                             + TentativeExamDatePolicy.MAX_REGISTRATIONS
                             + " thí sinh. Hiện có " + officialCount + " thí sinh.");
                 }

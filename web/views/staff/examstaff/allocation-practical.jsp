@@ -37,30 +37,43 @@
                         <td>${c.clazz}</td>
                         <td><span class="allocation-score allocation-score--pass">${c.theoryScore}</span></td>
                         <td>
-                            <c:if test="${not empty activePracticalAreas}">
-                                <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
-                                    <input type="hidden" name="action" value="allocatePracticalRoom">
-                                    <input type="hidden" name="id" value="${c.id}">
-                                    <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
-                                    <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
-                                    <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
-                                    <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
-                                    <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
-                                    <select name="areaId" class="allocation-area-select allocation-area-select--table"
-                                            onchange="this.form.submit()" title="Đổi sân thi">
-                                        <c:if test="${empty c.practicalAllocatedAreaId}">
+                            <c:set var="currentPracticalAreaIsStaffed" value="false" />
+                            <c:forEach var="yard" items="${activePracticalAreas}">
+                                <c:if test="${c.practicalAllocatedAreaId eq yard.id}">
+                                    <c:set var="currentPracticalAreaIsStaffed" value="true" />
+                                </c:if>
+                            </c:forEach>
+                            <form action="${ctx}${allocationListPath}" method="get" class="allocation-inline-form allocation-inline-form--room-change">
+                                <input type="hidden" name="action" value="allocatePracticalRoom">
+                                <input type="hidden" name="id" value="${c.id}">
+                                <c:if test="${not empty allocationSearchQuery}"><input type="hidden" name="q" value="${allocationSearchQuery}"></c:if>
+                                <c:if test="${pg.page gt 1}"><input type="hidden" name="page" value="${pg.page}"></c:if>
+                                <c:if test="${not empty layoutExamId}"><input type="hidden" name="examId" value="${layoutExamId}"></c:if>
+                                <c:if test="${empty layoutExamId and allocationActiveExamId gt 0}"><input type="hidden" name="examId" value="${allocationActiveExamId}"></c:if>
+                                <jsp:include page="/views/staff/examstaff/includes/allocation-sort-hidden.jsp" />
+                                <select name="areaId" class="allocation-area-select allocation-area-select--table"
+                                        onchange="this.form.submit()"
+                                        ${empty activePracticalAreas ? 'disabled' : ''}
+                                        title="${empty activePracticalAreas ? 'Chưa có sân thực hành được phân công sát hạch viên' : 'Đổi sân thi'}">
+                                    <c:choose>
+                                        <c:when test="${not empty c.practicalAllocatedAreaId and not currentPracticalAreaIsStaffed}">
+                                            <option value="${c.practicalAllocatedAreaId}" selected disabled>
+                                                ${not empty c.practicalAllocatedAreaName ? c.practicalAllocatedAreaName : 'Sân đã phân'} (chưa có SHV)
+                                            </option>
+                                        </c:when>
+                                        <c:when test="${empty c.practicalAllocatedAreaId and empty activePracticalAreas}">
+                                            <option value="" selected>Chưa có sân có SHV</option>
+                                        </c:when>
+                                        <c:when test="${empty c.practicalAllocatedAreaId}">
                                             <option value="" disabled selected>-</option>
-                                        </c:if>
-                                        <c:forEach var="yard" items="${activePracticalAreas}">
-                                            <c:set var="yardLabel" value="${fn:replace(yard.areaName, 'Sân thi ', '')}" />
-                                            <option value="${yard.id}" ${c.practicalAllocatedAreaId eq yard.id ? 'selected' : ''}>${yardLabel}</option>
-                                        </c:forEach>
-                                    </select>
-                                </form>
-                            </c:if>
-                            <c:if test="${empty activePracticalAreas}">
-                                <span class="allocation-room-pending" title="Phân sát hạch viên vào sân thực hành trước">-</span>
-                            </c:if>
+                                        </c:when>
+                                    </c:choose>
+                                    <c:forEach var="yard" items="${activePracticalAreas}">
+                                        <c:set var="yardLabel" value="${fn:replace(yard.areaName, 'Sân thi ', '')}" />
+                                        <option value="${yard.id}" ${c.practicalAllocatedAreaId eq yard.id ? 'selected' : ''}>${yardLabel}</option>
+                                    </c:forEach>
+                                </select>
+                            </form>
                         </td>
                         <td>
                             <c:choose>

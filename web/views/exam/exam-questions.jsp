@@ -34,10 +34,15 @@
         <c:forEach var="q" items="${questions}" varStatus="status">
             <section class="exam-question-card">
                 <div class="exam-question-card__head">
-                    <span>Câu ${status.count} [${q.questionNumber} - ${q.correctAnswer} - ${q.critical}]</span>
+                    <span>
+                        Câu ${status.count}
+                        (${q.questionNumber}<c:if test="${q.critical}"> - ĐL</c:if>)
+                    </span>
                 </div>
                 <c:if test="${not empty q.imageUrl}">
-                    <img class="exam-question-card__image" src="${q.imageUrl}" alt="Hình câu hỏi ${status.count}">
+                    <img class="exam-question-card__image"
+                         src="<c:out value='${q.imageUrl}'/>"
+                         alt="Hình câu hỏi số ${q.questionNumber}">
                 </c:if>
                 <div class="exam-choice-grid">
                     <label class="exam-choice"><input type="radio" name="ans_${q.questionId}" value="A"><span>A</span></label>

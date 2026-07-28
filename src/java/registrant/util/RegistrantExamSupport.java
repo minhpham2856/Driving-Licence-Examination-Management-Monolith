@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.Locale;
 
 /**
- * Tiện ích nghiệp vụ thi cho cổng thí sinh: map GPLX UI↔DB, badge trạng thái, giờ ca thi, validate xung đột lịch.
+ * Tiện ích nghiệp vụ thi cho cổng thí sinh: chuẩn hóa hạng GPLX, badge trạng thái, giờ ca thi, validate xung đột lịch.
  * Dùng trên dashboard, my-exams, register-exam; tích hợp ExamSessionStatus, ProfileRegistrationStatus và nhãn nguyện vọng/SBD/chờ kết quả.
  */
 public final class RegistrantExamSupport {
@@ -60,55 +60,12 @@ public final class RegistrantExamSupport {
         return candidateNumber.trim();
     }
 
-    /** Lookup JOIN theo mã DB seed A/A1/B1; vẫn nhận alias A2→A, B2→B nếu URL cũ. */
-    public static String[] licenceClassLookupCodes(String uiCode) {
-        if (uiCode == null || uiCode.isBlank()) {
-            return new String[] { "B1" };
-        }
-        String ui = uiCode.trim().toUpperCase(Locale.ROOT);
-        String db = toDbLicenceCode(ui);
-        if (db.equalsIgnoreCase(ui)) {
-            return new String[] { ui };
-        }
-        return new String[] { ui, db };
-    }
-
-    /** Chuẩn hóa mã chọn trên UI về mã LicenceClass trong DB (seed: A, A1, B1). Alias cũ: A2→A, B2→B. */
-    public static String toDbLicenceCode(String uiCode) {
-        if (uiCode == null) {
+    /** Chuẩn hóa mã hạng (trim + upper). Null/blank → B1. */
+    public static String normalizeLicenceClass(String code) {
+        if (code == null || code.isBlank()) {
             return "B1";
         }
-        return switch (uiCode.trim().toUpperCase(Locale.ROOT)) {
-            case "B2" -> "B";
-            case "A2" -> "A";
-            default -> uiCode.trim().toUpperCase(Locale.ROOT);
-        };
-    }
-
-    /** Hiển thị đúng mã DB (A/A1/B1) — không đổi A→A2 nữa (DB seed không có A2). */
-    public static String toUiLicenceCode(String dbCode) {
-        if (dbCode == null) {
-            return "B1";
-        }
-        return dbCode.trim().toUpperCase(Locale.ROOT);
-    }
-
-    /** Lệ phí mặc định khi chưa lấy từ bảng Fee — khớp seed Licence A/A1/B1. */
-    public static long defaultExamFee(String uiCode) {
-        if (uiCode == null) {
-            return 800_000L;
-        }
-        return switch (uiCode.trim().toUpperCase(Locale.ROOT)) {
-            case "A1" -> 250_000L;
-            case "A", "A2" -> 350_000L;
-            case "B1" -> 800_000L;
-            case "B", "B2" -> 1_200_000L;
-            case "C1" -> 1_500_000L;
-            case "C" -> 2_000_000L;
-            case "D1", "D2" -> 2_500_000L;
-            case "D" -> 3_000_000L;
-            default -> 800_000L;
-        };
+        return code.trim().toUpperCase(Locale.ROOT);
     }
 
     /** Suy loại xe (car/moto) từ mã hạng UI. */

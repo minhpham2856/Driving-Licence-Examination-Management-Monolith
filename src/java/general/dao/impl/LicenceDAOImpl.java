@@ -15,10 +15,6 @@ public class LicenceDAOImpl implements LicenceDAO {
     private static final String BASE_SELECT =
         "SELECT l.LicenceId, l.LicenceClass, l.Description, l.MinimumAge, l.ValidForYears, l.UpgradeFromLicenceId "
       + "FROM Licence l ";
-    private static final String DURATION_CASE =
-        "CASE WHEN l.LicenceClass IN ('A1','A') THEN 'duoi-3-thang' "
-      + "WHEN l.LicenceClass IN ('B1') THEN 'tu-3-6-thang' "
-      + "ELSE 'other' END";
     private Licence map(ResultSet rs) throws SQLException {
         // map db to model
         Licence l = new Licence();
@@ -76,8 +72,6 @@ public class LicenceDAOImpl implements LicenceDAO {
 
         String keyword = criteria.getKeyword();
         boolean hasKw = keyword != null && !keyword.isBlank();
-        List<String> durations = criteria.getDurations();
-        boolean hasDurations = durations != null && !durations.isEmpty();
 
         String orderColumn = resolveSortColumn(criteria.getSortBy());
         String orderDir = "desc".equalsIgnoreCase(criteria.getSortDir()) ? "DESC" : "ASC";
@@ -86,16 +80,6 @@ public class LicenceDAOImpl implements LicenceDAO {
         sql.append("WHERE 1=1 ");
         if (hasKw) {
             sql.append("AND (l.LicenceClass LIKE ? OR l.Description LIKE ?) ");
-        }
-        if (hasDurations) {
-            sql.append("AND (").append(DURATION_CASE).append(") IN (");
-            for (int i = 0; i < durations.size(); i++) {
-                if (i > 0) {
-                    sql.append(",");
-                }
-                sql.append("?");
-            }
-            sql.append(") ");
         }
         sql.append("ORDER BY ").append(orderColumn).append(" ").append(orderDir);
 
@@ -106,11 +90,6 @@ public class LicenceDAOImpl implements LicenceDAO {
                 String like = "%" + keyword.trim() + "%";
                 ps.setString(idx++, like);
                 ps.setString(idx++, like);
-            }
-            if (hasDurations) {
-                for (String duration : durations) {
-                    ps.setString(idx++, duration);
-                }
             }
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -124,19 +103,10 @@ public class LicenceDAOImpl implements LicenceDAO {
     }
 
     private String resolveSortColumn(String sortBy) {
-        if (sortBy == null) {
+        if ("licenceId".equals(sortBy)) {
             return "l.LicenceId";
         }
-        if ("licenceClass".equals(sortBy)) {
-            return "l.LicenceClass";
-        }
-        if ("minimumAge".equals(sortBy)) {
-            return "l.MinimumAge";
-        }
-        if ("validForYears".equals(sortBy)) {
-            return "l.ValidForYears";
-        }
-        return "l.LicenceId";
+        return "l.LicenceClass";
     }
     @Override
     public Licence getById(int licenceId) {

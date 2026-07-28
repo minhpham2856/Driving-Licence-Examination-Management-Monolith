@@ -14,6 +14,7 @@ import auth.service.AuthService;
 import auth.service.EmailService;
 import shared.util.PasswordUtil;
 import auth.util.CredentialsGenerator;
+import auth.util.ValidationUtil;
 import auth.dto.ServiceResult;
 import shared.enums.ErrorType;
 import shared.enums.RoleType;
@@ -175,10 +176,10 @@ public class AuthServiceImpl implements AuthService {
                     "Mật khẩu hiện tại không chính xác.");
         }
 
-        // validate new password length
-        if (newPassword == null || newPassword.length() < 6) {
+        // validate new password strength
+        if (!ValidationUtil.isValidPassword(newPassword)) {
             return ServiceResult.fail(ErrorType.VALIDATION_FAILED,
-                    "Mật khẩu mới phải có ít nhất 6 ký tự.");
+                    "Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, số và ký tự đặc biệt.");
         }
 
         // validate confirmation

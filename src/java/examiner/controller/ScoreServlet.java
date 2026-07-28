@@ -11,6 +11,7 @@ import examiner.service.ExamViewService;
 import examiner.service.impl.ActionServiceImpl;
 import examiner.service.impl.ExamViewServiceImpl;
 import examiner.dto.CandidateRowDTO;
+import examiner.dto.ServiceResult;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -70,7 +71,8 @@ public class ScoreServlet extends HttpServlet {
             if (data != null) {
                 RequestUtil.applyModel(request, data);
                 Object selectedCandidate = request.getAttribute(Attributes.Request.CANDIDATE);
-                if (selectedCandidate instanceof CandidateRowDTO) {
+                boolean scoreSavedFlash = "1".equals(request.getParameter("scoreSaved"));
+                if (!scoreSavedFlash && selectedCandidate instanceof CandidateRowDTO) {
                     CandidateRowDTO candidate = (CandidateRowDTO) selectedCandidate;
                     if (!candidate.isScoreEntryEligible()) {
                         response.sendRedirect(request.getContextPath() + "/examiner/action?error=practicalNotAllowed");
@@ -118,9 +120,15 @@ public class ScoreServlet extends HttpServlet {
             }
             UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
             Integer userId = userDto != null ? userDto.getUserId() : null;
-            if (!actionService.markPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
+            ServiceResult<Void> presentResult = actionService.markPresent(activeExamId, sbd, userId, sectionType);
+            if (!presentResult.isSuccess()) {
+                String msg = presentResult.getMessage() != null ? presentResult.getMessage().trim() : "";
+                String errorCode = ("procedureIncomplete".equals(msg)
+                        || "candidateNotEligibleForPractical".equals(msg))
+                        ? msg
+                        : "presentFailed";
                 response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                        + urlEncode(sbd) + "&error=presentFailed");
+                        + urlEncode(sbd) + "&error=" + urlEncode(errorCode));
                 return;
             }
             response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
@@ -140,15 +148,24 @@ public class ScoreServlet extends HttpServlet {
             UserDTO userDto = (UserDTO) session.getAttribute(Attributes.Session.USER);
             Integer userId = userDto != null ? userDto.getUserId() : null;
             Map<Integer, Integer> occurrences = parseOccurrences(request);
-            if (deviceId == null || elapsedSeconds == null
-                    || !actionService.savePracticalScore(activeExamId, resolveExamAreaId(session), sbd, deviceId,
-                            elapsedSeconds, occurrences, userId).isSuccess()) {
+            if (deviceId == null || elapsedSeconds == null) {
                 response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                        + urlEncode(sbd) + "&from=action&error=scoreFailed");
+                        + urlEncode(sbd) + "&from=action&error=scorePayloadInvalid");
                 return;
             }
-            response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
-                    + urlEncode(sbd) + "&from=action&scoreSaved=1");
+            ServiceResult<Void> saveResult = actionService.savePracticalScore(
+                    activeExamId, resolveExamAreaId(session), sbd, deviceId,
+                    elapsedSeconds, occurrences, userId);
+            if (!saveResult.isSuccess()) {
+                String errorCode = saveResult.getMessage() != null && !saveResult.getMessage().isBlank()
+                        ? saveResult.getMessage().trim()
+                        : "scoreFailed";
+                response.sendRedirect(request.getContextPath() + "/examiner/score-entry?sbd="
+                        + urlEncode(sbd) + "&from=action&error=" + urlEncode(errorCode));
+                return;
+            }
+            response.sendRedirect(request.getContextPath() + "/examiner/action?sbd="
+                    + urlEncode(sbd) + "&scoreSaved=1");
             return;
         }
 
@@ -364,6 +381,10 @@ public class ScoreServlet extends HttpServlet {
     }
 
     private String urlEncode(int value) {
+        return RequestUtil.urlEncode(value);
+    }
+
+    private String urlEncode(String value) {
         return RequestUtil.urlEncode(value);
     }
 

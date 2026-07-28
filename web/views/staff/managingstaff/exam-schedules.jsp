@@ -282,7 +282,7 @@
                                            style="padding:.4rem .55rem;text-decoration:none">${not empty viewSession and viewSession.id eq s.id ? 'Đang xem' : 'Danh sách'}</a>
                                         <c:if test="${s.editable}"><a class="btn-filter" href="${ctx}/manager/exam-schedules?edit=${s.id}" style="padding:.4rem .55rem;text-decoration:none">Sửa</a></c:if>
                                     </div>
-                                    <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi? Danh sách thí sinh vẫn được giữ lại.');">
+                                    <c:if test="${s.editable}"><form action="${ctx}/manager/exam-schedules" method="post" style="margin-top:.45rem" onsubmit="return confirm('Xác nhận hủy phiên thi?');">
                                         <input type="hidden" name="action" value="cancel"><input type="hidden" name="sessionId" value="${s.id}">
                                         <input name="reason" required minlength="5" placeholder="Lý do hủy" style="width:125px;height:30px"><button type="submit" class="btn-reset" style="height:30px;width:auto;padding:0 .45rem">Hủy phiên</button>
                                     </form></c:if>
