@@ -25,17 +25,18 @@
 }
 
 .side-nav-bar--examiner .side-nav-bar__logo-link {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #ffffff;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    overflow: visible;
+    background-color: transparent;
 }
 
 .side-nav-bar--examiner .side-nav-bar__logo-img {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
+    width: 48px;
+    height: auto;
+    max-height: 56px;
+    object-fit: contain;
 }
 
 .side-nav-bar--examiner .side-nav-bar__brand-title {
