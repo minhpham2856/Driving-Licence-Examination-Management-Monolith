@@ -2,7 +2,10 @@ package examstaff.service.impl.support.allocation;
 import examstaff.service.impl.support.assign.ExaminerAssignmentRules;
 
 import examstaff.dao.ExamAreaDAO;
+import examstaff.dao.ExaminerAssignmentDAO;
 import examstaff.dao.impl.ExamAreaDAOImpl;
+import examstaff.dao.impl.ExaminerAssignmentDAOImpl;
+import examstaff.dto.ExaminerSlotDTO;
 import shared.model.ExamArea;
 
 import java.util.List;
@@ -25,12 +28,13 @@ import java.util.List;
 public class ExamAreaQueryServiceImpl {
 
     private final ExamAreaDAO examAreaDAO;
+    private final ExaminerAssignmentDAO examinerAssignmentDAO;
 
     /**
      * Wiring mặc định khi không inject từ composition root.
      */
     public ExamAreaQueryServiceImpl() {
-        this(new ExamAreaDAOImpl());
+        this(new ExamAreaDAOImpl(), new ExaminerAssignmentDAOImpl());
     }
 
     /**
@@ -38,7 +42,18 @@ public class ExamAreaQueryServiceImpl {
      * @param examAreaDAO DAO khu vực thi
      */
     public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO) {
+        this(examAreaDAO, null);
+    }
+
+    /**
+     * Inject đầy đủ dependencies cho unit test / composition root.
+     * @param examAreaDAO DAO khu vực thi
+     * @param examinerAssignmentDAO DAO phân công sát hạch viên
+     */
+    public ExamAreaQueryServiceImpl(ExamAreaDAO examAreaDAO,
+            ExaminerAssignmentDAO examinerAssignmentDAO) {
         this.examAreaDAO = examAreaDAO;
+        this.examinerAssignmentDAO = examinerAssignmentDAO;
     }
 
     /**
@@ -69,6 +84,19 @@ public class ExamAreaQueryServiceImpl {
         // load sân TH gắn kỳ (Exam_ExamArea), không lọc theo SHV
         List<ExamArea> examRooms = examAreaDAO.getAreasByExamId(examId);
         return ExaminerAssignmentRules.filterPracticalRooms(examRooms);
+    }
+
+    /**
+     * Lấy các sát hạch viên đang phụ trách từng phòng/sân của kỳ thi.
+     * @param examId mã kỳ thi
+     * @return danh sách phân công theo khu vực
+     */
+    public List<ExaminerSlotDTO> listExaminerAssignmentsForExam(int examId) {
+        if (examId <= 0 || examinerAssignmentDAO == null) {
+            return List.of();
+        }
+        List<ExaminerSlotDTO> assignments = examinerAssignmentDAO.getByExamId(examId);
+        return assignments != null ? assignments : List.of();
     }
 
     /**

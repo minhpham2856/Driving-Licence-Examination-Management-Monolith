@@ -3,6 +3,7 @@ package examstaff.service.impl;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
 import examstaff.dto.ExamRegistrationDTO;
+import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ServiceResult;
 import examstaff.service.AllocationService;
 import shared.enums.ErrorType;
@@ -107,6 +108,11 @@ public class AllocationServiceImpl implements AllocationService {
     @Override
     public List<ExamArea> listStaffedPracticalAreasForExam(int examId) {
         return areas.listStaffedPracticalAreasForExam(examId);
+    }
+
+    @Override
+    public List<ExaminerSlotDTO> listExaminerAssignmentsForExam(int examId) {
+        return areas.listExaminerAssignmentsForExam(examId);
     }
 
     /**

@@ -78,6 +78,15 @@ public class ExamControlServlet extends HttpServlet {
                 session.setAttribute("examControlError", result.getMessage());
             }
         } else if ("endExam".equals(action)) {
+            CallBoardDAO callBoardDAO = ExamStaffHttpSupport.callBoardDao(getServletContext());
+            examstaff.dto.CallBoardState callBoard = staffCall.getBoardState(callBoardDAO, examId);
+            boolean callShiftEnded = callBoard != null && callBoard.isShiftEnded();
+            if (!callShiftEnded) {
+                session.setAttribute("examControlError",
+                        "Phải dừng gọi số trước khi kết thúc kỳ thi.");
+                response.sendRedirect(redirect);
+                return;
+            }
             ServiceResult<String> result = controlService.endExam(examId);
             if (result.isSuccess()) {
                 applyRuntimeEnd(getServletContext(), session, examId);

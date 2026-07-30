@@ -86,6 +86,16 @@
                         </td>
                         <td>
                             <c:choose>
+                                <c:when test="${not empty c.allocatedAreaId and not empty examinerNamesByArea[c.allocatedAreaId]}">
+                                    <c:out value="${examinerNamesByArea[c.allocatedAreaId]}" />
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="es-text-muted-sm">Chưa có SHV</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td>
+                            <c:choose>
                                 <c:when test="${not empty c.theoryScore}">
                                     <span class="allocation-score">${c.theoryScore}</span>
                                     <span class="es-text-muted-sm">
@@ -104,7 +114,7 @@
                     </tr>
                 </c:forEach>
                 <c:if test="${pg.totalItems eq 0}">
-                    <tr><td colspan="7" class="allocation-stage-table__empty">Không có thí sinh chờ thi lý thuyết.</td></tr>
+                    <tr><td colspan="8" class="allocation-stage-table__empty">Không có thí sinh chờ thi lý thuyết.</td></tr>
                 </c:if>
             </tbody>
         </table>

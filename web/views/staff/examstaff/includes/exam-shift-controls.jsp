@@ -4,7 +4,8 @@
 <c:set var="shiftCanStart" value="${shiftStatus eq 'Chưa diễn ra' or shiftStatus eq 'Mở' or shiftStatus eq 'Scheduled' or shiftStatus eq 'Open'}" />
 <c:set var="shiftInProgress" value="${shiftStatus eq 'Đang diễn ra' or shiftStatus eq 'InProgress'}" />
 <c:set var="shiftPaused" value="${shiftStatus eq 'Tạm dừng' or shiftStatus eq 'Paused'}" />
-<c:set var="shiftCanEnd" value="${shiftInProgress or shiftPaused}" />
+<c:set var="callShiftEnded" value="${sessionScope.shiftEnded eq 'true'}" />
+<c:set var="shiftCanEnd" value="${(shiftInProgress or shiftPaused) and callShiftEnded}" />
 <c:set var="examCanStartNow" value="${empty requestScope.examCanStartNow or requestScope.examCanStartNow}" />
 <c:set var="startEnabled" value="${shiftCanStart and examCanStartNow}" />
 <div class="exam-shift-chip__actions">
@@ -52,6 +53,11 @@
         <input type="hidden" name="action" value="endExam">
         <input type="hidden" name="examId" value="${param.examId}">
         <input type="hidden" name="redirect" value="${param.redirect}">
-        <button type="submit" class="btn-export exam-shift-chip__btn exam-shift-chip__btn--end" <c:if test="${not shiftCanEnd}">disabled</c:if>>Kết thúc kỳ thi</button>
+        <button type="submit" class="btn-export exam-shift-chip__btn exam-shift-chip__btn--end"
+                title="${not callShiftEnded ? 'Phải dừng gọi số trước khi kết thúc kỳ thi' : 'Kết thúc kỳ thi'}"
+                <c:if test="${not shiftCanEnd}">disabled</c:if>>Kết thúc kỳ thi</button>
     </form>
+    <c:if test="${(shiftInProgress or shiftPaused) and not callShiftEnded}">
+        <span class="es-text-muted-sm exam-shift-chip__hint">Phải dừng gọi số trước khi kết thúc kỳ thi.</span>
+    </c:if>
 </div>

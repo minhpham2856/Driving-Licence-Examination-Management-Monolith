@@ -3,6 +3,7 @@ package examstaff.service;
 import examstaff.dto.AllocationActionResultDTO;
 import examstaff.dto.AllocationCandidateActionRequest;
 import examstaff.dto.ExamRegistrationDTO;
+import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ServiceResult;
 import shared.model.ExamArea;
 
@@ -57,6 +58,13 @@ public interface AllocationService {
      * @return danh sách khu vực
      */
     List<ExamArea> listStaffedPracticalAreasForExam(int examId);
+
+    /**
+     * Danh sách sát hạch viên được phân công theo phòng/sân trong kỳ thi.
+     * @param examId mã kỳ thi
+     * @return danh sách ca phân công; rỗng nếu kỳ thi không hợp lệ
+     */
+    List<ExaminerSlotDTO> listExaminerAssignmentsForExam(int examId);
 
     /**
      * Lấy khu vực thi theo mã.

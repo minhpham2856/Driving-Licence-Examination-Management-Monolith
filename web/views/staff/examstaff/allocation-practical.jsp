@@ -77,6 +77,16 @@
                         </td>
                         <td>
                             <c:choose>
+                                <c:when test="${not empty c.practicalAllocatedAreaId and not empty examinerNamesByArea[c.practicalAllocatedAreaId]}">
+                                    <c:out value="${examinerNamesByArea[c.practicalAllocatedAreaId]}" />
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="es-text-muted-sm">Chưa có SHV</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td>
+                            <c:choose>
                                 <c:when test="${not empty c.practicalScore}">
                                     <span class="allocation-score">${c.practicalScore}</span>
                                     <span class="es-text-muted-sm">
@@ -94,7 +104,7 @@
                         </td>
                     </tr>
                 </c:forEach>
-                <c:if test="${pg.totalItems eq 0}"><tr><td colspan="7" class="allocation-stage-table__empty">Không có thí sinh.</td></tr></c:if>
+                <c:if test="${pg.totalItems eq 0}"><tr><td colspan="8" class="allocation-stage-table__empty">Không có thí sinh.</td></tr></c:if>
             </tbody>
         </table>
     </div>

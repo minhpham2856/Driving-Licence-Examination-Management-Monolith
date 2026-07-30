@@ -8,6 +8,7 @@ import examstaff.dto.CandidateQueueSnapshotDTO;
 import examstaff.dto.ExamStaffPageCommand;
 import examstaff.dto.ExamStaffPageContext;
 import examstaff.dto.ExamSummaryDTO;
+import examstaff.dto.ExaminerSlotDTO;
 import examstaff.dto.ServiceResult;
 import examstaff.service.AllocationService;
 import examstaff.service.AuditService;
@@ -28,7 +29,9 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Các trang phân bổ thí sinh theo giai đoạn (waiting/theory/practical/results):
@@ -194,6 +197,7 @@ public class AllocationServlet extends HttpServlet {
             request.setAttribute(Attributes.ExamStaff.ALLOCATION_AREA_FILTER, areaFilterId);
             request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
             request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
+            request.setAttribute(Attributes.ExamStaff.EXAMINER_NAMES_BY_AREA, Map.of());
             try {
                 if (AllocationStageHelper.STAGE_THEORY.equals(stage)) {
                     request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS,
@@ -201,6 +205,12 @@ public class AllocationServlet extends HttpServlet {
                 } else if (AllocationStageHelper.STAGE_PRACTICAL.equals(stage)) {
                     request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS,
                             allocationService.listStaffedPracticalAreasForExam(examId));
+                }
+                if (AllocationStageHelper.STAGE_THEORY.equals(stage)
+                        || AllocationStageHelper.STAGE_PRACTICAL.equals(stage)) {
+                    request.setAttribute(Attributes.ExamStaff.EXAMINER_NAMES_BY_AREA,
+                            buildExaminerNamesByArea(
+                                    allocationService.listExaminerAssignmentsForExam(examId)));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -222,6 +232,7 @@ public class AllocationServlet extends HttpServlet {
             request.setAttribute("allocationExtraQuery", "");
             request.setAttribute(Attributes.ExamStaff.ACTIVE_THEORY_ROOMS, List.of());
             request.setAttribute(Attributes.ExamStaff.ACTIVE_PRACTICAL_AREAS, List.of());
+            request.setAttribute(Attributes.ExamStaff.EXAMINER_NAMES_BY_AREA, Map.of());
             try {
                 request.getRequestDispatcher(jspPath).forward(request, response);
             } catch (Exception forwardError) {
@@ -230,6 +241,41 @@ public class AllocationServlet extends HttpServlet {
                         "Không tải được trang phân bổ: " + e.getMessage());
             }
         }
+    }
+
+    /**
+     * Gom tên SHV theo ExamAreaId để JSP tra cứu trực tiếp theo phòng của thí sinh.
+     * Nhiều SHV cùng phụ trách một khu vực được hiển thị theo thứ tự phân công.
+     */
+    static Map<Integer, String> buildExaminerNamesByArea(List<ExaminerSlotDTO> assignments) {
+        Map<Integer, String> namesByArea = new LinkedHashMap<>();
+        if (assignments == null) {
+            return namesByArea;
+        }
+        for (ExaminerSlotDTO slot : assignments) {
+            if (slot == null || slot.getAreaId() <= 0
+                    || slot.getExaminerName() == null || slot.getExaminerName().isBlank()) {
+                continue;
+            }
+            int areaId = slot.getAreaId();
+            String examinerName = slot.getExaminerName().trim();
+            String currentNames = namesByArea.get(areaId);
+            if (currentNames == null || currentNames.isBlank()) {
+                namesByArea.put(areaId, examinerName);
+            } else if (!containsName(currentNames, examinerName)) {
+                namesByArea.put(areaId, currentNames + ", " + examinerName);
+            }
+        }
+        return namesByArea;
+    }
+
+    private static boolean containsName(String names, String examinerName) {
+        for (String name : names.split(",\\s*")) {
+            if (name.equalsIgnoreCase(examinerName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

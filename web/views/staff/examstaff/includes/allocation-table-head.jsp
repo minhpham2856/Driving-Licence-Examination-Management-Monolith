@@ -21,6 +21,7 @@
     <c:if test="${variant eq 'theory'}">
         <th>Hồ sơ</th>
         <th>Phòng thi</th>
+        <th>SHV phụ trách</th>
         <th>Điểm LT</th>
     </c:if>
     <c:if test="${variant eq 'practical'}">
@@ -29,6 +30,7 @@
             <jsp:param name="label" value="Lý thuyết" />
         </jsp:include>
         <th>Sân thi</th>
+        <th>SHV phụ trách</th>
         <th>Điểm TH</th>
     </c:if>
     <c:if test="${variant eq 'results-pass' or variant eq 'results-fail'}">

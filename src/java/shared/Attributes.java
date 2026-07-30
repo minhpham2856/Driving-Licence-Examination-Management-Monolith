@@ -144,6 +144,7 @@ public final class Attributes {
         /** Phòng LT / sân TH đã có sát hạch viên - trang phân bổ thí sinh. */
         public static final String ACTIVE_THEORY_ROOMS = "activeTheoryRooms";
         public static final String ACTIVE_PRACTICAL_AREAS = "activePracticalAreas";
+        public static final String EXAMINER_NAMES_BY_AREA = "examinerNamesByArea";
         public static final String ALLOCATION_AREA_FILTER = "allocationAreaFilter";
         public static final String ALLOCATION_ACTIVE_EXAM_ID = "allocationActiveExamId";
     }
