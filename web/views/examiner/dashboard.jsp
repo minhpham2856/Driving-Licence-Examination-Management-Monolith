@@ -5,7 +5,7 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Bảng điều khiển" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/dashboard" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/dashboard" scope="request" />
 
 <!--page-->
 <!DOCTYPE html>
@@ -51,8 +51,8 @@
                 <!--candidate list-->
                 <jsp:include page="/views/examiner/components/candidate-list.jsp">
                     <jsp:param name="title" value="Danh sách thí sinh" />
-                    <jsp:param name="showTheoryScores" value="${examSection == 'THEORY' ? 'true' : 'false'}" />
-                    <jsp:param name="showPracticalScore"value="${examSection == 'THEORY' ? 'false' : 'true'}" />
+                    <jsp:param name="showTheoryScores" value="${examinerSectionTheory ? 'true' : 'false'}" />
+                    <jsp:param name="showPracticalScore" value="${examinerSectionTheory ? 'false' : 'true'}" />
                     <jsp:param name="showResult" value="true" />
                     <jsp:param name="showStatus" value="true" />
                 </jsp:include>
@@ -62,7 +62,15 @@
                     <div class="examiner-summary__grid">
                         <div class="examiner-summary__course">
                             <p class="examiner-summary__label">Kỳ thi</p>
-                            <p class="examiner-summary__value">${empty examSummary.examCode ? '' : examSummary.examCode}</p>
+                            <p class="examiner-summary__value">${empty examSummary.examCode ? '—' : examSummary.examCode}</p>
+                            <div class="examiner-summary__meta-row">
+                                <p class="examiner-summary__label">Ngày thi</p>
+                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.examDate ? '—' : examSummary.examDate}</p>
+                            </div>
+                            <div class="examiner-summary__meta-row">
+                                <p class="examiner-summary__label">Hạng GPLX</p>
+                                <p class="examiner-summary__value examiner-summary__value--sm">${empty examSummary.licenceClass ? '—' : examSummary.licenceClass}</p>
+                            </div>
                         </div>
                         <div class="examiner-summary__stat examiner-summary__stat--total">
                             <p class="examiner-summary__label">Tổng số</p>
