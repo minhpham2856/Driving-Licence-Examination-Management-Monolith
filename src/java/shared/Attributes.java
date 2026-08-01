@@ -16,6 +16,7 @@ public final class Attributes {
         public static final String REGISTRATION_PASSWORD = "registrationPassword";
         public static final String ACTIVE_CANDIDATE_EXAM_ID = "activeCandidateExamId";
         public static final String ACTIVE_CANDIDATE_KIOSK_PASSWORD = "activeCandidateKioskPassword";
+        public static final String FORCE_CHANGE_PASSWORD = "forceChangePassword";
     }
 
     // Request attributes for page data and one-hop flash

@@ -56,6 +56,7 @@ public class ExamEntranceServlet extends HttpServlet {
             return;
         }
         if ("/exam/entrance".equals(path)) {
+            request.getSession().removeAttribute(CANDIDATE_EXAM_RESULT);
             request.getRequestDispatcher("/views/exam/exam-entrance.jsp").forward(request, response);
             return;
         }

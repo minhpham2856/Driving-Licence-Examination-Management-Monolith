@@ -37,6 +37,8 @@ public class ExaminerFilter extends HttpFilter {
 
     // Session selection page
     private static final String SESSION_SELECT_PATH = "/examiner/exam";
+    private static final String PROFILE_PATH = "/examiner/profile";
+    private static final String CHANGE_PASSWORD_PATH = "/examiner/change-password";
 
     // Business services
     private final RoleService roleService = new RoleServiceImpl();
@@ -66,9 +68,12 @@ public class ExaminerFilter extends HttpFilter {
             return;
         }
 
-        // Skip exam session validation on the session selection page
+        // Account pages do not require an active exam session. In particular, the
+        // forced first-login password page must remain reachable before a shift is selected.
         String path = requestPath(request);
-        if (SESSION_SELECT_PATH.equals(path)) {
+        if (SESSION_SELECT_PATH.equals(path)
+                || PROFILE_PATH.equals(path)
+                || CHANGE_PASSWORD_PATH.equals(path)) {
             chain.doFilter(request, response);
             return;
         }

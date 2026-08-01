@@ -6,6 +6,7 @@ import examstaff.dto.ExamSummaryDTO;
 import examstaff.dto.UserDTO;
 import examstaff.dto.ExaminerAllocationActionResultDTO;
 import examstaff.dto.ExaminerAllocationViewDTO;
+import examstaff.enums.ExamSection;
 import shared.model.ExamArea;
 
 import java.util.ArrayList;
@@ -156,12 +157,17 @@ public class ExaminerAllocationDeskServiceImpl {
         ExaminerSlotDTO slot = new ExaminerSlotDTO();
         slot.setExamId(targetExamId);
         slot.setAreaId(areaId);
-        slot.setExamTypeId(targetExam.getExamTypeId());
+        if (ExaminerAssignmentRules.isPracticalAreaType(area.getAreaType())) {
+            slot.setExamTypeId(ExamSection.THUC_HANH_TRONG_HINH.getExamTypeId());
+            slot.setExamTypeName(ExamSection.THUC_HANH_TRONG_HINH.getDisplayName());
+        } else {
+            slot.setExamTypeId(ExamSection.LY_THUYET.getExamTypeId());
+            slot.setExamTypeName(ExamSection.LY_THUYET.getDisplayName());
+        }
         slot.setExaminerUserId(examinerUserId);
         slot.setAssignedBy(staffId);
         slot.setAreaName(area.getAreaName());
         slot.setAreaType(area.getAreaType());
-        slot.setExamTypeName(targetExam.getExamTypeName());
         slot.setExamName(targetExam.getExamName());
         slot.setExaminerName(resolveExaminerName(examiner));
         slot.setExaminerUsername(examiner.getUsername());

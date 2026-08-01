@@ -46,11 +46,11 @@ public class MustChangePasswordFilter implements Filter {
         if (uri != null && uri.contains("/change-password")) { chain.doFilter(request, response); return; }
 
         if (securityDAO.mustChangePassword(user.getUserId())) {
-            session.setAttribute("forceChangePassword", true);
+            session.setAttribute(Attributes.Session.FORCE_CHANGE_PASSWORD, true);
             resp.sendRedirect(req.getContextPath() + changePasswordPathFor(user));
             return;
         }
-        session.removeAttribute("forceChangePassword");
+        session.removeAttribute(Attributes.Session.FORCE_CHANGE_PASSWORD);
         chain.doFilter(request, response);
     }
 

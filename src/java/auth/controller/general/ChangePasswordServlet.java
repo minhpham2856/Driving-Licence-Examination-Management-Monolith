@@ -2,6 +2,7 @@ package auth.controller.general;
 
 import auth.dto.ServiceResult;
 import auth.dto.UserDTO;
+import auth.enums.RoleRoute;
 import auth.service.AuditService;
 import auth.service.AuthService;
 import auth.service.impl.AuditServiceImpl;
@@ -12,9 +13,12 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import shared.Attributes;
 import shared.enums.AuditAction;
 import shared.enums.AuditEntity;
+import shared.enums.RoleType;
+import shared.model.Role;
 import java.io.IOException;
 
 @WebServlet(urlPatterns = {
@@ -55,6 +59,13 @@ public class ChangePasswordServlet extends HttpServlet {
         if (result.isSuccess()) {
             auditService.logAction(sessionUser.getUserId(), AuditAction.UPDATE, AuditEntity.DOSSIER,
                     "Đổi mật khẩu tài khoản", sessionUser.getUserId());
+            HttpSession session = request.getSession(false);
+            if (session != null
+                    && Boolean.TRUE.equals(session.getAttribute(Attributes.Session.FORCE_CHANGE_PASSWORD))) {
+                session.removeAttribute(Attributes.Session.FORCE_CHANGE_PASSWORD);
+                response.sendRedirect(request.getContextPath() + homePathFor(sessionUser));
+                return;
+            }
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.SUCCESS);
         } else {
             request.setAttribute(Attributes.Request.MESSAGE_TYPE, Attributes.MessageType.DANGER);
@@ -76,5 +87,12 @@ public class ChangePasswordServlet extends HttpServlet {
     // session user set by login; filter guarantees non-null here
     private static UserDTO sessionUser(HttpServletRequest request) {
         return AuthSessionUtil.sessionUser(request);
+    }
+
+    private static String homePathFor(UserDTO user) {
+        Role role = user != null ? user.getRole() : null;
+        RoleType roleType = role != null ? RoleType.fromValue(role.getRoleName()) : null;
+        RoleRoute route = RoleRoute.fromRole(roleType);
+        return route != null ? route.getHomePath() : "/staff/login";
     }
 }

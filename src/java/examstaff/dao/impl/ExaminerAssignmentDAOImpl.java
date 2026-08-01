@@ -143,8 +143,8 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
                     FROM ExamSection es
                     WHERE es.ExamId = ?
                       AND (
-                        (? = N'Lý thuyết' AND es.SectionType = N'Lý thuyết')
-                        OR (? = N'Thực hành' AND (
+                        (? = 1 AND es.SectionType = N'Lý thuyết')
+                        OR (? IN (2, 4) AND (
                             es.SectionType LIKE N'%Thực hành%'
                             OR es.SectionType LIKE N'%Sa hình%'
                             OR es.SectionType LIKE N'%Đường%'
@@ -184,13 +184,12 @@ public class ExaminerAssignmentDAOImpl extends DBContext implements ExaminerAssi
             // Bước 1: INSERT ExaminerSchedule
             try (PreparedStatement ps = getConnection().prepareStatement(insertAssignment)) {
                 int assignedBy = slot.getAssignedBy() > 0 ? slot.getAssignedBy() : 3;
-                String areaType = slot.getAreaType() != null ? slot.getAreaType().trim() : "";
                 ps.setInt(1, slot.getExamId());
                 ps.setInt(2, slot.getExaminerUserId());
                 ps.setInt(3, slot.getAreaId());
                 ps.setInt(4, slot.getExamId());
-                ps.setString(5, areaType);
-                ps.setString(6, areaType);
+                ps.setInt(5, slot.getExamTypeId());
+                ps.setInt(6, slot.getExamTypeId());
                 ps.setInt(7, slot.getExamId());
                 ps.setInt(8, assignedBy);
                 ps.executeUpdate();

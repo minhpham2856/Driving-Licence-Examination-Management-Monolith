@@ -170,12 +170,13 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
         List<Map<String, Object>> list = new ArrayList<>();
         String sql = """
                 SELECT sd.ScoreDeductionId, sd.Reason, sd.Points, sd.IsCritical
-                FROM ScoreDeduction sd
-                JOIN ExamSection es ON es.ExamSectionId = sd.ExamSectionId
-                WHERE es.SectionType = ?
-                  AND (? <= 0 OR sd.LicenceId = (
-                      SELECT LicenceId FROM Exam WHERE ExamId = ?
-                  ))
+                 FROM ScoreDeduction sd
+                 JOIN ExamSection es ON es.ExamSectionId = sd.ExamSectionId
+                 WHERE es.SectionType = ?
+                   AND (? <= 0 OR es.ExamId = ?)
+                   AND (? <= 0 OR sd.LicenceId = (
+                       SELECT LicenceId FROM Exam WHERE ExamId = ?
+                   ))
                 ORDER BY sd.IsCritical ASC, sd.ScoreDeductionId ASC
                 """;
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -183,6 +184,8 @@ public class ExaminerViewDAOImpl extends DBContext implements ExaminerViewDAO {
                     ? sectionType.trim() : SectionType.LAYOUT.getValue());
             ps.setInt(2, examId);
             ps.setInt(3, examId);
+            ps.setInt(4, examId);
+            ps.setInt(5, examId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> row = new LinkedHashMap<>();
