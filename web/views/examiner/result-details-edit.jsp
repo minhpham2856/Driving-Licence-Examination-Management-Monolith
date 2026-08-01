@@ -5,13 +5,11 @@
 <!--variables-->
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <c:set var="headerTitle" value="Sửa kết quả" />
-<c:set var="backUrl" value="${ctx}/views/examiner/result-details" scope="request" />
-<c:set var="pageUrl" value="${ctx}/views/examiner/result-details-edit?sbd=${candidate.sbd}" scope="request" />
-<c:set var="paperUrl" value="${ctx}/views/examiner/candidate-paper?sbd=${candidate.sbd}" scope="request" />
+<c:set var="backUrl" value="${ctx}/examiner/result-details" scope="request" />
+<c:set var="pageUrl" value="${ctx}/examiner/result-details-edit?sbd=${candidate.candidateNumber}" scope="request" />
+<c:set var="paperUrl" value="${ctx}/examiner/candidate-paper?sbd=${candidate.candidateNumber}" scope="request" />
 <c:set var="exportResultsUrl" value="${ctx}/examiner/export/result" scope="request" />
 <c:set var="currentScore" value="${requestScope.currentScore}" />
-<c:set var="maxScore" value="${empty theoryMaxScore ? 35 : theoryMaxScore}" />
-<c:set var="inputScore" value="${not empty formNewScore ? formNewScore : (not empty currentScore ? currentScore : '')}" />
 <c:set var="selectedReason" value="${formReason}" />
 
 <!--page-->
@@ -61,43 +59,43 @@
                     <jsp:param name="btnRefresh" value="right" />
                 </jsp:include>
 
-                <!--edit form-->
-                <form action="${ctx}/views/examiner/result-details-edit" method="post">
-                    <input type="hidden" name="sbd" value="${candidate.sbd}">
-                    <div class="score-entry-grid">
-                        <div class="score-entry-col score-entry-col--main">
+                <!--edit layout: reason form + fault list (faults must not nest inside reason form)-->
+                <div class="score-entry-grid">
+                    <div class="score-entry-col score-entry-col--main">
 
-                            <!-- candidate info  -->
-                            <jsp:include page="/views/examiner/components/candidate-list.jsp">
-                                <jsp:param name="cardClass" value="examiner-card examiner-card--dashboard-table exr-card--mt" />
-                                <jsp:param name="title" value="Thông tin thí sinh" />
-                                <jsp:param name="itemsAttr" value="singleCandidateList" />
-                                <jsp:param name="showAddress" value="false" />
-                                <jsp:param name="showTheoryScores" value="false" />
-                                <jsp:param name="showPracticalScore" value="false" />
-                                <jsp:param name="showResult" value="true" />
-                                <jsp:param name="showStatus" value="true" />
-                            </jsp:include>
+                        <!-- candidate info  -->
+                        <jsp:include page="/views/examiner/components/candidate-list.jsp">
+                            <jsp:param name="cardClass" value="examiner-card examiner-card--dashboard-table exr-card--mt" />
+                            <jsp:param name="title" value="Thông tin thí sinh" />
+                            <jsp:param name="itemsAttr" value="singleCandidateList" />
+                            <jsp:param name="showAddress" value="false" />
+                            <jsp:param name="showTheoryScores" value="false" />
+                            <jsp:param name="showPracticalScore" value="false" />
+                            <jsp:param name="showResult" value="true" />
+                            <jsp:param name="showStatus" value="true" />
+                        </jsp:include>
 
-                            <!-- Score -->
-                            <section class="score-entry-score-card">
-                                <h3 class="score-entry-score-card__title">Điểm hiện tại</h3>
-                                <div class="score-entry-score-display">
-                                    <c:choose>
-                                        <c:when test="${scoreDisqualified}">
-                                            <span class="score-entry-score-value score-entry-score-value--fail">TRƯỢT</span>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <span class="score-entry-score-value" id="currentScore">
-                                                <fmt:formatNumber value="${currentScore}" pattern="#"/>
-                                            </span>
-                                            <span class="score-entry-score-max" id="scoreMaxLabel">/ 100</span>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </section>
+                        <!-- Score -->
+                        <section class="score-entry-score-card">
+                            <h3 class="score-entry-score-card__title">Điểm hiện tại</h3>
+                            <div class="score-entry-score-display">
+                                <c:choose>
+                                    <c:when test="${scoreDisqualified}">
+                                        <span class="score-entry-score-value score-entry-score-value--fail">TRƯỢT</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="score-entry-score-value" id="currentScore">
+                                            <fmt:formatNumber value="${currentScore}" pattern="#"/>
+                                        </span>
+                                        <span class="score-entry-score-max" id="scoreMaxLabel">/ 100</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </section>
 
-                            <!-- Reason Form -->
+                        <!-- Reason Form -->
+                        <form action="${ctx}/examiner/result-details-edit" method="post">
+                            <input type="hidden" name="sbd" value="${candidate.candidateNumber}">
                             <section class="score-entry-card exr-card--mt">
                                 <div class="score-entry-card__head">
                                     <div class="score-entry-card__title">
@@ -108,7 +106,7 @@
                                 <div class="exr-card__body">
                                     <div class="exr-control">
                                         <label class="exr-input-label" for="reason">CHỌN LÝ DO <span class="exr-req">*</span></label>
-                                        <select id="reason" name="reason" class="exr-select" required>
+                                        <select id="reason" name="reasonCode" class="exr-select" required>
                                             <option value="">-- Lựa chọn lý do quy định --</option>
                                             <option value="cham-sai" ${selectedReason eq 'cham-sai' ? 'selected' : ''}>Chấm sai</option>
                                             <option value="khieu-nai" ${selectedReason eq 'khieu-nai' ? 'selected' : ''}>Thí sinh khiếu nại</option>
@@ -122,7 +120,7 @@
 
                                     <div class="exr-control">
                                         <label class="exr-input-label" for="pwd">MẬT KHẨU XÁC THỰC BẢO MẬT <span class="exr-req">*</span></label>
-                                        <input type="password" id="pwd" name="password" class="exr-input" placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
+                                        <input type="password" id="pwd" name="confirmPassword" class="exr-input" placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
                                     </div>
                                     <div class="exr-confirm-wrap">
                                         <button type="submit" class="examiner-btn examiner-btn--primary score-entry-finalize-btn exr-confirm-btn--full">
@@ -133,24 +131,20 @@
                                     </div>
                                 </div>
                             </section>
-                        </div>
-
-                        <aside class="score-entry-col score-entry-col--penalties">
-                            <!-- Fault List -->
-                            <jsp:include page="/views/examiner/components/faults.jsp" />
-
-
-                            <!--warning-->
-                            <div class="exr-warning exr-warning--mt">
-                                <span class="exr-warning__icon material-symbols-outlined">warning</span>
-                                <div class="exr-warning__body">
-                                    <p class="exr-warning__title">CẢNH BÁO</p>
-                                    <p class="exr-warning__text">Mọi thao tác đều được lưu lại trong hệ thống.</p>
-                                </div>
-                            </div>
-                        </aside>
+                        </form>
                     </div>
-                </form>
+
+                    <aside class="score-entry-col score-entry-col--penalties">
+                        <jsp:include page="/views/examiner/components/faults.jsp" />
+                        <div class="exr-warning exr-warning--mt">
+                            <span class="exr-warning__icon material-symbols-outlined">warning</span>
+                            <div class="exr-warning__body">
+                                <p class="exr-warning__title">CẢNH BÁO</p>
+                                <p class="exr-warning__text">Mọi thao tác đều được lưu lại trong hệ thống.</p>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
             </main>
         </div>
 
