@@ -33,6 +33,24 @@
                     </p>
                 </header>
 
+                <%--account type switcher: mirrors the registrant login page--%>
+                <nav class="staff-login__tabs" aria-label="Chọn loại tài khoản">
+                    <a class="staff-login__tab" href="${ctx}/login">
+                        <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                        Người đăng ký thi
+                    </a>
+                    <span class="staff-login__tab staff-login__tab--active" aria-current="page">
+                        <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+                        Cán bộ, nhân viên
+                    </span>
+                </nav>
+
+                <%--role hint: the account itself decides the landing page--%>
+                <p class="staff-login__roles">
+                    Dùng chung cho Quản trị viên, Sát hạch viên, Cán bộ quản lý,
+                    Cán bộ kỳ thi và Cán bộ CSGT. Hệ thống tự chuyển đúng khu vực theo tài khoản.
+                </p>
+
                 <%--case 1: error--%>
                 <c:if test="${not empty error}">
                     <div class="staff-login__alert staff-login__alert--error" role="alert">

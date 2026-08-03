@@ -68,12 +68,21 @@ public class ExaminerFilter extends HttpFilter {
             return;
         }
 
+        // The shift-selection page manages its own state and must not be gated by it.
+        String path = requestPath(request);
+        if (SESSION_SELECT_PATH.equals(path)) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         // Account pages do not require an active exam session. In particular, the
         // forced first-login password page must remain reachable before a shift is selected.
-        String path = requestPath(request);
-        if (SESSION_SELECT_PATH.equals(path)
-                || PROFILE_PATH.equals(path)
-                || CHANGE_PASSWORD_PATH.equals(path)) {
+        // They still render the shared examiner shell, so mirror whatever context exists:
+        // skipping this left the sidebar permanently locked and the header stuck on
+        // "Chưa có ca" even when a shift was already selected.
+        if (PROFILE_PATH.equals(path) || CHANGE_PASSWORD_PATH.equals(path)) {
+            refreshSession(session, user.getUserId());
+            updateRequest(session, request);
             chain.doFilter(request, response);
             return;
         }

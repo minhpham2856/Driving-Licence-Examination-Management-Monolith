@@ -151,14 +151,16 @@ public class ExamEntranceServlet extends HttpServlet {
         long now = System.currentTimeMillis();
         Long lockedUntil = (Long) session.getAttribute(LOCKED_UNTIL);
         if (lockedUntil != null && lockedUntil > now) {
-            showEntranceError(request, response);
+            showEntranceError(request, response,
+                    "Đã nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút.");
             return;
         }
 
-        CandidateExamContextDTO context = accessService.authenticate(examId, request.getParameter("sbd"));
+        String sbd = request.getParameter("sbd");
+        CandidateExamContextDTO context = accessService.authenticate(examId, sbd);
         if (context == null) {
             registerFailure(session, now);
-            showEntranceError(request, response);
+            showEntranceError(request, response, accessService.resolveEntranceBlockReason(examId, sbd));
             return;
         }
 
@@ -312,9 +314,12 @@ public class ExamEntranceServlet extends HttpServlet {
         request.getRequestDispatcher("/views/exam/exam-login.jsp").forward(request, response);
     }
 
-    private void showEntranceError(HttpServletRequest request, HttpServletResponse response)
+    private void showEntranceError(HttpServletRequest request, HttpServletResponse response, String specificReason)
             throws ServletException, IOException {
-        request.setAttribute("error", "Số báo danh không hợp lệ hoặc thí sinh chưa đủ điều kiện vào thi.");
+        String message = specificReason != null && !specificReason.isBlank()
+                ? specificReason
+                : "Số báo danh không hợp lệ.";
+        request.setAttribute("error", message);
         request.getRequestDispatcher("/views/exam/exam-entrance.jsp").forward(request, response);
     }
 

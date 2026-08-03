@@ -54,8 +54,20 @@
                 <div class="auth-split__form-inner">
                     <header class="auth-split__form-header">
                         <h2>Chào mừng trở lại</h2>
-                        <p>Nhập thông tin để truy cập tài khoản.</p>
+                        <p>Chọn loại tài khoản rồi nhập thông tin đăng nhập.</p>
                     </header>
+
+                    <%--account type switcher: registrant (this page) vs internal staff--%>
+                    <nav class="auth-tabs" aria-label="Chọn loại tài khoản">
+                        <span class="auth-tab auth-tab--active" aria-current="page">
+                            <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                            Người đăng ký thi
+                        </span>
+                        <a class="auth-tab" href="${ctx}/staff/login">
+                            <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+                            Cán bộ, nhân viên
+                        </a>
+                    </nav>
 
                     <%--case 1: error--%>
                     <c:if test="${not empty error}">
@@ -142,6 +154,17 @@
                             </p>
                         </div>
                     </form>
+
+                    <%--kiosk entry: candidates sitting the exam do not have an account--%>
+                    <div class="auth-kiosk">
+                        <p class="auth-kiosk__hint">
+                            Bạn là thí sinh đang có mặt tại phòng thi?
+                        </p>
+                        <a class="auth-kiosk__btn" href="${ctx}/exam/login">
+                            <span class="material-symbols-outlined" aria-hidden="true">quiz</span>
+                            Vào ca thi
+                        </a>
+                    </div>
                 </div>
             </section>
         </main>

@@ -123,6 +123,16 @@
         <h1 class="account-hero__title">Đổi mật khẩu</h1>
         <p class="account-hero__sub">Sử dụng mật khẩu mới đủ mạnh và không chia sẻ với người khác.</p>
     </header>
+    <%--first login: admin-created account must replace its temporary password--%>
+    <c:if test="${sessionScope.forceChangePassword}">
+        <div class="account-alert account-alert--warning" role="status">
+            <span class="material-symbols-outlined" aria-hidden="true">info</span>
+            <span>
+                Đây là lần đăng nhập đầu tiên. Bạn phải đổi mật khẩu tạm thời do quản trị viên cấp
+                trước khi sử dụng hệ thống. Sau khi đổi xong bạn sẽ được đưa về trang làm việc.
+            </span>
+        </div>
+    </c:if>
     <%--flash message--%>
     <c:if test="${not empty message}">
         <div class="account-alert account-alert--${messageType eq 'success' ? 'success' : 'error'}"

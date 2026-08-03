@@ -12,6 +12,10 @@ public interface CandidateExamAccessDAO {
 
     CandidateExamContextDTO getEligibleTheoryContext(int examId, String candidateNumber);
 
+    // Diagnoses why getEligibleTheoryContext returned null, for a specific candidate-facing message.
+    // Returns null when the SBD simply doesn't match any theory enrollment for this exam.
+    String resolveEntranceBlockReason(int examId, String candidateNumber);
+
     boolean startTheoryAttempt(CandidateExamContextDTO context, int questionLimit);
 
     CandidateExamResultDTO submit(int theoryPaperId, CandidateExamContextDTO context,

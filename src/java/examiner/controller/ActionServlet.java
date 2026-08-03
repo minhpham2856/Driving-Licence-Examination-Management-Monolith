@@ -102,9 +102,11 @@ public class ActionServlet extends HttpServlet {
         // Each branch delegates to ActionService then redirects with flash query params for action.jsp.
         switch (action) {
             case "call" -> {
-                if (sbd == null || !actionService.actionCandidate(activeExamId, sbd, user, userId,
-                        sectionType, "Khu vực thi").isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=callFailed");
+                examiner.dto.ServiceResult<Void> callResult = sbd == null ? null
+                        : actionService.actionCandidate(activeExamId, sbd, user, userId, sectionType, "Khu vực thi");
+                if (callResult == null || !callResult.isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCodeOrDefault(callResult, "callFailed")));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?called=" + RequestUtil.urlEncode(sbd));
@@ -115,9 +117,12 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
                     return true;
                 }
-                if (!actionService.undoPresent(activeExamId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=undoPresentFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
+                examiner.dto.ServiceResult<Void> undoResult =
+                        actionService.undoPresent(activeExamId, sbd, userId, sectionType);
+                if (!undoResult.isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCodeOrDefault(undoResult, "undoPresentFailed"))
+                            + "&sbd=" + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?undoPresent="
@@ -132,14 +137,9 @@ public class ActionServlet extends HttpServlet {
                 examiner.dto.ServiceResult<Void> presentResult =
                         actionService.markPresent(activeExamId, sbd, userId, sectionType);
                 if (!presentResult.isSuccess()) {
-                    String errorCode = presentResult.getMessage() != null
-                            && ("procedureIncomplete".equals(presentResult.getMessage().trim())
-                            || "candidateNotEligibleForPractical".equals(presentResult.getMessage().trim()))
-                            ? presentResult.getMessage().trim()
-                            : "presentFailed";
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error="
-                            + RequestUtil.urlEncode(errorCode) + "&sbd="
-                            + RequestUtil.urlEncode(sbd));
+                            + RequestUtil.urlEncode(errorCodeOrDefault(presentResult, "presentFailed"))
+                            + "&sbd=" + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?presentDone="
@@ -151,9 +151,12 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
                     return true;
                 }
-                if (!actionService.sendWrongInfoToProcedure(activeExamId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=wrongInfoFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
+                examiner.dto.ServiceResult<Void> wrongInfoResult =
+                        actionService.sendWrongInfoToProcedure(activeExamId, sbd, userId, sectionType);
+                if (!wrongInfoResult.isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCodeOrDefault(wrongInfoResult, "wrongInfoFailed"))
+                            + "&sbd=" + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?wrongInfoDone="
@@ -165,9 +168,12 @@ public class ActionServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/examiner/action?error=noSbd");
                     return true;
                 }
-                if (!actionService.printResultForm(activeExamId, sbd, userId, sectionType).isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=resultPrintFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
+                examiner.dto.ServiceResult<Void> printResult =
+                        actionService.printResultForm(activeExamId, sbd, userId, sectionType);
+                if (!printResult.isSuccess()) {
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCodeOrDefault(printResult, "resultPrintFailed"))
+                            + "&sbd=" + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/print?type=result&sbd="
@@ -181,14 +187,10 @@ public class ActionServlet extends HttpServlet {
                 }
                 examiner.dto.ServiceResult<Void> res = actionService.completeCandidateSection(
                         activeExamId, sbd, userId, null, sectionType);
-                if (res != null && "needResultPrint".equals(res.getMessage())) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=needResultPrint&sbd="
-                            + RequestUtil.urlEncode(sbd));
-                    return true;
-                }
                 if (res != null && !res.isSuccess()) {
-                    response.sendRedirect(request.getContextPath() + "/examiner/action?error=completeFailed&sbd="
-                            + RequestUtil.urlEncode(sbd));
+                    response.sendRedirect(request.getContextPath() + "/examiner/action?error="
+                            + RequestUtil.urlEncode(errorCodeOrDefault(res, "completeFailed"))
+                            + "&sbd=" + RequestUtil.urlEncode(sbd));
                     return true;
                 }
                 response.sendRedirect(request.getContextPath() + "/examiner/action?completeDone="
@@ -208,5 +210,11 @@ public class ActionServlet extends HttpServlet {
                 return false;
             }
         }
+    }
+
+    // Prefer the service's specific error message/code over a generic fallback.
+    private static String errorCodeOrDefault(examiner.dto.ServiceResult<Void> result, String fallback) {
+        String message = result != null ? result.getMessage() : null;
+        return (message != null && !message.isBlank()) ? message.trim() : fallback;
     }
 }

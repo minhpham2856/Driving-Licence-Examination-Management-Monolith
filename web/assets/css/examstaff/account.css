@@ -162,6 +162,13 @@ body.account-portal .account-panel {
   color: var(--account-err-fg);
 }
 
+/* Mandatory first-login password change notice */
+.account-alert--warning {
+  background: #fffbeb;
+  border-color: #fcd34d;
+  color: #92400e;
+}
+
 .account-identity {
   display: flex;
   align-items: center;

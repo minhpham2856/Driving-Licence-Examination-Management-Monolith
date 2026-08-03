@@ -12,6 +12,9 @@ public interface CandidateExamAccessService {
 
     CandidateExamContextDTO authenticate(int examId, String candidateNumber);
 
+    // Specific reason authenticate() returned null, for display at the kiosk; null if SBD simply doesn't match.
+    String resolveEntranceBlockReason(int examId, String candidateNumber);
+
     boolean start(CandidateExamContextDTO context);
 
     CandidateExamResultDTO submit(CandidateExamContextDTO context, Map<Integer, String> answers);

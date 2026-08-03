@@ -127,6 +127,29 @@ p {
     flex-shrink: 0;
 }
 
+/* Kiosk entry for candidates sitting the exam (no account needed) */
+.top-nav-bar__btn-exam {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #0052cc;
+    background-color: #ffffff;
+    border: 1px solid #0052cc;
+    border-radius: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.top-nav-bar__btn-exam:hover {
+    background-color: #eff6ff;
+    color: #003d9b;
+}
+
 .top-nav-bar__btn-login {
     display: inline-flex;
     align-items: center;
@@ -193,14 +216,24 @@ p {
     }
 
     .top-nav-bar__link,
+    .top-nav-bar__btn-exam,
     .top-nav-bar__btn-login,
     .top-nav-bar__btn-register {
         font-size: 14px;
         line-height: 20px;
     }
 
+    .top-nav-bar__actions {
+        gap: 8px;
+    }
+
+    .top-nav-bar__btn-exam,
     .top-nav-bar__btn-register {
-        padding: 8px 16px;
+        padding: 8px 12px;
+    }
+
+    .top-nav-bar__btn-login {
+        padding: 8px 10px;
     }
 }
 

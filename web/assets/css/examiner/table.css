@@ -137,6 +137,14 @@
     color: #434654;
 }
 
+.table-hint {
+    display: inline-block;
+    font-size: 11px;
+    line-height: 14px;
+    color: #8a8d99;
+    font-style: italic;
+}
+
 .tag {
     display: inline-block;
     padding: 5px 9px;

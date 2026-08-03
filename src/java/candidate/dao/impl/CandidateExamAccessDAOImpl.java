@@ -155,6 +155,93 @@ public class CandidateExamAccessDAOImpl extends DBContext implements CandidateEx
         }
     }
 
+    @Override
+    public String resolveEntranceBlockReason(int examId, String candidateNumber) {
+        if (examId <= 0 || candidateNumber == null || candidateNumber.isBlank()) {
+            return null;
+        }
+        String normalizedSbd = candidateNumber.trim();
+        Integer numericSbd = parseNumericSbd(normalizedSbd);
+        String sql = """
+                SELECT TOP 1 c.IsAbsent, c.IsSuspended, c.PhotoImageUrl,
+                       (SELECT COUNT(1) FROM Payment pay
+                        WHERE pay.ExamEnrollmentId = ee.ExamEnrollmentId
+                          AND pay.PaymentStatus = N'Hoàn tất') AS PaidCount,
+                       e.Status AS ExamStatusValue,
+                       COALESCE(ees.ExamAreaId, scheduleArea.ExamAreaId) AS ExamAreaId,
+                       ees.CheckedInAt, ees.Status AS SectionStatusValue
+                FROM Candidate c
+                INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
+                INNER JOIN Exam e ON e.ExamId = ee.ExamId
+                INNER JOIN ExamEnrollmentSection ees ON ees.ExamEnrollmentId = ee.ExamEnrollmentId
+                INNER JOIN ExamSection es ON es.ExamSectionId = ees.ExamSectionId
+                OUTER APPLY (
+                    SELECT TOP 1 x.ExamAreaId
+                    FROM ExaminerSchedule x
+                    WHERE x.ExamId = ee.ExamId
+                      AND x.ExamSectionId = ees.ExamSectionId
+                      AND x.ExamAreaId IS NOT NULL
+                    ORDER BY x.ExaminerScheduleId
+                ) scheduleArea
+                WHERE ee.ExamId = ?
+                  AND (c.CandidateNumber = ? OR (? IS NOT NULL AND TRY_CAST(c.CandidateNumber AS INT) = ?))
+                  AND es.SectionType = ?
+                ORDER BY e.ExamDate DESC, ees.ExamEnrollmentSectionId DESC
+                """;
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, examId);
+            ps.setString(2, normalizedSbd);
+            if (numericSbd == null) {
+                ps.setNull(3, Types.INTEGER);
+                ps.setNull(4, Types.INTEGER);
+            } else {
+                ps.setInt(3, numericSbd);
+                ps.setInt(4, numericSbd);
+            }
+            ps.setString(5, SectionType.THEORY.getValue());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    // No matching theory enrollment at all for this SBD/exam - genuinely wrong SBD.
+                    return null;
+                }
+                if (rs.getBoolean("IsAbsent")) {
+                    return "Thí sinh đã được ghi nhận vắng thi.";
+                }
+                if (rs.getBoolean("IsSuspended")) {
+                    return "Thí sinh đã bị đình chỉ thi.";
+                }
+                String photoUrl = rs.getString("PhotoImageUrl");
+                if (photoUrl == null || photoUrl.isBlank()) {
+                    return "Thí sinh chưa có ảnh chụp hợp lệ. Liên hệ phòng thủ tục.";
+                }
+                if (rs.getInt("PaidCount") <= 0) {
+                    return "Thí sinh chưa hoàn tất thanh toán lệ phí thi.";
+                }
+                String examStatusValue = rs.getString("ExamStatusValue");
+                if (!ExamStatus.IN_PROGRESS.getValue().equals(examStatusValue)) {
+                    return "Kỳ thi chưa ở trạng thái đang diễn ra.";
+                }
+                rs.getInt("ExamAreaId");
+                if (rs.wasNull()) {
+                    return "Chưa xếp khu vực thi cho phần thi lý thuyết. Liên hệ cán bộ tổ chức thi.";
+                }
+                if (rs.getTimestamp("CheckedInAt") == null) {
+                    return "Thí sinh chưa được cán bộ coi thi điểm danh.";
+                }
+                String sectionStatusValue = rs.getString("SectionStatusValue");
+                if (!CandidateStatus.NOT_STARTED.getValue().equals(sectionStatusValue)
+                        && !CandidateStatus.IN_PROGRESS.getValue().equals(sectionStatusValue)) {
+                    return "Phần thi lý thuyết của thí sinh đã hoàn tất hoặc không còn khả dụng.";
+                }
+                // All checks passed - likely a transient race; fall back to the generic message.
+                return null;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
     private boolean passwordMatches(String rawPassword, String storedPassword) {
         if (rawPassword == null || storedPassword == null || storedPassword.isBlank()) {
             return false;

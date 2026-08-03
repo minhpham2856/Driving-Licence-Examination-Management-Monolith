@@ -27,6 +27,11 @@ public class CandidateExamAccessServiceImpl implements CandidateExamAccessServic
     }
 
     @Override
+    public String resolveEntranceBlockReason(int examId, String candidateNumber) {
+        return accessDAO.resolveEntranceBlockReason(examId, candidateNumber);
+    }
+
+    @Override
     public boolean start(CandidateExamContextDTO context) {
         if (context == null) {
             return false;

@@ -45,6 +45,7 @@ public class CandidateRowDTO {
     private boolean actionEligible;
     private boolean violationEligible;
     private boolean markPresentEligible;
+    private String markPresentBlockedReason;
     private boolean undoPresentEligible;
     private boolean wrongInfoEligible;
     private boolean completeEligible;
@@ -365,6 +366,14 @@ public class CandidateRowDTO {
 
     public void setMarkPresentEligible(boolean markPresentEligible) {
         this.markPresentEligible = markPresentEligible;
+    }
+
+    public String getMarkPresentBlockedReason() {
+        return markPresentBlockedReason;
+    }
+
+    public void setMarkPresentBlockedReason(String markPresentBlockedReason) {
+        this.markPresentBlockedReason = markPresentBlockedReason;
     }
 
     public boolean isUndoPresentEligible() {

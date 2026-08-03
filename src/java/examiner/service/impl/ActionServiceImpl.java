@@ -523,9 +523,12 @@ public class ActionServiceImpl implements ActionService {
                 }
             }
         }
-        if (enrollmentRecord != null
-                && (enrollment.getSectionStatus() == null || enrollment.getSectionStatus() == CandidateStatus.NOT_STARTED)) {
-            ensureSectionAreaFromSchedule(examId, enrollmentRecord.getExamEnrollmentId(), sessionSection, actionUserId);
+        if (enrollmentRecord != null && enrollment.getSectionStatus() == CandidateStatus.NOT_STARTED) {
+            if (!ensureSectionAreaFromSchedule(examId, enrollmentRecord.getExamEnrollmentId(), sessionSection, actionUserId)) {
+                // Without a resolvable ExamAreaId the candidate's kiosk login gate will still
+                // reject them even though this "điểm danh" call reports success below, so fail fast here.
+                return ServiceResult.fail(ErrorType.VALIDATION_FAILED, "noExamAreaAssigned");
+            }
             if (!enrollmentSectionDAO.markCheckedIn(
                     enrollmentRecord.getExamEnrollmentId(), sessionSection.getValue(), actionUserId)) {
                 return ServiceResult.fail(ErrorType.PERSISTENCE_FAILED, "Không thể cập nhật trạng thái phần thi.");
@@ -538,19 +541,22 @@ public class ActionServiceImpl implements ActionService {
         return ServiceResult.ok(null);
     }
 
-    private void ensureSectionAreaFromSchedule(int examId, int examEnrollmentId, SectionType sectionType,
+    // Resolves and persists the section's ExamAreaId so the candidate kiosk entrance gate
+    // (which requires a non-null ExamAreaId) will not silently reject the candidate later.
+    // Returns false when no ExamAreaId could be resolved at all - not just for this examiner.
+    private boolean ensureSectionAreaFromSchedule(int examId, int examEnrollmentId, SectionType sectionType,
             Integer examinerUserId) {
-        if (examId <= 0 || examEnrollmentId <= 0 || sectionType == null || examinerUserId == null) {
-            return;
+        if (examId <= 0 || examEnrollmentId <= 0 || sectionType == null) {
+            return false;
         }
         int existingAreaId = enrollmentSectionDAO.getIfAreaIdByEnrollmentAndSection(
                 examEnrollmentId, sectionType.getValue());
         if (existingAreaId > 0) {
-            return;
+            return true;
         }
+        Integer resolvedAreaId = null;
         for (ExaminerSchedule schedule : scheduleDAO.getByExamId(examId)) {
-            if (schedule == null || schedule.getExaminerId() != examinerUserId
-                    || schedule.getExamAreaId() == null || schedule.getExamAreaId() <= 0
+            if (schedule == null || schedule.getExamAreaId() == null || schedule.getExamAreaId() <= 0
                     || schedule.getExamSectionId() == null) {
                 continue;
             }
@@ -558,10 +564,20 @@ public class ActionServiceImpl implements ActionService {
             if (scheduledSection == null || SectionType.fromValue(scheduledSection.getSectionType()) != sectionType) {
                 continue;
             }
-            enrollmentSectionDAO.updateExamAreaIdByEnrollmentIdAndSectionType(
-                    examEnrollmentId, sectionType.getValue(), schedule.getExamAreaId());
-            return;
+            if (examinerUserId != null && schedule.getExaminerId() == examinerUserId) {
+                resolvedAreaId = schedule.getExamAreaId();
+                break;
+            }
+            if (resolvedAreaId == null) {
+                resolvedAreaId = schedule.getExamAreaId();
+            }
         }
+        if (resolvedAreaId == null) {
+            return false;
+        }
+        enrollmentSectionDAO.updateExamAreaIdByEnrollmentIdAndSectionType(
+                examEnrollmentId, sectionType.getValue(), resolvedAreaId);
+        return true;
     }
 
     // Reverses attendance and rolls back in-progress section status when allowed.

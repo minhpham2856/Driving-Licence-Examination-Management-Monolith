@@ -795,12 +795,15 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone
                 && practicalEntryAllowed);
         row.setViolationEligible(sectionRequired && !enrollment.isSuspended());
-        row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
+        boolean markPresentEligible = sectionRequired && !enrollment.isSuspended()
                 && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
                 && practicalAttendanceAllowed
                 && enrollment.isPaymentCompleted()
-                && enrollment.isValidCapturedPhoto());
+                && enrollment.isValidCapturedPhoto();
+        row.setMarkPresentEligible(markPresentEligible);
+        row.setMarkPresentBlockedReason(resolveMarkPresentBlockedReason(enrollment, sectionStatus,
+                sectionRequired, practicalAttendanceAllowed, markPresentEligible));
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED);
@@ -929,12 +932,15 @@ public class ExamViewServiceImpl implements ExamViewService {
         row.setActionEligible(sectionRequired && !enrollment.isSuspended() && notDone
                 && practicalEntryAllowed);
         row.setViolationEligible(sectionRequired && !enrollment.isSuspended());
-        row.setMarkPresentEligible(sectionRequired && !enrollment.isSuspended()
+        boolean markPresentEligible = sectionRequired && !enrollment.isSuspended()
                 && !enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED
                 && practicalAttendanceAllowed
                 && enrollment.isPaymentCompleted()
-                && enrollment.isValidCapturedPhoto());
+                && enrollment.isValidCapturedPhoto();
+        row.setMarkPresentEligible(markPresentEligible);
+        row.setMarkPresentBlockedReason(resolveMarkPresentBlockedReason(enrollment, sectionStatus,
+                sectionRequired, practicalAttendanceAllowed, markPresentEligible));
         row.setUndoPresentEligible(sectionRequired && !enrollment.isSuspended()
                 && enrollment.isPresent()
                 && sectionStatus == CandidateStatus.NOT_STARTED);
@@ -1086,6 +1092,27 @@ public class ExamViewServiceImpl implements ExamViewService {
             return score >= THEORY_PASS_CORRECT;
         }
         return score >= 80;
+    }
+
+    // Explains why the "Điểm danh" button is hidden so the JSP can show a reason instead of nothing.
+    private String resolveMarkPresentBlockedReason(EnrollmentDTO enrollment, CandidateStatus sectionStatus,
+            boolean sectionRequired, boolean practicalAttendanceAllowed, boolean markPresentEligible) {
+        if (markPresentEligible || !sectionRequired || enrollment.isSuspended()
+                || enrollment.isPresent() || sectionStatus != CandidateStatus.NOT_STARTED) {
+            // Not applicable: already eligible, not required, suspended, already present,
+            // or in a status where mark/undo present isn't the relevant action anyway.
+            return null;
+        }
+        if (!practicalAttendanceAllowed) {
+            return "Phải điểm danh lý thuyết trước khi điểm danh thực hành.";
+        }
+        if (!enrollment.isPaymentCompleted()) {
+            return "Chưa thanh toán lệ phí thi.";
+        }
+        if (!enrollment.isValidCapturedPhoto()) {
+            return "Chưa có ảnh chụp hợp lệ.";
+        }
+        return null;
     }
 
     private String resolveActionResultLabel(EnrollmentDTO enrollment, Double score,

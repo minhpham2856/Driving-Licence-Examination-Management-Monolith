@@ -167,6 +167,26 @@ body {
     cursor: pointer;
 }
 
+.exam-kiosk-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 22px;
+    color: var(--exam-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.exam-kiosk-back:hover {
+    color: var(--exam-accent);
+    text-decoration: underline;
+}
+
+.exam-kiosk-back .material-symbols-outlined {
+    font-size: 18px;
+}
+
 .exam-info-grid {
     display: grid;
     gap: 14px;

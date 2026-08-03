@@ -67,6 +67,53 @@ html, body.staff-login-body {
     line-height: 1.4;
 }
 
+/* Account-type switcher: mirrors the registrant login page */
+.staff-login__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+    background: var(--sl-soft);
+    border: 1px solid var(--sl-line);
+}
+
+.staff-login__tab {
+    flex: 1 1 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    color: var(--sl-muted);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.staff-login__tab:hover { color: var(--sl-brand); }
+
+.staff-login__tab--active {
+    background: #fff;
+    color: var(--sl-brand);
+    box-shadow: 0 1px 3px rgba(19, 27, 46, 0.12);
+}
+
+.staff-login__tab .material-symbols-outlined { font-size: 18px; }
+
+/* Which roles this gate covers - the account itself decides the destination */
+.staff-login__roles {
+    margin: 0 0 1.25rem;
+    padding: 10px 12px;
+    background: var(--sl-soft);
+    border: 1px solid var(--sl-line);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--sl-muted);
+    text-align: center;
+}
+
 .staff-login__alert {
     display: flex;
     align-items: flex-start;

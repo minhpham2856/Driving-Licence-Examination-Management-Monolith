@@ -121,6 +121,13 @@
                                             </button>
                                         </form>
                                     </c:if>
+
+                                    <%--case 3: not eligible, show reason instead of a silently missing button--%>
+                                    <c:if test="${candidate.sectionRequired and not candidate.markPresentEligible
+                                                  and not candidate.undoPresentEligible
+                                                  and not empty candidate.markPresentBlockedReason}">
+                                        <span class="table-hint">${candidate.markPresentBlockedReason}</span>
+                                    </c:if>
                                 </td>
 
                                 <%--call--%>

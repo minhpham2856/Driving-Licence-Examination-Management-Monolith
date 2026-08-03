@@ -66,6 +66,7 @@
                 </nav>
 
                 <div class="top-nav-bar__actions" data-node-id="1:1232">
+                    <a href="${ctx}/exam/login" class="top-nav-bar__btn-exam">Vào ca thi</a>
                     <a href="${ctx}/login" class="top-nav-bar__btn-login">Đăng nhập</a>
                     <a href="${ctx}/register" class="top-nav-bar__btn-register">Đăng ký</a>
                 </div>

@@ -132,6 +132,12 @@ public final class ExaminerFlashMessages {
                 return "Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.";
             case "theoryAttendanceRequired":
                 return "Thí sinh phải điểm danh lý thuyết trước khi điểm danh thực hành.";
+            case "noExamAreaAssigned":
+                if (notBlank(sbd)) {
+                    return "Chưa xếp khu vực thi cho phần thi này nên không thể điểm danh SBD "
+                            + sbd + ". Liên hệ cán bộ tổ chức thi.";
+                }
+                return "Chưa xếp khu vực thi cho phần thi này nên không thể điểm danh. Liên hệ cán bộ tổ chức thi.";
             case "procedureIncomplete":
                 return "Thí sinh chưa hoàn tất thủ tục (thanh toán/ảnh) nên chưa điểm danh được.";
             case "vehicleInvalid":
@@ -225,8 +231,38 @@ public final class ExaminerFlashMessages {
                 return "Thí sinh chưa đủ điều kiện thi thực hành hoặc đã trượt lý thuyết.";
             case "scoreEditNotAllowed":
                 return "Chỉ có thể sửa kết quả khi thí sinh đã lưu điểm (chờ ký) hoặc đã hoàn tất phần thi.";
+            case "noAction":
+                return "Chưa chọn thao tác cần thực hiện.";
+            case "callFailed":
+                return "Không gọi được thí sinh vào khu vực thi.";
+            case "invalid":
+                return "Mã kỳ thi không hợp lệ.";
+            case "denied":
+                return "Bạn không được phân công coi thi kỳ thi này.";
+            case "notActive":
+                return "Kỳ thi không tồn tại hoặc chưa ở trạng thái đang diễn ra.";
+            case "paused":
+                return "Kỳ thi đang tạm dừng.";
+            case "theoryNoScoreEntry":
+                return "Phần thi lý thuyết không có chức năng nhập điểm.";
+            case "violationFailed":
+                return "Không lưu được biên bản vi phạm.";
+            case "notFound":
+                if (notBlank(sbd)) {
+                    return "Không tìm thấy thí sinh SBD " + sbd + ".";
+                }
+                return "Không tìm thấy thí sinh.";
+            case "notRequired":
+                return "Thí sinh không thi phần này.";
+            case "alreadyCompleted":
+                if (notBlank(sbd)) {
+                    return "Thí sinh SBD " + sbd + " đã hoàn tất phần thi này.";
+                }
+                return "Thí sinh đã hoàn tất phần thi này.";
             default:
-                return null;
+                // Service layer already produces a specific, human-readable Vietnamese message
+                // for any code not covered above; surface it as-is instead of hiding it.
+                return notBlank(error) ? error.trim() : null;
         }
     }
 
