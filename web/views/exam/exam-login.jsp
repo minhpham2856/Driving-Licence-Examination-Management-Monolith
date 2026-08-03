@@ -53,11 +53,6 @@
                     </button>
                 </form>
 
-                <%--escape hatch: anyone who opened this screen by mistake--%>
-                <a class="exam-kiosk-back" href="${ctx}/home">
-                    <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-                    Về trang chủ
-                </a>
             </section>
         </main>
     </body>

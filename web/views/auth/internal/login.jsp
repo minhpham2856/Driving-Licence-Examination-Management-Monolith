@@ -45,11 +45,6 @@
                     </span>
                 </nav>
 
-                <%--role hint: the account itself decides the landing page--%>
-                <p class="staff-login__roles">
-                    Dùng chung cho Quản trị viên, Sát hạch viên, Cán bộ quản lý,
-                    Cán bộ kỳ thi và Cán bộ CSGT. Hệ thống tự chuyển đúng khu vực theo tài khoản.
-                </p>
 
                 <%--case 1: error--%>
                 <c:if test="${not empty error}">
