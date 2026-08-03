@@ -895,7 +895,7 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 """ + SESSION_SCHEDULE_COLUMNS + """
                        l.LicenceClass,
                        ea.AreaName,
-                       CAST(NULL AS NVARCHAR(50)) AS RegistrationStatus,
+                       erLifecycle.RegistrationStatus AS RegistrationStatus,
                        theoryEes.Status AS sectionStatus,
                        (SELECT TOP 1 sec.SectionType
                         FROM ExamSection sec
@@ -911,6 +911,8 @@ public class RegistrantDAOImpl extends DBContext implements RegistrantDAO {
                 INNER JOIN ExamEnrollment ee ON ee.CandidateId = c.CandidateId
                 INNER JOIN Exam ex ON ex.ExamId = ee.ExamId
                 INNER JOIN Licence l ON l.LicenceId = ex.LicenceId
+                LEFT JOIN ExamRegistration erLifecycle
+                       ON erLifecycle.ExamRegistrationId = ee.ExamRegistrationId
                 """
             + Db2ExamSchemaSql.JOIN_THEORY_SECTION + """
                 """

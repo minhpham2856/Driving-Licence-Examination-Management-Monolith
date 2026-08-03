@@ -94,6 +94,11 @@ public final class RegistrantDocumentStatusHelper {
         if (!ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(normalizeRegistrationStatus(registrationStatus))) {
             return false;
         }
+        return hasAllRequiredDocumentsUploaded(allDocs);
+    }
+
+    /** True nếu đã tải đủ 4 giấy tờ bắt buộc (Portrait, IdFront, IdBack, HealthCertificate). */
+    public static boolean hasAllRequiredDocumentsUploaded(List<RegistrantDocumentView> allDocs) {
         Map<String, RegistrantDocumentView> slots = RegistrantDocumentHelper.buildRequiredSlots(allDocs);
         for (String type : REQUIRED_TYPES) {
             if (!hasUploadedFile(slots.get(type))) {

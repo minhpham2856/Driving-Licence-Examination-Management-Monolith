@@ -166,8 +166,9 @@
                                         id="sex"
                                         name="sex"
                                         required>
-                                    <option value="0">Nam</option>
-                                    <option value="1">Nữ</option>
+                                    <%-- Khớp DB/seed + Profile: 1/true = Nam, 0/false = Nữ --%>
+                                    <option value="1">Nam</option>
+                                    <option value="0">Nữ</option>
                                 </select>
                             </div>
                         </div>

@@ -454,12 +454,18 @@
                                     <textarea id="request-note" name="requestNote" class="upload-card__reason" rows="2"
                                               placeholder="${profileApproved ? 'Ví dụ: Đã bổ sung hồ sơ cho hạng B1, nhờ ban quản lý xem xét.' : 'Ví dụ: Đã đủ giấy tờ hạng A1, nhờ ban quản lý xem xét.'}"></textarea>
                                     <button type="submit" class="welcome-banner__btn welcome-banner__btn--primary"
-                                            ${canRequestApproval ? '' : 'disabled'}>
+                                            ${canRequestApproval ? '' : 'disabled'}
+                                            <c:if test="${not empty approvalBlockedReason}">title="${fn:escapeXml(approvalBlockedReason)}"</c:if>>
                                         <c:choose>
                                             <c:when test="${profileApproved}">Gửi duyệt hồ sơ bổ sung</c:when>
                                             <c:otherwise>Gửi yêu cầu duyệt</c:otherwise>
                                         </c:choose>
                                     </button>
+                                    <c:if test="${not canRequestApproval and not empty approvalBlockedReason}">
+                                        <p class="upload-licence-picker__hint" role="status" style="margin-top:0.5rem;color:#b45309;">
+                                            ${fn:escapeXml(approvalBlockedReason)}
+                                        </p>
+                                    </c:if>
                                 </form>
                             </section>
                         </div>

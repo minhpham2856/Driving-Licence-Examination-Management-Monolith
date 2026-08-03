@@ -32,7 +32,7 @@
 
                 <%-- Breadcrumbs --%>
                 <nav class="breadcrumbs" aria-label="Breadcrumb">
-                    <a href="${pageContext.request.contextPath}/views/public/home.jsp">Trang chủ</a>
+                    <a href="${pageContext.request.contextPath}/home">Trang chủ</a>
                     <span class="breadcrumbs__separator" aria-hidden="true">/</span>
                     <span class="breadcrumbs__current" aria-current="page">Dashboard cá nhân</span>
                 </nav>

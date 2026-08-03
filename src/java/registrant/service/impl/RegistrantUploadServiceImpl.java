@@ -82,7 +82,9 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         model.put("approvalLicenceOptions", listApprovalLicenceOptions());
         model.put("hasSupplementAwaitingSubmit", RegistrantDocumentStatusHelper.hasSupplementAwaitingSubmit(docs));
         model.put("hasSupplementPendingReview", supplementPending);
-        model.put("canRequestApproval", canRequestApproval(registrationStatus, docs, supplementPending));
+        boolean canApprove = canRequestApproval(registrationStatus, docs, supplementPending);
+        model.put("canRequestApproval", canApprove);
+        model.put("approvalBlockedReason", approvalBlockedReason(registrationStatus, docs, supplementPending, canApprove));
         model.put("hasPendingReview", primaryPending || supplementPending);
         RegistrantProfileSupport.applySyncToMap(model, ctx.getSyncResult());
         return model;
@@ -226,8 +228,8 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
             RegistrantAuditHelper.logDocumentApprovalRequest(session, profile.getProfileId(),
                     (requestNote != null ? requestNote : "") + retakeLabel);
             return null;
-        } else if (!hasUploadableDocumentsForReview(docs)) {
-            return "Chưa có tài liệu nào để gửi duyệt. Vui lòng tải lên ít nhất một tệp.";
+        } else if (!RegistrantDocumentStatusHelper.hasAllRequiredDocumentsUploaded(docs)) {
+            return "Vui lòng tải đủ 4 giấy tờ bắt buộc (ảnh chân dung, CCCD mặt trước/sau, giấy khám sức khỏe) trước khi gửi duyệt.";
         }
 
         // A1/A/B1 (và hạng chỉ-4-giấy): không bắt buộc Hồ sơ khác khi gửi duyệt lần đầu
@@ -485,12 +487,7 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         DocumentUrlResolver.deleteStoredRef(request.getServletContext(), previousUrl);
     }
 
-    private static boolean hasUploadableDocumentsForReview(List<RegistrantDocumentView> docs) {
-        return docs.stream().anyMatch(doc ->
-                doc.getDocumentUrl() != null && !doc.getDocumentUrl().isBlank());
-    }
-
-    /** Nút Gửi duyệt: Draft cần ≥1 tệp; Approved: cho gửi xin duyệt hạng khác / hồ sơ khác nếu không còn Pending. */
+    /** Nút Gửi duyệt: Draft/Rejected cần đủ 4 giấy; Approved: xin duyệt hạng khác / hồ sơ khác nếu không còn Pending. */
     private static boolean canRequestApproval(String registrationStatus, List<RegistrantDocumentView> docs,
             boolean supplementErPending) {
         String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;
@@ -500,6 +497,25 @@ public class RegistrantUploadServiceImpl implements RegistrantUploadService {
         if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status)) {
             return !supplementErPending;
         }
-        return hasUploadableDocumentsForReview(docs);
+        return RegistrantDocumentStatusHelper.hasAllRequiredDocumentsUploaded(docs);
+    }
+
+    /** Lý do nút gửi duyệt bị khóa — null nếu có thể gửi. */
+    private static String approvalBlockedReason(String registrationStatus, List<RegistrantDocumentView> docs,
+            boolean supplementErPending, boolean canApprove) {
+        if (canApprove) {
+            return null;
+        }
+        String status = registrationStatus != null ? registrationStatus.trim() : ProfileRegistrationStatus.DRAFT;
+        if (ProfileRegistrationStatus.PENDING.equalsIgnoreCase(status)) {
+            return "Hồ sơ đang chờ ban quản lý duyệt.";
+        }
+        if (ProfileRegistrationStatus.APPROVED.equalsIgnoreCase(status) && supplementErPending) {
+            return "Hồ sơ bổ sung / xin duyệt hạng đang chờ duyệt.";
+        }
+        if (!RegistrantDocumentStatusHelper.hasAllRequiredDocumentsUploaded(docs)) {
+            return "Cần tải đủ 4 giấy tờ bắt buộc trước khi gửi yêu cầu duyệt.";
+        }
+        return null;
     }
 }
