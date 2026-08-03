@@ -155,16 +155,6 @@
                         </div>
                     </form>
 
-                    <%--kiosk entry: candidates sitting the exam do not have an account--%>
-                    <div class="auth-kiosk">
-                        <p class="auth-kiosk__hint">
-                            Bạn là thí sinh đang có mặt tại phòng thi?
-                        </p>
-                        <a class="auth-kiosk__btn" href="${ctx}/exam/login">
-                            <span class="material-symbols-outlined" aria-hidden="true">quiz</span>
-                            Vào ca thi
-                        </a>
-                    </div>
                 </div>
             </section>
         </main>

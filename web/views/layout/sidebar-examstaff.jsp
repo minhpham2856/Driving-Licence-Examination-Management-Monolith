@@ -336,6 +336,14 @@
 
         </a>
 
+        <a href="${ctx}/exam/login" target="_blank" rel="noopener noreferrer" class="side-nav-bar__link">
+
+            <span class="side-nav-bar__icon material-symbols-outlined" aria-hidden="true">quiz</span>
+
+            <span class="side-nav-bar__label">Thi LT</span>
+
+        </a>
+
     </nav>
 
     <div class="side-nav-bar__footer">
